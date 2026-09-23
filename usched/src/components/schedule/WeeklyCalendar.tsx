@@ -59,11 +59,16 @@ export default function WeeklyCalendar({ sections }: { sections: Section[] }) {
         ))}
 
         <div className="relative" style={{ height: rows * ROW_PX }}>
-          {Array.from({ length: rows / 2 }, (_, i) => (
-            <div key={i} className="absolute right-2 -translate-y-2 text-xs text-green-900/60" style={{ top: i * 2 * ROW_PX }}>
-              {i === 0 ? '' : format12(`${(startMin + i * 60) / 60}:00`)}
-            </div>
-          ))}
+          {Array.from({ length: rows }, (_, i) => {
+            const mins = startMin + i * 30
+            const onHour = mins % 60 === 0
+            return (
+              <div key={i} style={{ top: i * ROW_PX }}
+                className={`absolute right-2 -translate-y-2 text-xs ${onHour ? 'font-medium text-green-900/70' : 'text-green-900/45'}`}>
+                {i === 0 ? '' : format12(`${Math.floor(mins / 60)}:${mins % 60}`)}
+              </div>
+            )
+          })}
         </div>
 
         {DAYS.map((d) => (

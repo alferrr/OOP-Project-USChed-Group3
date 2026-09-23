@@ -41,4 +41,11 @@ describe('WeeklyCalendar', () => {
     expect(within(screen.getByTestId('col-TUE')).queryAllByTestId('block')).toHaveLength(0)
     expect(screen.getAllByText('CIS 2201 · A')).toHaveLength(2)
   })
+
+  it('labels the time gutter every 30 minutes, not just on the hour', () => {
+    render(<WeeklyCalendar sections={sections} />)
+    expect(screen.getByText('7:30 AM')).toBeInTheDocument()
+    expect(screen.getByText('8:00 AM')).toBeInTheDocument()
+    expect(screen.getByText('8:30 AM')).toBeInTheDocument()
+  })
 })
