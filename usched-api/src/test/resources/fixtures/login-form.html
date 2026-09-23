@@ -1,0 +1,51 @@
+<html><body>
+<form action="/Account/Login" class="login-form" id="loginForm" method="post" role="form">        <h3 class="semi-bold" style="padding-top:0px"><i class="fa fa-shield"></i> Login to your account</h3>
+        <hr />
+<input name="__RequestVerificationToken" type="hidden" value="SANITIZED-TOKEN" />
+<div class="form-body">
+    <div class="row">
+                <div class="col col-lg-12">
+                    <div id="section_Username" class="form-group">
+                        
+
+<label class="hidden">Username</label>
+<div class="input-group">
+    <span class="input-group-addon " id="btn_Username">
+        <i class="fa fa-user"></i>
+    </span>
+    <input Title="Please enter your ID number / username" class="form-control " data-val="true" data-val-maxlength="The field Username must be a string or array type with a maximum length of &#39;10&#39;." data-val-maxlength-max="10" data-val-required="The Username field is required." id="Username" mask="" name="Username" placeholder="Username" type="text" value="" />  
+</div>
+
+
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="Username" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+                <div class="col col-lg-12">
+                    <div id="section_Password" class="form-group">
+                        
+<label class="hidden">Password</label>
+<div class="input-group">
+    <span class="input-group-addon">
+        <i class="fa fa-key"></i>
+    </span>
+    <input Title="Please enter your password." class="form-control " data-val="true" data-val-required="The Password field is required." id="Password" name="Password" placeholder="Password" type="password" value="" />
+</div>
+
+
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="Password" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+    </div>
+</div>
+    <div class="form-actions">
+        <button type='submit' class='btn green pull-right'>Login <i class='m-icon-swapright m-icon-white'></i></button>
+    </div><br /><br />
+        <div class="forget-password">
+            <h4>Forgot your password ?</h4>
+            <p>
+                no worries, click <a data-ajax="true" data-ajax-begin="javascript: loading(&#39;content&#39;);" data-ajax-failure="javascript: ErrorResult(&#39;content&#39;);" data-ajax-mode="replace" data-ajax-update="#content" href="/Account/ForgotPassword">here</a> to reset your password.
+            </p>    
+        </div>
+    <div class='copyright'>2026 &copy; UNIVERSITY OF SAN CARLOS - ISMIS Version 2.0<br />Academic Module</div>
+</form>
+</body></html>

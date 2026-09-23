@@ -1,0 +1,142 @@
+<html><body><div id="OfferedCourseFilter">
+<form action="/CourseSchedule/CourseScheduleOffered?Length=14" class="AjaxForm" data-ajax="true" data-ajax-begin="javascript: loading('CourseScheduleOfferedList');" data-ajax-failure="javascript: ErrorResult('CourseScheduleOfferedList');" data-ajax-mode="replace" data-ajax-success="javascript: UpdateContent('','');" data-ajax-update="#CourseScheduleOfferedList" id="CourseScheduleCourseScheduleOffered" method="post" novalidate="novalidate">    <div class="col-lg-12">
+        <div class="portlet light">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class=" font-green-sharp"></i><span class="caption-subject font-green-sharp bold uppercase"> Choose term to view courses offered</span><br><br>
+                </div>
+                    <div class="tools">
+                        <a href="javascript:;" class="remove" data-dismiss="modal"></a>
+                    </div>
+            </div>
+            <div class="portlet-body form">
+                <div class="form-body">
+                    
+                    <div class="">
+                        
+<div class="form-body">
+    <div class="row">
+                <div class="col col-lg-4">
+                    <div id="section_Courses" class="form-group">
+                        
+
+<label>Type Course Code or Course Description</label>
+<div class="input-group">
+    <span class="input-group-addon " id="btn_Courses">
+        <i class="fa fa-university"></i>
+    </span>
+    <input title="Type Course Code or Course Description" class="form-control " id="Courses" mask="" name="Courses" placeholder="Type Course Code or Course Description" type="text" value="">  
+</div>
+
+
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="Courses" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+                <div class="col col-lg-4">
+                    <div id="section_AcademicPeriod" class="form-group">
+                        
+
+
+
+
+
+
+<label>Academic Period</label>
+<div class="input-group">
+    <span class="input-group-addon">
+        <i class="fa fa-calendar"></i>
+    </span>
+
+    
+    
+    <select title="Please select academic period." class="form-control valid" data-val="true" data-val-required="The Academic Period field is required." id="AcademicPeriod" name="AcademicPeriod" placeholder="Academic Period" aria-required="true" aria-invalid="false" aria-describedby="AcademicPeriod-error"><option value="">Please select academic period.</option>
+<option selected="selected" value="NONE">None</option>
+<option value="FIRST_SEMESTER">1ST Semester</option>
+<option value="SECOND_SEMESTER">2ND Semester</option>
+<option value="SUMMER">Summer</option>
+<option value="FIRST_TRIMESTER">1ST Trimester</option>
+<option value="SECOND_TRIMESTER">2ND Trimester</option>
+<option value="THIRD_TRIMESTER">3RD Trimester</option>
+<option value="TRANSITION_SEMESTER">Transition Term</option>
+<option value="SENIORHIGH_TRANSITION_SEMESTER_1">Senior High - Transition Semester 1</option>
+<option value="SENIORHIGH_TRANSITION_SEMESTER_2">Senior High - Transition Semester 2</option>
+</select>
+    
+</div>
+
+                        <span class="text-danger pull-right field-validation-valid" data-valmsg-for="AcademicPeriod" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+                <div class="col col-lg-4">
+                    <div id="section_AcademicYear" class="form-group">
+                        
+
+<label id="Label_AcademicYear">Academic Year</label>
+<div class="input-group">
+    <span class="input-group-addon">
+        <i class="fa fa-calendar"></i>
+    </span>
+<select class="form-control  " data-rs-calculate-action="" data-rs-calculate-additionalfields="" data-rs-calculate-controller="" data-rs-calculate-targetfield="" data-rs-populate-dd-action="" data-rs-populate-dd-targetid="" data-val="true" data-val-number="The field Academic Year must be a number." data-val-required="The Academic Year field is required." id="AcademicYear" name="AcademicYear" placeholder="Academic Year" title="Please select Academic Year."><option value="">Please select Academic Year.</option>
+<option value="2029">2029</option>
+<option value="2028">2028</option>
+<option value="2027">2027</option>
+<option value="2026">2026</option>
+<option value="2025">2025</option>
+<option value="2024">2024</option>
+<option value="2023">2023</option>
+<option value="2022">2022</option>
+<option value="2021">2021</option>
+<option value="2020">2020</option>
+</select>    </div>
+
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="AcademicYear" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+                <div class="col-lg-12 hidden">
+                    <div id="section_AjaxFormVM" class="form-group">
+                        
+<div class="form-body">
+    <div class="row">
+<input id="AjaxFormVM_Controller" name="AjaxFormVM.Controller" type="hidden" value="CourseSchedule"><input id="AjaxFormVM_Action" name="AjaxFormVM.Action" type="hidden" value="CourseScheduleOffered"><input id="AjaxFormVM_ResultTargetId" name="AjaxFormVM.ResultTargetId" type="hidden" value="CourseScheduleOfferedList"><input id="AjaxFormVM_LinkToReturn" name="AjaxFormVM.LinkToReturn" type="hidden" value=""><input id="AjaxFormVM_LinkToReturnTargetId" name="AjaxFormVM.LinkToReturnTargetId" type="hidden" value=""><input id="AjaxFormVM_FormHeader" name="AjaxFormVM.FormHeader" type="hidden" value="Choose term to view courses offered"><input id="AjaxFormVM_FormHeaderIcon" name="AjaxFormVM.FormHeaderIcon" type="hidden" value=""><input id="AjaxFormVM_FormId" name="AjaxFormVM.FormId" type="hidden" value="CourseScheduleCourseScheduleOffered"><input data-val="true" data-val-required="The ShowCloseButton field is required." id="AjaxFormVM_ShowCloseButton" name="AjaxFormVM.ShowCloseButton" type="hidden" value="True"><input data-val="true" data-val-required="The PreventAutoUpdateTarget field is required." id="AjaxFormVM_PreventAutoUpdateTarget" name="AjaxFormVM.PreventAutoUpdateTarget" type="hidden" value="True"><input data-val="true" data-val-required="The CloseModalAfterSubmit field is required." id="AjaxFormVM_CloseModalAfterSubmit" name="AjaxFormVM.CloseModalAfterSubmit" type="hidden" value="False"><input data-val="true" data-val-required="The AjaxFormType field is required." id="AjaxFormVM_AjaxFormType" name="AjaxFormVM.AjaxFormType" type="hidden" value="Search"><input id="AjaxFormVM_FormNoteLocation" name="AjaxFormVM.FormNoteLocation" type="hidden" value="">                <div>
+                    <div id="section_FormNotes" class="form-group">
+                        
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="AjaxFormVM.FormNotes" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+                <div>
+                    <div id="section_FormHeaderNotes" class="form-group">
+                        
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="AjaxFormVM.FormHeaderNotes" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+                <div>
+                    <div id="section_SubmitButton" class="form-group">
+                        
+<div class="form-body">
+    <div class="row">
+<input id="AjaxFormVM_SubmitButton_FaIcon" name="AjaxFormVM.SubmitButton.FaIcon" type="hidden" value=""><input id="AjaxFormVM_SubmitButton_ButtonText" name="AjaxFormVM.SubmitButton.ButtonText" type="hidden" value=""><input id="AjaxFormVM_SubmitButton_ButtonSize" name="AjaxFormVM.SubmitButton.ButtonSize" type="hidden" value="">    </div>
+</div>
+
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="AjaxFormVM.SubmitButton" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+    </div>
+</div>
+
+                        <span class="field-validation-valid text-danger pull-right" data-valmsg-for="AjaxFormVM" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+    </div>
+</div>
+
+                    </div>
+                    <input name="__RequestVerificationToken" type="hidden" value="SANITIZED-TOKEN">                   
+                                    </div>
+                <div class="form-actions">
+<button type="submit" class="btn green pull-right" data-dismiss=""><i class="fa fa-search"></i> Search </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+</div></body></html>

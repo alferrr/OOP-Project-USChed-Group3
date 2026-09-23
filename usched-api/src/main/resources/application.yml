@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: usched-api
+  datasource:
+    url: "${DB_URL:jdbc:mysql://localhost:3306/uched?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}"
+    username: "${DB_USER:uched}"
+    password: "${DB_PASSWORD:uched}"
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    root: INFO
+
+uched:
+  terms-version: "2026-9-2"
+  require-https: "${UCHED_REQUIRE_HTTPS:false}"
+  cors-allowed-origins: "${UCHED_CORS_ORIGINS:http://localhost:5173}"
+  consent:
+    secret: "${UCHED_CONSENT_SECRET:dev-only-change-me-dev-only-change-me}"
+    ip-salt: "${UCHED_IP_SALT:dev-only-salt}"
+  admin:
+    token: "${UCHED_ADMIN_TOKEN:}"
+  # Values come from the recon of ISMIS's sign-in page and its "Course Schedule Offered" page.
+  ismis:
+    base-url: "${UCHED_ISMIS_BASE_URL:https://ismis.usc.edu.ph}"
+    login-path: "${UCHED_ISMIS_LOGIN_PATH:/Account/Login}"
+    offered-courses-path: "${UCHED_ISMIS_OFFERED_PATH:/courseschedule/CourseScheduleOfferedIndex}"
+    search-path: "${UCHED_ISMIS_SEARCH_PATH:/CourseSchedule/CourseScheduleOffered}"
+    prospectus-path: "${UCHED_ISMIS_PROSPECTUS_PATH:/prospectus/StudentProspectus}"
+    logout-path: "${UCHED_ISMIS_LOGOUT_PATH:}"
+    username-field: "${UCHED_ISMIS_USERNAME_FIELD:Username}"
+    password-field: "${UCHED_ISMIS_PASSWORD_FIELD:Password}"
+    user-agent: "${UCHED_ISMIS_USER_AGENT:USChed/1.0 (student schedule planner; contact: set-UCHED_ISMIS_USER_AGENT)}"
