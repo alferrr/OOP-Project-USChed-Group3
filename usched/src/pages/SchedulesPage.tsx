@@ -97,30 +97,29 @@ export default function SchedulesPage() {
 
         <WeeklyCalendar sections={active.sections} />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div>
-            <h2 className="mb-2 font-semibold text-green-800">Sections</h2>
-            <ul className="space-y-2 text-sm">
-              {active.sections.map((s) => (
-                <li key={s.sectionId} className="rounded-lg border border-green-100 p-3">
-                  <p className="font-semibold text-green-900">{s.courseCode} · Section {s.sectionCode}</p>
-                  <p className="text-green-900/80">{s.courseName} · {s.instructor ?? 'Instructor TBA'}</p>
-                  {describeMeetings(s.meetings).map((l) => <p key={l} className="text-green-900/70">{l}</p>)}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="mb-2 font-semibold text-green-800">Score breakdown</h2>
-            <ul className="space-y-2 text-sm">
-              {Object.entries(active.breakdown).map(([name, v]) => (
-                <li key={name}>
-                  <div className="flex justify-between text-green-900"><span>{name}</span><span>{Math.round(v * 100)}%</span></div>
-                  <div className="h-2 rounded bg-green-100"><div className="h-2 rounded bg-gold-400" style={{ width: `${v * 100}%` }} /></div>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div>
+          <h2 className="mb-2 font-semibold text-green-800">Sections</h2>
+          <ul className="grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
+            {active.sections.map((s) => (
+              <li key={s.sectionId} className="rounded-lg border border-green-100 p-3">
+                <p className="font-semibold text-green-900">{s.courseCode} · Section {s.sectionCode}</p>
+                <p className="text-green-900/80">{s.courseName} · {s.instructor ?? 'Instructor TBA'}</p>
+                {describeMeetings(s.meetings).map((l) => <p key={l} className="text-green-900/70">{l}</p>)}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="max-w-md">
+          <h2 className="mb-2 font-semibold text-green-800">Score breakdown</h2>
+          <ul className="space-y-2 text-sm">
+            {Object.entries(active.breakdown).map(([name, v]) => (
+              <li key={name}>
+                <div className="flex justify-between text-green-900"><span>{name}</span><span>{Math.round(v * 100)}%</span></div>
+                <div className="h-2 rounded bg-green-100"><div className="h-2 rounded bg-gold-400" style={{ width: `${v * 100}%` }} /></div>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="print:hidden">
