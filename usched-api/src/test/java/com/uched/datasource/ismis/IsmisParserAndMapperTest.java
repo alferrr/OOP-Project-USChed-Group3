@@ -62,8 +62,10 @@ class IsmisParserAndMapperTest {
 
     @Test
     void mapperBuildsSectionsFromCodeAndGroup() throws IOException {
+        // The fallback campus passed in is deliberately wrong ("Main"): every room code here ends in "TC",
+        // so the room's own suffix must win regardless of whatever default the caller supplies.
         var result = new IsmisCourseMapper().map(parser.parse(fixture("offered.html")),
-                Semester.FIRST, "2026-2027", "Talamban", 3.0);
+                Semester.FIRST, "2026-2027", "Main", 3.0);
         assertThat(result.skipped()).hasSize(1).first().asString().contains("BAD 1");
         assertThat(result.courses()).extracting(Course::getCode).containsExactly("CIS 2105", "MATH 1101");
 
@@ -77,6 +79,7 @@ class IsmisParserAndMapperTest {
         assertThat(g1.getMeetings().get(0).getTime().start()).isEqualTo(LocalTime.of(15, 0));
         assertThat(g1.getMeetings().get(0).getTime().end()).isEqualTo(LocalTime.of(17, 30));
         assertThat(g1.getMeetings().get(0).getRoom().orElseThrow().roomCode()).isEqualTo("LB470TC");
+        assertThat(g1.getMeetings().get(0).getRoom().orElseThrow().campus()).isEqualTo("Talamban");
         assertThat(g1.getInstructor().orElseThrow().getName()).isEqualTo("SEBIAL, ARCHIVAL J.");
         assertThat(g1.getAvailableSlots()).contains(0); // 24/24 enrolled is full
 
@@ -100,6 +103,17 @@ class IsmisParserAndMapperTest {
         assertThat(tba.get(0).getRoom()).isEmpty();
         var midday = IsmisCourseMapper.parseSegment("F 12:30 PM - 03:00 PM LB469TC", "C", false);
         assertThat(midday.get(0).getTime().start()).isEqualTo(LocalTime.of(12, 30));
+    }
+
+    @Test
+    void roomCodeSuffixDecidesTheCampusNotTheConfiguredDefault() {
+        // USC's two campuses aren't a separate field ISMIS reports - they're a suffix baked into the room
+        // code itself, so a room's own "MC"/"TC" always wins over whatever default campus was configured.
+        assertThat(IsmisCourseMapper.campusOf("LB470TC", "Main")).isEqualTo("Talamban");
+        assertThat(IsmisCourseMapper.campusOf("LB201MC", "Talamban")).isEqualTo("Main");
+        assertThat(IsmisCourseMapper.campusOf("lb470tc", "Main")).isEqualTo("Talamban"); // case-insensitive
+        // No recognisable suffix at all: fall back to whatever default was configured.
+        assertThat(IsmisCourseMapper.campusOf("GYM", "Main")).isEqualTo("Main");
     }
 
     @Test

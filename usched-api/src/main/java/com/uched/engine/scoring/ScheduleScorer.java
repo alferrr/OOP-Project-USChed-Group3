@@ -29,7 +29,8 @@ public class ScheduleScorer {
                 new MorningPreferenceStrategy(),
                 new MinimalDaysStrategy(),
                 new InstructorPreferenceStrategy(),
-                new LunchBreakStrategy()));
+                new LunchBreakStrategy(),
+                new CampusConsistencyStrategy()));
     }
 
     public RankedSchedule score(Schedule schedule, SchedulePreference prefs) {

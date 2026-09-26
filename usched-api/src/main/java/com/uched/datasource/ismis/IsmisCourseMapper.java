@@ -128,12 +128,29 @@ public class IsmisCourseMapper {
         }
         TimeRange range = new TimeRange(start, end);
         String roomText = m.group(8);
-        Room room = roomText == null || roomText.equalsIgnoreCase("TBA") ? null : new Room(null, roomText.trim(), campus);
+        Room room = roomText == null || roomText.equalsIgnoreCase("TBA") ? null
+                : new Room(null, roomText.trim(), campusOf(roomText.trim(), campus));
         List<Meeting> out = new ArrayList<>();
         for (DayOfWeek d : days) {
             out.add(lab ? new LabMeeting(d, range, room) : new LectureMeeting(d, range, room));
         }
         return out;
+    }
+
+    /**
+     * USC's two campuses show up as a suffix baked right into the room code (e.g. "LB470TC" -> Talamban,
+     * "LB201MC" -> Main), not as a separate field ISMIS reports - so the campus configured as a "default"
+     * is really only a fallback for the rare room code that has neither suffix.
+     */
+    static String campusOf(String roomCode, String fallback) {
+        String upper = roomCode.toUpperCase(Locale.ROOT);
+        if (upper.endsWith("TC")) {
+            return "Talamban";
+        }
+        if (upper.endsWith("MC")) {
+            return "Main";
+        }
+        return fallback;
     }
 
     static List<DayOfWeek> parseDays(String token) {

@@ -5,6 +5,7 @@ import com.uched.domain.model.Instructor;
 import com.uched.domain.model.LabMeeting;
 import com.uched.domain.model.LectureMeeting;
 import com.uched.domain.model.Meeting;
+import com.uched.domain.model.Room;
 import com.uched.domain.model.Section;
 import com.uched.domain.value.Semester;
 import com.uched.domain.value.TimeRange;
@@ -23,6 +24,11 @@ public final class Fixtures {
 
     public static Meeting lab(DayOfWeek day, String start, String end) {
         return new LabMeeting(day, TimeRange.of(start, end), null);
+    }
+
+    /** A meeting held in a room on the given campus, for anything testing campus-aware scoring. */
+    public static Meeting lectureOn(String campus, DayOfWeek day, String start, String end) {
+        return new LectureMeeting(day, TimeRange.of(start, end), new Room(null, "R1", campus));
     }
 
     public static Section section(String course, String code, Instructor instructor, Meeting... meetings) {
