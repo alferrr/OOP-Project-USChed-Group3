@@ -1,12 +1,12 @@
 import type { ComponentType } from 'react'
 import {
-  CalendarRange, Coffee, Flame, MapPin, Moon, Sparkles, Sun, Sunrise, Users, Zap,
+  Bus, CalendarRange, Coffee, Flame, MapPin, Moon, Sparkles, Sun, Sunrise, Users, Zap,
 } from 'lucide-react'
 import type { RankedSchedule } from '../../api/types'
 import { scheduleInsights, type Insight } from '../../lib/insights'
 
 const ICON: Record<string, ComponentType<{ size?: number; className?: string }>> = {
-  campus: MapPin, lunch: Coffee, gaps: Zap, days: CalendarRange, morning: Sun,
+  campus: MapPin, commute: Bus, lunch: Coffee, gaps: Zap, days: CalendarRange, morning: Sun,
   longday: Flame, early: Sunrise, late: Moon, slots: Users,
 }
 

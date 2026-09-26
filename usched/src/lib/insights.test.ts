@@ -136,4 +136,45 @@ describe('scheduleInsights', () => {
     const roomy = [withSlots(section('A 1', null, '08:00', '09:00'), 40)]
     expect(scheduleInsights(ranked(roomy, {}, 1, 0)).find((n) => n.key === 'slots')).toBeUndefined()
   })
+
+  it('flags a real back-to-back campus switch with too little travel time, naming both classes', () => {
+    // The exact reported case: IT 3101N (Talamban) ends right as TPE 2103 (Main) starts - 0 minutes to travel.
+    const noTime = [
+      section('IT 3101N', 'LB486TC', '07:30', '09:00'),
+      section('TPE 2103', 'ABSPMC', '09:00', '10:00'),
+    ]
+    const note = scheduleInsights(ranked(noTime, {}, 1, 0)).find((n) => n.key === 'commute')!
+    expect(note.tone).toBe('caution')
+    expect(note.text).toContain('IT 3101N ends 9:00 AM (Talamban)')
+    expect(note.text).toContain('TPE 2103 starts 9:00 AM (Main)')
+    expect(note.text).toContain('only 0 minutes to get between campuses')
+  })
+
+  it('says nothing when the same-campus switch has a real gap', () => {
+    const enoughTime = [
+      section('IT 3101N', 'LB486TC', '07:30', '09:00'),
+      section('TPE 2103', 'ABSPMC', '09:45', '10:45'),
+    ]
+    expect(scheduleInsights(ranked(enoughTime, {}, 1, 0)).find((n) => n.key === 'commute')).toBeUndefined()
+  })
+
+  it('says nothing for a same-campus back-to-back, or when a room is unknown', () => {
+    const sameCampus = [section('A 1', 'LB486TC', '07:30', '09:00'), section('B 1', 'LB467TC', '09:00', '10:00')]
+    expect(scheduleInsights(ranked(sameCampus, {}, 1, 0)).find((n) => n.key === 'commute')).toBeUndefined()
+    const unknownRoom = [section('A 1', 'LB486TC', '07:30', '09:00'), section('B 1', null, '09:00', '10:00')]
+    expect(scheduleInsights(ranked(unknownRoom, {}, 1, 0)).find((n) => n.key === 'commute')).toBeUndefined()
+  })
+
+  it('picks the tightest collision first and mentions the rest without repeating them all', () => {
+    const threeRisks = [
+      section('A 1', 'LB486TC', '07:30', '09:00'),
+      section('B 1', 'ABSPMC', '09:00', '10:00'), // 0 min gap
+      section('C 1', 'LB467TC', '10:00', '11:00'),
+      section('D 1', 'JW340MC', '11:20', '12:00'), // 20 min gap, still under 45
+    ]
+    // Every adjacent campus switch here is under the 45-min floor: A->B, B->C, and C->D - 3 in total.
+    const note = scheduleInsights(ranked(threeRisks, {}, 1, 0)).find((n) => n.key === 'commute')!
+    expect(note.text).toContain('only 0 minutes')
+    expect(note.text).toContain('2 more spots like this')
+  })
 })

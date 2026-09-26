@@ -5,6 +5,8 @@ const NOON = 12 * 60
 const EARLY = 7 * 60 // 7:00 AM
 const LATE = 20 * 60 // 8:00 PM
 const LOW_SLOTS = 3
+/** Mirrors the backend's CampusTravelConstraint: the real-world minimum to get between Main and Talamban. */
+const TRAVEL_MINUTES = 45
 
 /** Share of total class time that falls before noon, computed straight from the meetings themselves (not
  * the backend's Morning score, which flips direction under an afternoon preference). Null with no classes. */
@@ -34,6 +36,25 @@ function daySpans(sections: Section[]): Map<DayCode, { start: number; end: numbe
     }
   }
   return spans
+}
+
+interface DayEntry { courseCode: string; sectionCode: string; start: number; end: number; campus: string | null }
+
+/** Every meeting across every section, grouped by day and sorted chronologically - what the student would
+ * actually walk through in order on that day. */
+function flattenByDay(sections: Section[]): Map<DayCode, DayEntry[]> {
+  const byDay = new Map<DayCode, DayEntry[]>()
+  for (const s of sections) {
+    for (const m of s.meetings) {
+      const entry: DayEntry = {
+        courseCode: s.courseCode, sectionCode: s.sectionCode,
+        start: toMinutes(m.start), end: toMinutes(m.end), campus: campusOfRoom(m.room),
+      }
+      byDay.set(m.day, [...(byDay.get(m.day) ?? []), entry])
+    }
+  }
+  for (const list of byDay.values()) list.sort((a, b) => a.start - b.start)
+  return byDay
 }
 
 /** The campus a room code belongs to, mirroring the backend: the suffix baked into the code decides it. */
@@ -96,6 +117,32 @@ export function scheduleInsights(schedule: RankedSchedule): Insight[] {
         text: `Mostly ${majorCampus} (${majorCount} of ${known} classes), but ${strayCount} ${strayCount === 1 ? 'class is' : 'classes are'} on the other campus - budget travel time between them.`,
       })
     }
+  }
+
+  // Commute risk: an actual same-day campus switch with too little time to get there. The generator now
+  // refuses to build a schedule like this going forward, but this stays as a visible safety net (e.g. for
+  // a schedule generated before that rule existed) and pinpoints exactly which two classes collide.
+  const risks: { gapMinutes: number; text: string }[] = []
+  for (const day of flattenByDay(sections).values()) {
+    for (let i = 1; i < day.length; i++) {
+      const prev = day[i - 1]
+      const next = day[i]
+      if (!prev.campus || !next.campus || prev.campus === next.campus) continue
+      const gapMinutes = next.start - prev.end
+      if (gapMinutes < TRAVEL_MINUTES) {
+        risks.push({
+          gapMinutes,
+          text: `${prev.courseCode} ends ${format12(minutesToTime(prev.end))} (${prev.campus}) and ${next.courseCode} `
+              + `starts ${format12(minutesToTime(next.start))} (${next.campus}) - only ${gapMinutes} `
+              + `${gapMinutes === 1 ? 'minute' : 'minutes'} to get between campuses.`,
+        })
+      }
+    }
+  }
+  if (risks.length > 0) {
+    risks.sort((a, b) => a.gapMinutes - b.gapMinutes)
+    const rest = risks.length > 1 ? ` (${risks.length - 1} more ${risks.length === 2 ? 'spot' : 'spots'} like this)` : ''
+    notes.push({ key: 'commute', tone: 'caution', text: `${risks[0].text}${rest}` })
   }
 
   // Lunch break: the breakdown already scored this per this exact schedule.
