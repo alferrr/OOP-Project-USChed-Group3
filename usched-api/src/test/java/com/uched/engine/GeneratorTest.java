@@ -16,6 +16,7 @@ import java.util.List;
 import static com.uched.engine.Fixtures.course;
 import static com.uched.engine.Fixtures.courseWithSlots;
 import static com.uched.engine.Fixtures.lecture;
+import static com.uched.engine.Fixtures.lectureOn;
 import static com.uched.engine.Fixtures.section;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -68,6 +69,21 @@ class GeneratorTest {
                 .isInstanceOf(NoValidScheduleException.class)
                 .satisfies(e -> assertThat(((NoValidScheduleException) e).getDetails().get(0))
                         .contains("A 1").contains("B 1"));
+    }
+
+    @Test
+    void aTooTightSameDayCampusSwitchIsDiscardedEvenWithNoPreferencesSet() {
+        // A-A (Talamban, ends 9:00) back-to-back with B-A (Main, starts 9:00) is physically impossible;
+        // A-B leaves a real gap, so only the pairing through A-B should survive.
+        Course a = course("A 1",
+                section("A 1", "A", lectureOn("Talamban", DayOfWeek.MONDAY, "07:30", "09:00")),
+                section("A 1", "B", lectureOn("Talamban", DayOfWeek.MONDAY, "06:00", "08:00")));
+        Course b = course("B 1", section("B 1", "A", lectureOn("Main", DayOfWeek.MONDAY, "09:00", "10:00")));
+        ScheduleValidator validator = new ScheduleValidator(ConstraintFactory.from(SchedulePreference.none()));
+        List<Schedule> result = generator.generate(List.of(a, b), validator, 10);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getSections()).extracting(x -> x.getCourseCode() + x.getSectionCode())
+                .contains("A 1B");
     }
 
     @Test

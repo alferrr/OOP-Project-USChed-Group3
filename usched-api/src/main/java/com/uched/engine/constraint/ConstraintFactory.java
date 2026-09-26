@@ -12,6 +12,9 @@ public final class ConstraintFactory {
 
     public static List<ScheduleConstraint> from(SchedulePreference p) {
         List<ScheduleConstraint> list = new ArrayList<>();
+        // Always on, regardless of preferences: a same-day campus switch needs real travel time or it is
+        // not just a bad schedule, it is an impossible one.
+        list.add(new CampusTravelConstraint());
         p.maxSchoolDays().ifPresent(v -> list.add(new MaxSchoolDaysConstraint(v)));
         p.maxClassesPerDay().ifPresent(v -> list.add(new MaxClassesPerDayConstraint(v)));
         p.minBreakMinutes().filter(v -> v > 0).ifPresent(v -> list.add(new MinBreakConstraint(v)));
