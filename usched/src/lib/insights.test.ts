@@ -8,11 +8,16 @@ const section = (code: string, room: string | null, start: string, end: string, 
   meetings: [{ day, start, end, room, type: 'LECTURE' }],
 })
 
-const ranked = (sections: Section[], breakdown: Record<string, number>, schoolDays: number, totalGapMinutes: number): RankedSchedule => ({
+const ranked = (
+  sections: Section[], breakdown: Record<string, number>, schoolDays: number, totalGapMinutes: number,
+  extra: Partial<Pick<RankedSchedule['stats'], 'earliestStart' | 'latestEnd'>> = {},
+): RankedSchedule => ({
   rank: 1, score: 90, breakdown,
-  stats: { schoolDays, earliestStart: null, latestEnd: null, totalGapMinutes, totalUnits: 9 },
+  stats: { schoolDays, earliestStart: null, latestEnd: null, totalUnits: 9, ...extra, totalGapMinutes },
   sections,
 })
+
+const withSlots = (s: Section, availableSlots: number): Section => ({ ...s, availableSlots })
 
 describe('campusOfRoom / campusOfSection', () => {
   it('reads the campus off the room code suffix', () => {
@@ -89,5 +94,46 @@ describe('scheduleInsights', () => {
     const afternoon = [section('A 1', null, '13:00', '14:30'), section('B 1', null, '15:00', '16:30')]
     const notes = scheduleInsights(ranked(afternoon, { Morning: 1.0 }, 1, 0))
     expect(notes.find((n) => n.key === 'morning')!.text).toContain('afternoon/evening')
+  })
+
+  it('flags a day that runs open-to-close for 8+ hours, but stays quiet on a shorter one', () => {
+    const longDay = [section('A 1', null, '07:00', '12:00'), section('B 1', null, '13:00', '16:00')] // 9h span
+    const shortDay = [section('A 1', null, '07:00', '09:00'), section('B 1', null, '10:00', '12:00')] // 5h span
+    const long = scheduleInsights(ranked(longDay, {}, 1, 0)).find((n) => n.key === 'longday')!
+    expect(long.tone).toBe('caution')
+    expect(long.text).toContain('Mon runs')
+    expect(scheduleInsights(ranked(shortDay, {}, 1, 0)).find((n) => n.key === 'longday')).toBeUndefined()
+  })
+
+  it('flags a very early start and a very late end', () => {
+    const base = [section('A 1', null, '08:00', '09:00')]
+    expect(scheduleInsights(ranked(base, {}, 1, 0, { earliestStart: '06:30' })).find((n) => n.key === 'early')!.tone).toBe('caution')
+    expect(scheduleInsights(ranked(base, {}, 1, 0, { earliestStart: '07:30' })).find((n) => n.key === 'early')).toBeUndefined()
+    expect(scheduleInsights(ranked(base, {}, 1, 0, { latestEnd: '20:30' })).find((n) => n.key === 'late')!.tone).toBe('caution')
+    expect(scheduleInsights(ranked(base, {}, 1, 0, { latestEnd: '18:00' })).find((n) => n.key === 'late')).toBeUndefined()
+  })
+
+  it('warns about a section running low on slots, naming the worst one first', () => {
+    const tight = [withSlots(section('IT 3101N', null, '08:00', '09:00'), 2), withSlots(section('CIS 2101', null, '10:00', '11:00'), 40)]
+    const note = scheduleInsights(ranked(tight, {}, 1, 0)).find((n) => n.key === 'slots')!
+    expect(note.tone).toBe('caution')
+    expect(note.text).toContain('IT 3101N')
+    expect(note.text).toContain('only 2 slots left')
+  })
+
+  it('calls a 0-slot section already full, and mentions other tight sections without repeating them all', () => {
+    const many = [
+      withSlots(section('IT 3101N', null, '08:00', '09:00'), 0),
+      withSlots(section('CIS 2101', null, '10:00', '11:00'), 1),
+      withSlots(section('MATH 1101', null, '12:00', '13:00'), 3),
+    ]
+    const note = scheduleInsights(ranked(many, {}, 1, 0)).find((n) => n.key === 'slots')!
+    expect(note.text).toContain('is already full')
+    expect(note.text).toContain('2 other sections running low')
+  })
+
+  it('says nothing about slots when every section has plenty of room', () => {
+    const roomy = [withSlots(section('A 1', null, '08:00', '09:00'), 40)]
+    expect(scheduleInsights(ranked(roomy, {}, 1, 0)).find((n) => n.key === 'slots')).toBeUndefined()
   })
 })

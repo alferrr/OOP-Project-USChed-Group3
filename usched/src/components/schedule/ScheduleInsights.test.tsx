@@ -32,4 +32,24 @@ describe('ScheduleInsights', () => {
     )} />)
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('splits good news from things to watch out for into their own groups', () => {
+    render(<ScheduleInsights schedule={schedule(
+      // Lunch break every day (good) alongside a campus mix (caution).
+      [section('A 1', 'LB470TC', '08:00', '09:30'), section('B 1', 'SB201MC', '13:00', '14:30')],
+      { LunchBreak: 1 }, 1, 0,
+    )} />)
+    expect(screen.getByText('At a glance')).toBeInTheDocument()
+    expect(screen.getByText('Heads up')).toBeInTheDocument()
+    expect(screen.getByText('Every school day has a real lunch break.')).toBeInTheDocument()
+    expect(screen.getByText(/budget travel time between them/)).toBeInTheDocument()
+  })
+
+  it('shows only the relevant group when everything found is one-sided', () => {
+    render(<ScheduleInsights schedule={schedule(
+      [section('A 1', 'LB470TC', '08:00', '09:30')], { LunchBreak: 1 }, 1, 0,
+    )} />)
+    expect(screen.getByText('At a glance')).toBeInTheDocument()
+    expect(screen.queryByText('Heads up')).not.toBeInTheDocument()
+  })
 })
