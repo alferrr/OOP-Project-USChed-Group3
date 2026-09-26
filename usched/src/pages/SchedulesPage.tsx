@@ -4,6 +4,7 @@ import { useCompare, useGenerate } from '../api/hooks'
 import { ApiError } from '../api/client'
 import ComparisonTable from '../components/compare/ComparisonTable'
 import PageTitle from '../components/layout/PageTitle'
+import ScheduleInsights from '../components/schedule/ScheduleInsights'
 import ScheduleSwitcher from '../components/schedule/ScheduleSwitcher'
 import ScoreBadge from '../components/schedule/ScoreBadge'
 import WeeklyCalendar from '../components/schedule/WeeklyCalendar'
@@ -96,6 +97,8 @@ export default function SchedulesPage() {
         )}
 
         <WeeklyCalendar sections={active.sections} />
+
+        <ScheduleInsights schedule={active} />
 
         <div>
           <h2 className="mb-2 font-semibold text-green-800">Sections</h2>
