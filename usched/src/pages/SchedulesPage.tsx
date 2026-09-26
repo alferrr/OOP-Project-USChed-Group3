@@ -55,14 +55,16 @@ export default function SchedulesPage() {
 
   return (
     <section>
-      <PageTitle title="Your schedules">
-        {result.generatedCount} conflict-free {result.generatedCount === 1 ? 'schedule' : 'schedules'} found; showing the top {result.returnedCount}.
-        Enroll manually in the official ISMIS.
-      </PageTitle>
+      <div className="print:hidden">
+        <PageTitle title="Your schedules">
+          {result.generatedCount} conflict-free {result.generatedCount === 1 ? 'schedule' : 'schedules'} found; showing the top {result.returnedCount}.
+          Enroll manually in the official ISMIS.
+        </PageTitle>
+      </div>
 
       <div className="space-y-6">
         {showingSimilarTo !== null && baseResult && (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gold-300 bg-gold-50 px-4 py-2 text-sm text-green-900">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gold-300 bg-gold-50 px-4 py-2 text-sm text-green-900 print:hidden">
             <Sparkles size={16} className="text-gold-600" aria-hidden />
             <span>Showing schedules similar to #{showingSimilarTo} from your original results.</span>
             <button onClick={backToAll} className="ml-auto flex items-center gap-1 font-medium text-green-700 underline">
@@ -71,8 +73,10 @@ export default function SchedulesPage() {
           </div>
         )}
 
-        <ScheduleSwitcher schedules={result.schedules} activeIndex={activeIndex} compareRanks={compareRanks}
-          onSelect={setActive} onToggleCompare={toggleCompare} />
+        <div className="print:hidden">
+          <ScheduleSwitcher schedules={result.schedules} activeIndex={activeIndex} compareRanks={compareRanks}
+            onSelect={setActive} onToggleCompare={toggleCompare} />
+        </div>
 
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-900">
           <span className="flex items-center gap-2 font-semibold">Schedule #{active.rank} <ScoreBadge score={active.score} /></span>
@@ -98,7 +102,9 @@ export default function SchedulesPage() {
 
         <WeeklyCalendar sections={active.sections} />
 
-        <ScheduleInsights schedule={active} />
+        <div className="print:hidden">
+          <ScheduleInsights schedule={active} />
+        </div>
 
         <div>
           <h2 className="mb-2 font-semibold text-green-800">Sections</h2>
@@ -113,7 +119,7 @@ export default function SchedulesPage() {
           </ul>
         </div>
 
-        <div className="max-w-md">
+        <div className="max-w-md print:hidden">
           <h2 className="mb-2 font-semibold text-green-800">Score breakdown</h2>
           <ul className="space-y-2 text-sm">
             {Object.entries(active.breakdown).map(([name, v]) => (

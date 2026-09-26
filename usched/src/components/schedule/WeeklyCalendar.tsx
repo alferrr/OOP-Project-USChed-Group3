@@ -49,7 +49,7 @@ export default function WeeklyCalendar({ sections }: { sections: Section[] }) {
   const blocks = layoutBlocks(sections, startMin)
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-green-100">
+    <div className="overflow-x-auto rounded-lg border border-green-100 print:overflow-visible">
       <div className="grid min-w-[42rem]" style={{ gridTemplateColumns: '4.5rem repeat(6, minmax(0, 1fr))' }}>
         <div className="border-b border-green-100 bg-green-800" />
         {DAYS.map((d) => (

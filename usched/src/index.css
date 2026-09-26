@@ -26,3 +26,10 @@ body {
   color: var(--color-green-900);
   font-family: var(--font-sans);
 }
+
+/* Printing a schedule: it's a wide weekly grid, so landscape fits it without clipping, and browsers
+   otherwise strip background colors by default, which would make the calendar's course blocks invisible. */
+@media print {
+  @page { size: landscape; margin: 12mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

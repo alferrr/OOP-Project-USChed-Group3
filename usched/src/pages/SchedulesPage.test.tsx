@@ -66,3 +66,35 @@ describe('SchedulesPage "More like this"', () => {
     expect(useScheduleStore.getState().result).toEqual(result)
   })
 })
+
+describe('SchedulesPage printing', () => {
+  beforeEach(() => {
+    act(() => {
+      useScheduleStore.getState().reset()
+      useScheduleStore.getState().setResult(result)
+    })
+  })
+
+  it('marks everything but the schedule itself as print:hidden', () => {
+    render(<SchedulesPage />, { wrapper: MemoryRouter })
+
+    // The switcher (choosing among schedules) and the page intro are UI, not part of the schedule.
+    expect(screen.getByRole('list', { name: /ranked schedules/i }).closest('.print\\:hidden')).not.toBeNull()
+    expect(screen.getByText(/conflict-free/).closest('.print\\:hidden')).not.toBeNull()
+    // Score breakdown is meta-analysis, not the schedule itself.
+    expect(screen.getByText('Score breakdown').closest('.print\\:hidden')).not.toBeNull()
+
+    // The calendar and the section list ARE the schedule: they must stay visible when printing.
+    expect(screen.getByTestId('col-MON').closest('.print\\:hidden')).toBeNull()
+    expect(screen.getByText('Sections').closest('.print\\:hidden')).toBeNull()
+  })
+
+  it('the print button calls window.print', async () => {
+    const user = userEvent.setup()
+    const printSpy = vi.fn()
+    window.print = printSpy
+    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    await user.click(screen.getByRole('button', { name: /^print$/i }))
+    expect(printSpy).toHaveBeenCalledTimes(1)
+  })
+})
