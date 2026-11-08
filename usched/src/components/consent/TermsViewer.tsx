@@ -12,6 +12,9 @@ export default function TermsViewer({ text, version }: { text: string; version: 
   return (
     <div>
       <div
+        role="region"
+        // a scrollable region must be focusable so keyboard users can scroll it
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
         tabIndex={0}
         aria-label="Terms of Use and Privacy Notice"
         className="max-h-96 overflow-y-auto rounded-lg border border-green-100 bg-white p-4 text-sm leading-relaxed text-green-900 shadow-inner"

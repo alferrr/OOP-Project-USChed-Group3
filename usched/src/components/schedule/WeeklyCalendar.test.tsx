@@ -1,7 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { Section } from '../../api/types'
-import WeeklyCalendar, { gridBounds, layoutBlocks } from './WeeklyCalendar'
+import WeeklyCalendar from './WeeklyCalendar'
+import { gridBounds, layoutBlocks } from '../../lib/calendarLayout'
 
 const sections: Section[] = [
   {

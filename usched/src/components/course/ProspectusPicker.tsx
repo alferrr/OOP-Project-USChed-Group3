@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { BookOpen, ChevronDown, ChevronRight } from 'lucide-react'
 import { useProspectus } from '../../api/hooks'
 import { ApiError } from '../../api/client'
@@ -28,10 +28,10 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
   const [open, setOpen] = useState(false)
   const prospectus = useProspectus(open)
   const [yearLevel, setYearLevel] = useState<number | null>(null)
-  const [pickerSemester, setPickerSemester] = useState<SemesterCode>(semester)
-
-  // If the page's own term selector changes, follow it (until the student picks a different one here).
-  useEffect(() => setPickerSemester(semester), [semester])
+  // A term picked here only holds while the page's own term selector stays put; once that changes, follow it.
+  const [pick, setPick] = useState<{ from: SemesterCode; value: SemesterCode } | null>(null)
+  const pickerSemester = pick && pick.from === semester ? pick.value : semester
+  const setPickerSemester = (value: SemesterCode) => setPick({ from: semester, value })
 
   const yearLevels = useMemo(
     () => [...new Set(prospectus.data?.courses.map((c) => c.yearLevel) ?? [])].sort((a, b) => a - b),

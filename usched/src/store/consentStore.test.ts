@@ -22,3 +22,12 @@ describe('consent and ISMIS session stores', () => {
     expect(useIsmisStore.getState().endedReason).toBeNull()
   })
 })
+
+describe('ISMIS store defaults', () => {
+  it('end() without a reason leaves no message', () => {
+    useIsmisStore.getState().setSession('s', 15)
+    expect(useIsmisStore.getState().idleMinutes).toBe(15)
+    useIsmisStore.getState().end()
+    expect(useIsmisStore.getState()).toMatchObject({ sessionId: null, endedReason: null })
+  })
+})

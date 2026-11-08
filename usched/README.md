@@ -1,32 +1,26 @@
-# React + TypeScript + Vite
+# USChed frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React 19 + TypeScript + Vite + Tailwind 4 UI for USChed. The API lives in `../usched-api`; see the root
+`README.md` for running the whole stack and the environment variables.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server on :5173 (proxies `/api` to the backend) |
+| `npm run build` | Type-check (`tsc -b`) then production build |
+| `npm run lint` | oxlint (React hooks, a11y, no-console, no-explicit-any) |
+| `npm test` | Vitest + Testing Library (jsdom) |
 
-## React Compiler
+## Layout
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/pages` - Login, Terms, CourseSelection, Schedules
+- `src/components` - course, schedule, preferences, compare, consent, ismis, layout
+- `src/store` - zustand stores; `clearStudentData()` in `resetAll.ts` wipes all per-student state
+- `src/api` - fetch client, React Query hooks, shared types
+- `src/lib` - pure helpers (insights, calendar layout, course grouping, time, search)
 
-## Expanding the Oxlint configuration
+## Keep in sync with the backend
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`lib/insights.ts` duplicates the campus-travel rule (45 minutes between campuses, campus inferred from the room
+suffix `TC`/`MC`). Change it together with `CampusTravelConstraint` in `usched-api`.

@@ -21,7 +21,7 @@ export default function ComparisonTable({ ranks, items }: Props) {
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="bg-green-800 text-white">
-            <th className="px-3 py-2 text-left font-medium" />
+            <th className="px-3 py-2 text-left font-medium"><span className="sr-only">Measure</span></th>
             {ranks.map((r) => <th key={r} className="px-3 py-2 text-left font-medium">Schedule #{r}</th>)}
           </tr>
         </thead>

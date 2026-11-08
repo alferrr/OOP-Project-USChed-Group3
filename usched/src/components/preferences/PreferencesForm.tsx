@@ -72,9 +72,20 @@ function ScrollPicker({ label, options, value, onChange }: {
   return (
     <div>
       <span className="text-xs font-medium text-green-900/80">{label}</span>
-      <div role="listbox" aria-label={label} className="mt-1 max-h-36 overflow-y-auto rounded-md border border-green-100">
+      <div role="listbox" tabIndex={-1} aria-label={label} className="mt-1 max-h-36 overflow-y-auto rounded-md border border-green-100"
+        onKeyDown={(e) => {
+          if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+          e.preventDefault()
+          const i = options.findIndex((o) => o.value === value)
+          const next = options[Math.min(options.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))]
+          if (next) {
+            onChange(next.value)
+            e.currentTarget.querySelector<HTMLElement>(`[data-value="${CSS.escape(next.value)}"]`)?.focus()
+          }
+        }}>
         {options.map((o) => (
-          <button key={o.value} type="button" role="option" aria-selected={value === o.value}
+          <button key={o.value} type="button" role="option" aria-selected={value === o.value} data-value={o.value}
+            tabIndex={value === o.value ? 0 : -1}
             onClick={() => onChange(o.value)}
             className={`block w-full whitespace-nowrap px-3 py-1.5 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-300 ${
               value === o.value ? 'bg-gold-100 font-medium text-green-900' : 'text-green-900/80 hover:bg-green-50'}`}>

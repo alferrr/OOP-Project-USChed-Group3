@@ -15,6 +15,10 @@ import java.util.List;
  * targets a same-day campus switch and needs a much larger buffer than an ordinary between-class gap.
  * CampusConsistencyStrategy (soft scoring) still favours keeping everything on one campus when possible;
  * this constraint is the hard floor for whenever it isn't.
+ * <p>
+ * The required gap is {@link #TRAVEL_MINUTES} (45): the ~30 minute trip plus a margin for boarding and walking
+ * to the room. The frontend mirrors this value and the room-suffix campus rule in usched/src/lib/insights.ts;
+ * keep them in step (CampusTravelConstraintTest pins the value).
  */
 public class CampusTravelConstraint implements ScheduleConstraint {
     static final int TRAVEL_MINUTES = 45;

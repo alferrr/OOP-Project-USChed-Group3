@@ -26,9 +26,12 @@ public class UChedProperties {
     @Setter
     public static class Consent {
         /** HMAC key. The default is for local development only; set UCHED_CONSENT_SECRET elsewhere. */
-        private String secret = "dev-only-change-me-dev-only-change-me";
+        public static final String DEV_SECRET = "dev-only-change-me-dev-only-change-me";
+        public static final String DEV_IP_SALT = "dev-only-salt";
+
+        private String secret = DEV_SECRET;
         private long ttlMinutes = 60;
-        private String ipSalt = "dev-only-salt";
+        private String ipSalt = DEV_IP_SALT;
     }
 
     @Getter

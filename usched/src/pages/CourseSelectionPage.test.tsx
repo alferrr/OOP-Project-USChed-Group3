@@ -9,7 +9,7 @@ import { useSelectionStore } from '../store/planStore'
 
 const clearMutate = vi.fn((_v: unknown, opts?: { onSuccess?: () => void }) => opts?.onSuccess?.())
 let coursesData: CoursePage = { items: [{ id: 1, code: 'CIS 2105', name: 'Networking II', units: 3, department: null, prerequisites: null }], page: 0, size: 12, total: 1 }
-const useCoursesSpy = vi.fn(() => ({ data: coursesData, isLoading: false }))
+const useCoursesSpy = vi.fn((_p?: unknown) => ({ data: coursesData, isLoading: false }))
 
 vi.mock('../api/hooks', () => ({
   useAcademicYears: () => ({ data: ['2026-2027'] }),
