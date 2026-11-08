@@ -76,7 +76,7 @@ function ScrollPicker({ label, options, value, onChange }: {
         {options.map((o) => (
           <button key={o.value} type="button" role="option" aria-selected={value === o.value}
             onClick={() => onChange(o.value)}
-            className={`block w-full px-3 py-1.5 text-left text-sm ${
+            className={`block w-full whitespace-nowrap px-3 py-1.5 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-300 ${
               value === o.value ? 'bg-gold-100 font-medium text-green-900' : 'text-green-900/80 hover:bg-green-50'}`}>
             {o.label}
           </button>
@@ -133,7 +133,10 @@ export default function PreferencesForm({ value, onChange }: Props) {
               <ShieldAlert size={15} className="text-green-700" aria-hidden /> Must follow
             </legend>
             <p className="mb-3 text-xs text-green-900/60">Any schedule that breaks these is dropped entirely, not just ranked lower.</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+            {/* Always one column: this form is embedded in a fixed ~20rem sidebar on desktop, narrower
+                than any viewport-based breakpoint would ever reflect, so a viewport-driven multi-column
+                grid here just crams everything into that same narrow width regardless of screen size. */}
+            <div className="grid grid-cols-1 gap-3">
               <Field label="Max school days">
                 <input type="number" min={1} max={6} placeholder="No limit" className={field} value={hard.maxSchoolDays ?? ''}
                   onChange={(e) => setHard({ maxSchoolDays: num(e.target.value) })} />

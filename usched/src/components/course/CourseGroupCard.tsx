@@ -27,15 +27,15 @@ export default function CourseGroupCard({ family, selected, semester, academicYe
     <li className="rounded-lg border border-green-100 bg-white">
       <button onClick={() => setOpen(!open)} aria-expanded={open} aria-label={`Courses under ${family}`}
         className="flex w-full items-center gap-3 p-3 text-left">
-        {open ? <ChevronDown size={18} className="text-green-700" aria-hidden /> : <ChevronRight size={18} className="text-green-700" aria-hidden />}
+        {open ? <ChevronDown size={18} className="shrink-0 text-green-700" aria-hidden /> : <ChevronRight size={18} className="shrink-0 text-green-700" aria-hidden />}
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-green-900">{family}</p>
-          <p className="text-sm text-green-900/80">
+          <p className="truncate font-semibold text-green-900">{family}</p>
+          <p className="truncate text-sm text-green-900/80">
             {offerings.data ? `${offerings.data.total} courses offered` : 'Loading…'}
           </p>
         </div>
         {selectedCount > 0 && (
-          <span className="rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+          <span className="shrink-0 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
             {selectedCount} selected
           </span>
         )}

@@ -89,7 +89,10 @@ export default function CourseSelectionPage() {
         Enter course codes, or a whole department code like "CIS", and USChed fetches them from ISMIS one by one, then builds conflict-free schedules.
       </PageTitle>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+      {/* minmax(0, ...) on the main column, not a bare "1fr": otherwise a long, unbroken bit of text deep
+          inside (e.g. a course name) can force this whole column - and everything in it - wider than the
+          page, since a plain "1fr" track still defaults to auto-sizing around its content's natural width. */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-3">
             <select aria-label="Semester" className={select} value={semester}

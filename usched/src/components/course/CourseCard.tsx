@@ -20,18 +20,18 @@ export default function CourseCard({ course, selected, semester, academicYear, o
     <li className={`rounded-lg border ${selected ? 'border-green-600 bg-green-50' : 'border-green-100 bg-white'}`}>
       <div className="flex items-center gap-3 p-3">
         <button onClick={() => setOpen(!open)} aria-expanded={open} aria-label={`Sections of ${course.code}`}
-          className="text-green-700">
+          className="shrink-0 text-green-700">
           {open ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-green-900">
+          <p className="truncate font-semibold text-green-900">
             {course.code} <span className="font-normal text-green-900/70">· {course.units} units</span>
           </p>
           <p className="truncate text-sm text-green-900/80">{course.name}</p>
-          {course.department && <span className="mt-1 inline-block rounded bg-gold-100 px-2 py-0.5 text-xs text-green-900">{course.department}</span>}
+          {course.department && <span className="mt-1 inline-block max-w-full truncate rounded bg-gold-100 px-2 py-0.5 text-xs text-green-900">{course.department}</span>}
         </div>
         <button onClick={onToggle} aria-pressed={selected}
-          className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium ${
+          className={`flex shrink-0 items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium ${
             selected ? 'bg-green-700 text-white' : 'border border-green-700 text-green-800 hover:bg-green-50'}`}>
           {selected ? <><Check size={14} aria-hidden /> Selected</> : <><Plus size={14} aria-hidden /> Add</>}
         </button>
