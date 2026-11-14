@@ -33,14 +33,16 @@ public class CourseImportService {
     private final InstructorRepository instructors;
     private final RoomRepository rooms;
     private final CatalogSnapshotRepository snapshots;
+    private final CourseDirectoryService directory;
 
     public CourseImportService(CourseRepository courses, SectionRepository sections, InstructorRepository instructors,
-                               RoomRepository rooms, CatalogSnapshotRepository snapshots) {
+                               RoomRepository rooms, CatalogSnapshotRepository snapshots, CourseDirectoryService directory) {
         this.courses = courses;
         this.sections = sections;
         this.instructors = instructors;
         this.rooms = rooms;
         this.snapshots = snapshots;
+        this.directory = directory;
     }
 
     @Transactional
@@ -57,6 +59,11 @@ public class CourseImportService {
                 sectionCount++;
             }
         }
+        // Codes and titles are shared reference data (nothing about this student), so remember them for suggestions.
+        directory.record(fetched.stream()
+                .map(c -> new CourseDirectoryService.Entry(c.getCode(), c.getName(),
+                        source.providesUnits() ? c.getUnits() : null, c.getDepartment()))
+                .toList());
         CatalogSnapshotEntity snap = new CatalogSnapshotEntity();
         snap.setStudentIdNumber(studentIdNumber);
         snap.setSource(source.type());

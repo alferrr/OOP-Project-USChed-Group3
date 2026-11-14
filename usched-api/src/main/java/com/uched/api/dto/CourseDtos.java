@@ -21,6 +21,9 @@ public final class CourseDtos {
                              List<MeetingDto> meetings) {
     }
 
+    public record DirectoryEntry(String code, String name, Double units, String department) {
+    }
+
     public record OptionDto(String code, String label) {
     }
 }

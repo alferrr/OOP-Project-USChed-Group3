@@ -3,6 +3,7 @@ package com.uched.api.controller;
 import com.uched.domain.exception.InvalidCourseDataException;
 import com.uched.domain.value.Semester;
 import com.uched.service.AdminImportService;
+import com.uched.service.CourseDirectoryService;
 import com.uched.service.ImportReport;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +21,11 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/api/admin")
 public class AdminController {
     private final AdminImportService importer;
+    private final CourseDirectoryService directory;
 
-    public AdminController(AdminImportService importer) {
+    public AdminController(AdminImportService importer, CourseDirectoryService directory) {
         this.importer = importer;
+        this.directory = directory;
     }
 
     /** studentIdNumber says whose private catalog this CSV is imported into. */
@@ -34,6 +37,17 @@ public class AdminController {
         }
         try (Reader reader = new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)) {
             return importer.importCsv(reader, Semester.fromCode(semester), academicYear, studentIdNumber);
+        }
+    }
+
+    /** Seeds the shared course code directory used for suggestions. CSV header: code,name[,units[,department]]. */
+    @PostMapping("/directory/import")
+    public java.util.Map<String, Integer> importDirectory(@RequestParam("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw new InvalidCourseDataException("The CSV file is empty.");
+        }
+        try (Reader reader = new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)) {
+            return java.util.Map.of("stored", directory.importCsv(reader));
         }
     }
 }
