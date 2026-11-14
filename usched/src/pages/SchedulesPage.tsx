@@ -25,9 +25,10 @@ export default function SchedulesPage() {
     return (
       <section>
         <PageTitle title="Schedules" />
-        <p className="text-green-900/70">
-          No schedules yet. <Link to="/courses" className="font-medium text-green-700 underline">Choose your courses</Link> and generate some.
-        </p>
+        <div className="surface p-8 text-center">
+          <p className="text-lg text-green-900/80">No schedules yet.</p>
+          <Link to="/courses" className="btn btn-primary mt-4">Choose your courses</Link>
+        </div>
       </section>
     )
   }
@@ -64,10 +65,10 @@ export default function SchedulesPage() {
 
       <div className="space-y-6">
         {showingSimilarTo !== null && baseResult && (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gold-300 bg-gold-50 px-4 py-2 text-sm text-green-900 print:hidden">
-            <Sparkles size={16} className="text-gold-600" aria-hidden />
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-green-100 px-5 py-3 text-sm text-green-900 print:hidden">
+            <Sparkles size={16} className="text-green-700" aria-hidden />
             <span>Showing schedules similar to #{showingSimilarTo} from your original results.</span>
-            <button onClick={backToAll} className="ml-auto flex items-center gap-1 font-medium text-green-700 underline">
+            <button onClick={backToAll} className="ml-auto flex items-center gap-1 rounded-full px-3 py-1 font-semibold text-green-800 hover:bg-green-200">
               <Undo2 size={14} aria-hidden /> Back to all results
             </button>
           </div>
@@ -78,24 +79,24 @@ export default function SchedulesPage() {
             onSelect={setActive} onToggleCompare={toggleCompare} />
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-900">
-          <span className="flex items-center gap-2 font-semibold">Schedule #{active.rank} <ScoreBadge score={active.score} /></span>
+        <div className="surface flex flex-wrap items-center gap-x-6 gap-y-3 px-6 py-4 text-sm text-green-900">
+          <span className="flex items-center gap-2 text-lg font-extrabold">Schedule #{active.rank} <ScoreBadge score={active.score} /></span>
           <span>{active.stats.schoolDays} school days</span>
           <span>{active.stats.earliestStart && format12(active.stats.earliestStart)} – {active.stats.latestEnd && format12(active.stats.latestEnd)}</span>
           <span>{active.stats.totalUnits} units</span>
           <span>Gaps: {formatMinutes(active.stats.totalGapMinutes)}</span>
           <div className="ml-auto flex items-center gap-4 print:hidden">
             <button onClick={runMoreLikeThis} disabled={moreLikeThis.isPending}
-              className="flex items-center gap-1 text-green-700 underline disabled:opacity-50">
+              className="btn btn-quiet px-4 py-2">
               <Sparkles size={14} aria-hidden /> {moreLikeThis.isPending ? 'Finding similar…' : 'More like this'}
             </button>
-            <button onClick={() => window.print()} className="flex items-center gap-1 text-green-700 underline">
+            <button onClick={() => window.print()} className="btn btn-quiet px-4 py-2">
               <Printer size={14} aria-hidden /> Print
             </button>
           </div>
         </div>
         {moreLikeThisError && (
-          <p role="alert" className="rounded border border-red-300 bg-red-50 p-2 text-sm text-red-900 print:hidden">
+          <p role="alert" className="alert-error print:hidden">
             {moreLikeThisError.message}
           </p>
         )}
@@ -106,12 +107,13 @@ export default function SchedulesPage() {
           <ScheduleInsights schedule={active} />
         </div>
 
-        <div>
-          <h2 className="mb-2 font-semibold text-green-800">Sections</h2>
-          <ul className="grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <h2 className="mb-3 text-xl font-bold text-green-900">Sections</h2>
+          <ul className="grid gap-4 text-sm sm:grid-cols-2">
             {active.sections.map((s) => (
-              <li key={s.sectionId} className="rounded-lg border border-green-100 p-3">
-                <p className="font-semibold text-green-900">{s.courseCode} · Section {s.sectionCode}</p>
+              <li key={s.sectionId} className="surface p-4">
+                <p className="text-base font-bold text-green-900">{s.courseCode} · Section {s.sectionCode}</p>
                 <p className="text-green-900/80">{s.courseName} · {s.instructor ?? 'Instructor TBA'}</p>
                 {describeMeetings(s.meetings).map((l) => <p key={l} className="text-green-900/70">{l}</p>)}
               </li>
@@ -119,25 +121,26 @@ export default function SchedulesPage() {
           </ul>
         </div>
 
-        <div className="max-w-md print:hidden">
-          <h2 className="mb-2 font-semibold text-green-800">Score breakdown</h2>
-          <ul className="space-y-2 text-sm">
+        <div className="surface self-start p-5 print:hidden">
+          <h2 className="mb-3 text-xl font-bold text-green-900">Score breakdown</h2>
+          <ul className="space-y-3 text-sm">
             {Object.entries(active.breakdown).map(([name, v]) => (
               <li key={name}>
                 <div className="flex justify-between text-green-900"><span>{name}</span><span>{Math.round(v * 100)}%</span></div>
-                <div className="h-2 rounded bg-green-100"><div className="h-2 rounded bg-gold-400" style={{ width: `${v * 100}%` }} /></div>
+                <div className="h-2.5 overflow-hidden rounded-full bg-green-100"><div className="h-full rounded-full bg-green-600 transition-[width] duration-500" style={{ width: `${v * 100}%` }} /></div>
               </li>
             ))}
           </ul>
         </div>
+        </div>
 
         <div className="print:hidden">
           <button onClick={runCompare} disabled={compareRanks.length < 2 || compare.isPending}
-            className="rounded-md bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-green-700/30">
+            className="btn btn-primary">
             Compare selected ({compareRanks.length})
           </button>
-          <span className="ml-3 text-xs text-green-900/60">Tick 2 to 4 schedules above.</span>
-          {compare.isError && <p role="alert" className="mt-2 text-sm text-red-800">{compare.error.message}</p>}
+          <span className="ml-3 text-sm text-green-900/70">Press the round button beside 2 to 4 schedules above.</span>
+          {compare.isError && <p role="alert" className="alert-error mt-3">{compare.error.message}</p>}
           {compare.data && <div className="mt-4"><ComparisonTable ranks={comparedRanks} items={compare.data.items} /></div>}
         </div>
       </div>

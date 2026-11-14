@@ -17,11 +17,11 @@ export default function TermsViewer({ text, version }: { text: string; version: 
         // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
         tabIndex={0}
         aria-label="Terms of Use and Privacy Notice"
-        className="max-h-96 overflow-y-auto rounded-lg border border-green-100 bg-white p-4 text-sm leading-relaxed text-green-900 shadow-inner"
+        className="max-h-96 overflow-y-auto rounded-2xl bg-green-50 p-5 text-sm leading-relaxed text-green-900"
       >
         {blocks.map((b, i) =>
           b.startsWith('>') ? (
-            <p key={i} className="mb-3 rounded border-l-4 border-gold-400 bg-gold-50 px-3 py-2 text-green-900">
+            <p key={i} className="mb-3 rounded-2xl bg-gold-50 px-4 py-3 text-green-900">
               {inline(b.replace(/^>\s?/gm, ''))}
             </p>
           ) : (
@@ -31,7 +31,7 @@ export default function TermsViewer({ text, version }: { text: string; version: 
           ),
         )}
       </div>
-      <p className="mt-2 text-xs text-green-900/60">Terms version {version}</p>
+      <p className="mt-2 text-xs text-green-900/70">Terms version {version}</p>
     </div>
   )
 }

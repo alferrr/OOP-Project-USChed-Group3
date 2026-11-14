@@ -48,39 +48,39 @@ export default function IsmisSignInPanel() {
   }
 
   const error = signIn.error instanceof ApiError ? signIn.error : null
-  const input = 'w-full rounded-lg bg-green-50 px-3.5 py-2.5 text-sm text-green-900 placeholder:text-green-900/40 focus:outline-none focus:ring-2 focus:ring-green-600'
+  const input = 'control'
   return (
     <>
       <form onSubmit={login} autoComplete="off" className="space-y-5">
-        {endedReason && <p role="status" className="rounded-lg bg-gold-50 px-3 py-2 text-sm text-green-900">{endedReason}</p>}
+        {endedReason && <p role="status" className="rounded-2xl bg-gold-50 px-4 py-3 text-sm text-green-900">{endedReason}</p>}
         {terms.isError && (
-          <p role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          <p role="alert" className="alert-error">
             Could not reach the USChed server. Is it running?
           </p>
         )}
 
         <label className="block">
-          <span className="text-sm font-medium text-green-900">Student ID or Username</span>
+          <span className="text-sm font-semibold text-green-900">Student ID or Username</span>
           <input className={`${input} mt-1.5`} aria-label="ISMIS username" placeholder="e.g. 19020241" value={username}
             onChange={(e) => setUsername(e.target.value)} autoComplete="off" spellCheck={false} />
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-green-900">Password</span>
+          <span className="text-sm font-semibold text-green-900">Password</span>
           <div className="relative mt-1.5">
             <input className={`${input} pr-10`} aria-label="ISMIS password" placeholder="••••••••"
               type={showPassword ? 'text' : 'password'} value={password}
               onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
-              className="absolute inset-y-0 right-2.5 flex items-center text-green-900/50 hover:text-green-800">
+              className="absolute inset-y-0 right-3 flex items-center rounded-full px-1 text-green-900/65 hover:text-green-800">
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </label>
 
         {error && (
-          <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+          <div role="alert" className="alert-error">
             <p>{errorHelp(error.code, error.message)}</p>
             {error.message && errorHelp(error.code, '') !== error.message && (
               <p className="mt-1 break-words text-xs text-red-900/80">Details: {error.message}</p>
@@ -89,11 +89,11 @@ export default function IsmisSignInPanel() {
         )}
 
         <button type="submit" disabled={!canLogin}
-          className="w-full rounded-lg bg-green-700 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-green-700/30">
+          className="btn btn-primary w-full py-3.5">
           Log In
         </button>
 
-        <p className="text-xs text-green-900/60">
+        <p className="text-sm text-green-900/70">
           Use your ISMIS account. Your password is used once to sign in and then discarded. You will review the Terms
           &amp; Conditions next.
         </p>

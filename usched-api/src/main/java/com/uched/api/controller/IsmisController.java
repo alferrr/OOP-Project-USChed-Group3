@@ -12,7 +12,6 @@ import com.uched.api.dto.IsmisDtos.SearchStartResponse;
 import com.uched.api.dto.IsmisDtos.SearchStatusResponse;
 import com.uched.api.filter.StudentCatalogFilter;
 import com.uched.domain.value.Semester;
-import com.uched.service.CourseDirectoryService;
 import com.uched.service.IsmisSessionService;
 import com.uched.service.SearchJobService;
 import com.uched.service.UChedProperties;
@@ -41,14 +40,11 @@ public class IsmisController {
     private final IsmisSessionService sessions;
     private final SearchJobService searches;
     private final UChedProperties props;
-    private final CourseDirectoryService directory;
 
-    public IsmisController(IsmisSessionService sessions, SearchJobService searches, UChedProperties props,
-                           CourseDirectoryService directory) {
+    public IsmisController(IsmisSessionService sessions, SearchJobService searches, UChedProperties props) {
         this.sessions = sessions;
         this.searches = searches;
         this.props = props;
-        this.directory = directory;
     }
 
     /**
@@ -87,8 +83,6 @@ public class IsmisController {
                     .map(c -> new ProspectusCourseDto(c.yearLevel(), c.semester().code(), c.code(), c.title(),
                             c.units(), c.requisiteNote()))
                     .toList();
-            directory.record(p.courses().stream()
-                    .map(c -> new CourseDirectoryService.Entry(c.code(), c.title(), c.units(), null)).toList());
             return new ProspectusResponse(p.programName(), p.effectiveYear(), courses);
         }
     }

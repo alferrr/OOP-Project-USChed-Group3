@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { useAcademicYears, useClearCatalog, useCourseDirectory, useCourses, useDepartments, useGenerate, useSemesters, useSearchStatus, useStartSearch } from '../api/hooks'
+import { useAcademicYears, useClearCatalog, useCourses, useDepartments, useGenerate, useSemesters, useSearchStatus, useStartSearch } from '../api/hooks'
 import type { SemesterCode } from '../api/types'
 import CourseCodesInput from '../components/course/CourseCodesInput'
 import ProspectusPicker from '../components/course/ProspectusPicker'
@@ -42,7 +42,7 @@ export default function CourseSelectionPage() {
   // scattering across several "pages" that are each, confusingly, still just more of that same family.
   const courses = useCourses({ q: debouncedQ, department, semester, academicYear, page, size: 100 })
   const [suggestQ, setSuggestQ] = useState('')
-  const suggestions = useCourseDirectory(suggestQ)
+  const suggestions = useCourses({ q: suggestQ, department: '', semester, academicYear, page: 0, size: 8 }, suggestQ !== '')
   const startSearch = useStartSearch()
   const search = useSearchStatus(jobId)
   const { selected, addMany, clear: clearSelection } = useSelectionStore()
@@ -83,10 +83,10 @@ export default function CourseSelectionPage() {
   const startError = startSearch.error instanceof ApiError ? startSearch.error : null
   const genError = generate.error instanceof ApiError ? generate.error : null
   const yearOptions = [...new Set([academicYear, ...(years.data ?? [])])]
-  const select = 'rounded-md border border-green-100 bg-white px-3 py-2 text-sm'
+  const select = 'control w-auto!'
 
   return (
-    <section>
+    <section className="pb-24 lg:pb-0">
       <PageTitle title="Choose your courses">
         Enter course codes, or a whole department code like "CIS", and USChed fetches them from ISMIS one by one, then builds conflict-free schedules.
       </PageTitle>
@@ -94,8 +94,8 @@ export default function CourseSelectionPage() {
       {/* minmax(0, ...) on the main column, not a bare "1fr": otherwise a long, unbroken bit of text deep
           inside (e.g. a course name) can force this whole column - and everything in it - wider than the
           page, since a plain "1fr" track still defaults to auto-sizing around its content's natural width. */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="space-y-5">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem]">
+        <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-3">
             <select aria-label="Semester" className={select} value={semester}
               onChange={(e) => { setTerm(e.target.value as SemesterCode, academicYear); setPage(0) }}>
@@ -105,20 +105,20 @@ export default function CourseSelectionPage() {
               onChange={(e) => { setTerm(semester, e.target.value); setPage(0) }}>
               {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
-            <span className="text-xs text-green-900/60">Searches use this term.</span>
+            <span className="text-sm text-green-900/70">Searches use this term.</span>
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-3 rounded-lg border border-green-100 bg-white p-4">
+            <div className="surface space-y-5 p-5 sm:p-6">
               <ProspectusPicker semester={semester} codes={codes} onAddCodes={setCodes} disabled={running} />
               <CourseCodesInput codes={codes} onChange={setCodes} disabled={running} onQuery={setSuggestQ}
-                suggestions={suggestQ && !suggestions.isPlaceholderData ? suggestions.data : undefined} />
+                suggestions={suggestQ && !suggestions.isPlaceholderData ? suggestions.data?.items : undefined} />
               <button onClick={fetchCourses} disabled={codes.length === 0 || running}
-                className="rounded-md bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-green-700/30">
+                className="btn btn-primary">
                 {running ? 'Fetching…' : `Fetch ${codes.length || ''} ${codes.length === 1 ? 'course' : 'courses'} from ISMIS`}
               </button>
               {startError && (
-                <p role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+                <p role="alert" className="alert-error">
                   {errorHelp(startError.code, startError.message)}
                 </p>
               )}
@@ -131,11 +131,11 @@ export default function CourseSelectionPage() {
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="font-semibold text-green-800">Saved courses</h2>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-green-900">Saved courses</h2>
               {!!courses.data?.total && (
                 <button onClick={clearSavedCourses} disabled={clearCatalog.isPending}
-                  className="text-xs font-medium text-green-700 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50">
+                  className="rounded-full px-3 py-1.5 text-sm font-semibold text-green-700 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50">
                   {clearCatalog.isPending ? 'Clearing…' : 'Clear saved courses'}
                 </button>
               )}
@@ -148,17 +148,17 @@ export default function CourseSelectionPage() {
           </div>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-          <div className="rounded-lg border-2 border-green-700 bg-white p-4">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-[var(--radius-card)] bg-green-800 p-5 text-white shadow-[var(--shadow-lift)]">
             <SelectedCoursesPanel />
+            <button onClick={submitGenerate} disabled={selected.length === 0 || generate.isPending}
+              className="btn btn-gold mt-5 w-full py-3.5 text-base">
+              {generate.isPending ? 'Generating…' : 'Generate Schedules'}
+            </button>
           </div>
           <PreferencesForm value={preferences} onChange={setPreferences} />
-          <button onClick={submitGenerate} disabled={selected.length === 0 || generate.isPending}
-            className="w-full rounded-md bg-gold-400 px-4 py-3 font-bold text-green-900 shadow hover:bg-gold-500 disabled:cursor-not-allowed disabled:opacity-50">
-            {generate.isPending ? 'Generating…' : 'Generate Schedules'}
-          </button>
           {genError && (
-            <div role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+            <div role="alert" className="alert-error">
               <p className="font-medium">{genError.message}</p>
               {genError.details.length > 0 && (
                 <ul className="mt-1 list-disc pl-5">{genError.details.map((d) => <li key={d}>{d}</li>)}</ul>
@@ -167,6 +167,19 @@ export default function CourseSelectionPage() {
           )}
         </aside>
       </div>
+
+      {/* On a phone the plan card sits far below the list, so keep the way forward in reach. */}
+      {selected.length > 0 && (
+        <div className="fixed inset-x-3 bottom-3 z-30 flex items-center justify-between gap-3 rounded-full bg-green-800 py-2 pl-5 pr-2 text-white shadow-[var(--shadow-lift)] lg:hidden">
+          <span className="text-sm font-semibold">
+            {selected.length} {selected.length === 1 ? 'course' : 'courses'} · {selected.reduce((n, c) => n + c.units, 0)} units
+          </span>
+          <button onClick={submitGenerate} disabled={generate.isPending} aria-label="Generate schedules from your plan"
+            className="btn btn-gold px-5 py-2.5">
+            {generate.isPending ? 'Generating…' : 'Generate'}
+          </button>
+        </div>
+      )}
     </section>
   )
 }

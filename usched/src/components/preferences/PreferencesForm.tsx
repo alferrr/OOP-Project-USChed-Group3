@@ -42,7 +42,7 @@ function countActive({ hard, soft }: Preferences): number {
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium text-green-900/80">{label}</span>
+      <span className="text-sm font-semibold text-green-900">{label}</span>
       {children}
     </label>
   )
@@ -50,12 +50,12 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 
 function Toggle({ checked, onChange, title, description }: { checked: boolean; onChange: (v: boolean) => void; title: string; description: string }) {
   return (
-    <label className="flex cursor-pointer items-start gap-2.5 rounded-md px-1.5 py-1.5 hover:bg-green-50/70">
-      <input type="checkbox" className="mt-0.5 size-4 accent-green-700" checked={checked}
+    <label className="flex cursor-pointer items-start gap-3 rounded-2xl px-2.5 py-2.5 transition-colors hover:bg-white">
+      <input type="checkbox" className="mt-0.5 size-5 shrink-0 rounded accent-green-700" checked={checked}
         onChange={(e) => onChange(e.target.checked)} />
       <span>
         <span className="block text-sm font-medium text-green-900">{title}</span>
-        <span className="block text-xs text-green-900/60">{description}</span>
+        <span className="block text-sm text-green-900/70">{description}</span>
       </span>
     </label>
   )
@@ -71,8 +71,8 @@ function ScrollPicker({ label, options, value, onChange }: {
 }) {
   return (
     <div>
-      <span className="text-xs font-medium text-green-900/80">{label}</span>
-      <div role="listbox" tabIndex={-1} aria-label={label} className="mt-1 max-h-36 overflow-y-auto rounded-md border border-green-100"
+      <span className="text-sm font-semibold text-green-900">{label}</span>
+      <div role="listbox" tabIndex={-1} aria-label={label} className="mt-1.5 max-h-36 overflow-y-auto rounded-2xl bg-white p-1"
         onKeyDown={(e) => {
           if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
           e.preventDefault()
@@ -87,8 +87,8 @@ function ScrollPicker({ label, options, value, onChange }: {
           <button key={o.value} type="button" role="option" aria-selected={value === o.value} data-value={o.value}
             tabIndex={value === o.value ? 0 : -1}
             onClick={() => onChange(o.value)}
-            className={`block w-full whitespace-nowrap px-3 py-1.5 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-300 ${
-              value === o.value ? 'bg-gold-100 font-medium text-green-900' : 'text-green-900/80 hover:bg-green-50'}`}>
+            className={`block w-full whitespace-nowrap rounded-xl px-3 py-1.5 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-400 ${
+              value === o.value ? 'bg-gold-400 font-bold text-green-900' : 'text-green-900/80 hover:bg-green-50'}`}>
             {o.label}
           </button>
         ))}
@@ -113,37 +113,37 @@ export default function PreferencesForm({ value, onChange }: Props) {
   const toggleDay = (d: DayCode) => setHard({ avoidDays: avoid.includes(d) ? avoid.filter((x) => x !== d) : [...avoid, d] })
   const timeOfDay = soft.preferMorning ? 'morning' : soft.preferAfternoon ? 'afternoon' : 'none'
   const active = countActive(value)
-  const field = 'mt-1 w-full rounded-md border border-green-100 px-2 py-1.5 text-sm focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-gold-300'
+  const field = 'control mt-1.5 bg-white'
   const dayPill = (selected: boolean) =>
-    `cursor-pointer select-none rounded-full border px-3 py-1 text-sm transition-colors ${
-      selected ? 'border-gold-500 bg-gold-100 font-medium text-green-900' : 'border-green-100 text-green-900/70 hover:border-green-300'}`
+    `cursor-pointer select-none rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-gold-400 ${
+      selected ? 'bg-gold-400 text-green-900' : 'bg-white text-green-900/70 hover:bg-green-100'}`
 
   return (
-    <div className="rounded-lg border border-green-100 bg-white">
-      <div className="flex items-center gap-2 px-3 py-2">
+    <div className="surface">
+      <div className="flex items-center gap-2 px-4 py-3">
         <button onClick={() => setOpen(!open)} aria-expanded={open}
-          className="flex flex-1 items-center gap-2 text-left font-semibold text-green-800">
+          className="flex flex-1 items-center gap-2 text-left text-lg font-bold text-green-900">
           {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           Preferences
-          <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+          <span className="chip">
             {active === 0 ? 'none set' : `${active} set`}
           </span>
         </button>
         {active > 0 && (
           <button onClick={() => onChange(emptyPreferences())}
-            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50">
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-green-700 transition-colors hover:bg-green-100">
             <RotateCcw size={12} aria-hidden /> Reset
           </button>
         )}
       </div>
 
       {open && (
-        <div className="space-y-4 border-t border-green-100 p-3">
-          <fieldset className="rounded-md border border-green-100 p-3">
-            <legend className="-ml-1 flex items-center gap-1.5 px-1 font-medium text-green-900">
+        <div className="space-y-4 px-4 pb-4">
+          <fieldset className="rounded-2xl bg-green-50 p-4">
+            <legend className="-ml-1 flex items-center gap-1.5 px-1 font-bold text-green-900">
               <ShieldAlert size={15} className="text-green-700" aria-hidden /> Must follow
             </legend>
-            <p className="mb-3 text-xs text-green-900/60">Any schedule that breaks these is dropped entirely, not just ranked lower.</p>
+            <p className="mb-3 text-sm text-green-900/70">Any schedule that breaks these is dropped entirely, not just ranked lower.</p>
             {/* Always one column: this form is embedded in a fixed ~20rem sidebar on desktop, narrower
                 than any viewport-based breakpoint would ever reflect, so a viewport-driven multi-column
                 grid here just crams everything into that same narrow width regardless of screen size. */}
@@ -166,7 +166,7 @@ export default function PreferencesForm({ value, onChange }: Props) {
                 onChange={(v) => setHard({ latestEnd: v || null })} />
             </div>
             <div className="mt-3" role="group" aria-label="Days to avoid">
-              <span className="text-xs font-medium text-green-900/80">Avoid these days</span>
+              <span className="text-sm font-semibold text-green-900">Avoid these days</span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {DAYS.map((d) => (
                   <label key={d} className={dayPill(avoid.includes(d))}>
@@ -178,11 +178,11 @@ export default function PreferencesForm({ value, onChange }: Props) {
             </div>
           </fieldset>
 
-          <fieldset className="rounded-md border border-green-100 p-3">
-            <legend className="-ml-1 flex items-center gap-1.5 px-1 font-medium text-green-900">
+          <fieldset className="rounded-2xl bg-green-50 p-4">
+            <legend className="-ml-1 flex items-center gap-1.5 px-1 font-bold text-green-900">
               <ThumbsUp size={15} className="text-green-700" aria-hidden /> Nice to have
             </legend>
-            <p className="mb-3 text-xs text-green-900/60">These only nudge which schedules rank higher - nothing is ever dropped for them.</p>
+            <p className="mb-3 text-sm text-green-900/70">These only nudge which schedules rank higher - nothing is ever dropped for them.</p>
             <div className="max-w-xs">
               <ScrollPicker label="Time of day" options={TIME_OF_DAY_OPTIONS} value={timeOfDay}
                 onChange={(t) => setSoft({ preferMorning: t === 'morning', preferAfternoon: t === 'afternoon' })} />

@@ -9,11 +9,14 @@ export default function WeeklyCalendar({ sections }: { sections: Section[] }) {
   const blocks = layoutBlocks(sections, startMin)
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-green-100 print:overflow-visible">
-      <div className="grid min-w-[42rem]" style={{ gridTemplateColumns: '4.5rem repeat(6, minmax(0, 1fr))' }}>
-        <div className="border-b border-green-100 bg-green-800" />
+    <div role="region" aria-label="Weekly schedule, scroll sideways for more days"
+      // a horizontally scrollable region must be focusable so keyboard users can scroll it
+      // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+      tabIndex={0} className="surface overflow-x-auto p-3 print:overflow-visible print:p-0">
+      <div className="grid min-w-[52rem]" style={{ gridTemplateColumns: '4.5rem repeat(6, minmax(0, 1fr))' }}>
+        <div className="border-b border-green-100" />
         {DAYS.map((d) => (
-          <div key={d} className="border-b border-l border-green-700 bg-green-800 py-2 text-center text-sm font-semibold text-white">
+          <div key={d} className="border-b border-green-100 py-2.5 text-center text-sm font-extrabold tracking-wide text-green-900">
             {dayShort(d)}
           </div>
         ))}
@@ -24,7 +27,7 @@ export default function WeeklyCalendar({ sections }: { sections: Section[] }) {
             const onHour = mins % 60 === 0
             return (
               <div key={i} style={{ top: i * ROW_PX }}
-                className={`absolute right-2 -translate-y-2 text-xs ${onHour ? 'font-medium text-green-900/70' : 'text-green-900/45'}`}>
+                className={`absolute right-2 -translate-y-2 text-xs ${onHour ? 'font-semibold text-green-900/80' : 'text-green-900/65'}`}>
                 {i === 0 ? '' : format12(`${Math.floor(mins / 60)}:${mins % 60}`)}
               </div>
             )
@@ -32,18 +35,18 @@ export default function WeeklyCalendar({ sections }: { sections: Section[] }) {
         </div>
 
         {DAYS.map((d) => (
-          <div key={d} className="relative border-l border-green-100" style={{ height: rows * ROW_PX }}
+          <div key={d} className="relative" style={{ height: rows * ROW_PX }}
             data-testid={`col-${d}`}>
             {Array.from({ length: rows }, (_, i) => (
-              <div key={i} className={`absolute inset-x-0 border-t ${i % 2 === 0 ? 'border-green-100' : 'border-green-50'}`}
+              <div key={i} className={`absolute inset-x-1 border-t ${i % 2 === 0 ? 'border-green-100' : 'border-green-50'}`}
                 style={{ top: i * ROW_PX }} />
             ))}
             {blocks.filter((b) => b.day === d).map((b) => {
               const c = COURSE_COLORS[b.colorIndex % COURSE_COLORS.length]
               return (
                 <div key={b.key} title={b.title} data-testid="block"
-                  className="absolute inset-x-0.5 overflow-hidden rounded border-l-4 px-1.5 py-0.5 text-xs leading-tight"
-                  style={{ top: b.top, height: b.height - 2, background: c.bg, borderColor: c.border, color: c.text }}>
+                  className="absolute inset-x-1 overflow-hidden rounded-xl px-2 py-1 text-xs leading-tight transition-shadow duration-200 hover:shadow-[var(--shadow-card)]"
+                  style={{ top: b.top + 1, height: b.height - 3, background: c.bg, boxShadow: `inset 0 0 0 1.5px ${c.border}55`, color: c.text }}>
                   <p className="font-bold">{b.code} · {b.section}</p>
                   <p>{b.time}</p>
                   {b.room && <p>{b.room}</p>}

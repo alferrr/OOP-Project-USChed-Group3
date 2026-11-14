@@ -5,11 +5,11 @@ interface Props {
 }
 
 export default function ConsentCheckboxes({ agreedTerms, agreedCredentialUse, onChange }: Props) {
-  const box = 'mt-1 h-4 w-4 shrink-0 accent-green-700'
+  const box = 'mt-1 size-5 shrink-0 rounded accent-green-700'
   return (
     <fieldset className="space-y-3">
       <legend className="sr-only">Consent</legend>
-      <label className="flex gap-3 text-sm text-green-900">
+      <label className="flex cursor-pointer gap-3 rounded-2xl p-3 text-sm text-green-900 transition-colors hover:bg-green-50">
         <input
           type="checkbox"
           className={box}
@@ -18,7 +18,7 @@ export default function ConsentCheckboxes({ agreedTerms, agreedCredentialUse, on
         />
         <span>I have read and agree to the Terms and Privacy Notice.</span>
       </label>
-      <label className="flex gap-3 text-sm text-green-900">
+      <label className="flex cursor-pointer gap-3 rounded-2xl p-3 text-sm text-green-900 transition-colors hover:bg-green-50">
         <input
           type="checkbox"
           className={box}

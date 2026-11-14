@@ -17,32 +17,33 @@ export default function CourseCard({ course, selected, semester, academicYear, o
   const sections = useSections(course.id, semester, academicYear, open)
 
   return (
-    <li className={`rounded-lg border ${selected ? 'border-green-600 bg-green-50' : 'border-green-100 bg-white'}`}>
-      <div className="flex items-center gap-3 p-3">
+    <li className={`surface overflow-hidden transition-colors duration-300 ${selected ? 'bg-green-50' : ''}`}>
+      <div className="flex items-center gap-3 p-4">
         <button onClick={() => setOpen(!open)} aria-expanded={open} aria-label={`Sections of ${course.code}`}
-          className="shrink-0 text-green-700">
+          className="grid size-9 shrink-0 place-items-center rounded-full text-green-700 transition-colors hover:bg-green-100">
           {open ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-green-900">
+          <p className="truncate text-base font-bold text-green-900">
             {course.code} <span className="font-normal text-green-900/70">· {course.units} units</span>
           </p>
           <p className="truncate text-sm text-green-900/80">{course.name}</p>
-          {course.department && <span className="mt-1 inline-block max-w-full truncate rounded bg-gold-100 px-2 py-0.5 text-xs text-green-900">{course.department}</span>}
+          {course.department && <span className="chip mt-1.5 max-w-full truncate">{course.department}</span>}
         </div>
         <button onClick={onToggle} aria-pressed={selected}
-          className={`flex shrink-0 items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium ${
-            selected ? 'bg-green-700 text-white' : 'border border-green-700 text-green-800 hover:bg-green-50'}`}>
-          {selected ? <><Check size={14} aria-hidden /> Selected</> : <><Plus size={14} aria-hidden /> Add</>}
+          className={`grid size-11 shrink-0 place-items-center rounded-full transition-all duration-300 active:scale-95 ${
+            selected ? 'bg-gold-400 text-green-900' : 'bg-green-700 text-white hover:bg-green-800'}`}>
+          {selected ? <Check size={22} strokeWidth={3} aria-hidden /> : <Plus size={22} strokeWidth={2.5} aria-hidden />}
+          <span className="sr-only">{selected ? 'Selected' : 'Add'}</span>
         </button>
       </div>
       {open && (
-        <div className="border-t border-green-100 px-4 py-3 text-sm">
-          {sections.isLoading && <p className="text-green-900/60">Loading sections…</p>}
-          {sections.data?.length === 0 && <p className="text-green-900/60">No sections offered this term.</p>}
+        <div className="bg-green-50/70 px-5 py-4 text-sm">
+          {sections.isLoading && <p className="text-green-900/70">Loading sections…</p>}
+          {sections.data?.length === 0 && <p className="text-green-900/70">No sections offered this term.</p>}
           <ul className="space-y-2">
             {sections.data?.map((s) => (
-              <li key={s.sectionId} className="rounded bg-white/70 p-2">
+              <li key={s.sectionId} className="rounded-2xl bg-white p-3">
                 <p className="font-medium text-green-900">
                   Section {s.sectionCode}
                   <span className="font-normal text-green-900/70"> · {s.instructor ?? 'Instructor TBA'}

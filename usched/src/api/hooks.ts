@@ -4,7 +4,7 @@ import { useConsentStore } from '../store/consentStore'
 import { useIsmisStore } from '../store/ismisStore'
 import { clearStudentData } from '../store/resetAll'
 import type {
-  CompareResponse, ConsentResponse, CoursePage, DirectoryEntry, GenerateRequest, GenerateResponse, IsmisSession,
+  CompareResponse, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
   Option, Prospectus, SearchStart, SearchStatus, SemesterCode, Section, Terms,
 } from './types'
 
@@ -17,21 +17,12 @@ export const useAcademicYears = () =>
   useQuery({ queryKey: ['academic-years'], queryFn: () => api<string[]>('/meta/academic-years', { ismis: true }) })
 export const useDepartments = () => useQuery({ queryKey: ['departments'], queryFn: () => api<string[]>('/meta/departments', { ismis: true }) })
 
-export const useCourses = (p: { q: string; department: string; semester: SemesterCode; academicYear: string; page: number; size?: number }) =>
+export const useCourses = (p: { q: string; department: string; semester: SemesterCode; academicYear: string; page: number; size?: number }, enabled = true) =>
   useQuery({
     queryKey: ['courses', p],
     queryFn: () => api<CoursePage>(`/courses${qs({ ...p, size: p.size ?? 12 })}`, { ismis: true }),
     placeholderData: (prev) => prev,
-  })
-
-/** Course code/title suggestions from the shared directory (not tied to the student's own catalog). */
-export const useCourseDirectory = (q: string) =>
-  useQuery({
-    queryKey: ['directory', q],
-    queryFn: () => api<DirectoryEntry[]>(`/directory/courses${qs({ q, limit: 8 })}`),
-    enabled: q.length >= 2,
-    staleTime: 5 * 60_000,
-    placeholderData: (prev) => prev,
+    enabled,
   })
 
 /** Empties the signed-in student's own fetched catalog (every course/section imported from ISMIS so far). */

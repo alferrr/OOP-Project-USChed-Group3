@@ -10,13 +10,17 @@ export default function TermsPage() {
       <PageTitle title="Terms & Privacy">
         You are asked to accept these each time you sign in to ISMIS. Reading them here does not sign you in to anything.
       </PageTitle>
-      {terms.isLoading && <p className="text-green-900/70">Loading the terms…</p>}
+      {terms.isLoading && <p className="text-green-900/70" role="status">Loading the terms…</p>}
       {terms.isError && (
-        <p role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p role="alert" className="alert-error">
           Could not load the terms. Is the USChed server running?
         </p>
       )}
-      {terms.data && <TermsViewer text={terms.data.text} version={terms.data.version} />}
+      {terms.data && (
+        <div className="surface p-5 sm:p-6">
+          <TermsViewer text={terms.data.text} version={terms.data.version} />
+        </div>
+      )}
     </section>
   )
 }

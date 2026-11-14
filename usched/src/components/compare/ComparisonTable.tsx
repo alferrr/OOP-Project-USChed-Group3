@@ -17,20 +17,20 @@ export default function ComparisonTable({ ranks, items }: Props) {
     { label: 'Total gap time', cell: (i) => formatMinutes(i.stats.totalGapMinutes) },
   ]
   return (
-    <div className="overflow-x-auto">
+    <div className="surface overflow-x-auto p-2">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="bg-green-800 text-white">
-            <th className="px-3 py-2 text-left font-medium"><span className="sr-only">Measure</span></th>
-            {ranks.map((r) => <th key={r} className="px-3 py-2 text-left font-medium">Schedule #{r}</th>)}
+          <tr className="text-green-900/70">
+            <th className="px-4 py-3 text-left font-semibold"><span className="sr-only">Measure</span></th>
+            {ranks.map((r) => <th key={r} className="px-4 py-3 text-left font-bold text-green-900">Schedule #{r}</th>)}
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.label} className="border-b border-green-100">
-              <th scope="row" className="px-3 py-2 text-left font-medium text-green-900">{row.label}</th>
+            <tr key={row.label} className="border-t border-green-100">
+              <th scope="row" className="px-4 py-3 text-left font-semibold text-green-900">{row.label}</th>
               {items.map((item, i) => (
-                <td key={i} className={`px-3 py-2 ${row.label === 'Score' && item.score === bestScore ? 'bg-gold-100 font-bold' : ''}`}>
+                <td key={i} className={`px-4 py-3 ${row.label === 'Score' && item.score === bestScore ? 'rounded-xl bg-gold-400 font-bold' : ''}`}>
                   {row.cell(item)}
                 </td>
               ))}

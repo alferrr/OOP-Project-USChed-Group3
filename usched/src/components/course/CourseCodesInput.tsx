@@ -76,14 +76,14 @@ export default function CourseCodesInput({ codes, onChange, disabled, suggestion
 
   return (
     <div>
-      <label htmlFor="course-codes" className="text-sm font-medium text-green-900">Course codes</label>
+      <label htmlFor="course-codes" className="text-sm font-bold text-green-900">Course codes</label>
       <div className="relative">
-      <div className="mt-1 flex flex-wrap items-center gap-2 rounded-md border border-green-100 bg-white p-2 focus-within:border-green-600 focus-within:ring-2 focus-within:ring-gold-300">
+      <div className="mt-1.5 flex flex-wrap items-center gap-2 rounded-2xl border-2 border-green-200 bg-white p-2.5 transition-colors hover:border-green-300 focus-within:border-green-600">
         {codes.map((c) => (
-          <span key={c} className="flex items-center gap-1 rounded-full bg-gold-100 px-3 py-1 text-sm font-medium text-green-900">
+          <span key={c} className="flex items-center gap-1 rounded-full bg-gold-400 px-3 py-1 text-sm font-bold text-green-900">
             {c}
             <button type="button" aria-label={`Remove ${c}`} disabled={disabled} onClick={() => onChange(codes.filter((x) => x !== c))}
-              className="text-green-800 hover:text-red-600">
+              className="grid size-5 place-items-center rounded-full text-green-900/70 hover:bg-green-900/10 hover:text-green-900">
               <X size={14} />
             </button>
           </span>
@@ -93,17 +93,17 @@ export default function CourseCodesInput({ codes, onChange, disabled, suggestion
           aria-activedescendant={showList && active >= 0 ? `${listId}-${active}` : undefined}
           onChange={(e) => { setText(e.target.value); setActive(-1); setOpen(true) }}
           onKeyDown={onKeyDown} onPaste={onPaste} onFocus={() => setOpen(true)} onBlur={() => { setOpen(false); commit(text) }}
-          placeholder={codes.length === 0 ? 'e.g. CIS 2105, or a department like CIS, then Enter' : 'Add another…'}
-          className="min-w-40 flex-1 bg-transparent px-1 py-1 text-sm outline-none" autoComplete="off" spellCheck={false} />
+          placeholder={codes.length === 0 ? 'e.g. CIS 2105 or CIS' : 'Add another…'}
+          className="min-w-40 flex-1 bg-transparent px-1.5 py-1 text-[0.9375rem] outline-none" autoComplete="off" spellCheck={false} />
       </div>
       {showList && (
         <div id={listId} role="listbox" aria-label="Course suggestions"
-          className="absolute left-0 right-0 z-10 mt-1 max-h-64 overflow-y-auto rounded-md border border-green-100 bg-white py-1 shadow-lg">
+          className="absolute left-0 right-0 z-20 mt-2 max-h-64 overflow-y-auto rounded-2xl bg-white p-1.5 shadow-[var(--shadow-lift)]">
           {options.map((s, i) => (
             <div key={s.code} id={`${listId}-${i}`} role="option" tabIndex={-1} aria-selected={i === active}
               // mousedown (not click) so the input keeps focus and its blur-commit doesn't swallow the pick
               onMouseDown={(e) => { e.preventDefault(); pick(s) }} onMouseEnter={() => setActive(i)}
-              className={`cursor-pointer px-3 py-1.5 text-sm ${i === active ? 'bg-gold-100' : ''}`}>
+              className={`cursor-pointer rounded-xl px-3 py-2 text-sm transition-colors ${i === active ? 'bg-gold-100' : ''}`}>
               <span className="font-medium text-green-900">{s.code}</span>
               <span className="ml-2 text-green-900/70">{s.name}</span>
             </div>
@@ -111,8 +111,8 @@ export default function CourseCodesInput({ codes, onChange, disabled, suggestion
         </div>
       )}
       </div>
-      <p className="mt-1 text-xs text-green-900/60">
-        Enter a course code, a department code (e.g. "CIS"), or a description, one at a time or pasted as a list separated by commas or new lines. Up to {MAX_CODES}.
+      <p className="mt-2 text-sm text-green-900/70">
+        A course code, a department like "CIS", or a description. Paste a list to add several (up to {MAX_CODES}).
       </p>
     </div>
   )

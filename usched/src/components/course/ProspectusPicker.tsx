@@ -50,18 +50,18 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
   const error = prospectus.error instanceof ApiError ? prospectus.error : null
 
   return (
-    <div className="rounded-lg border border-green-100">
+    <div className={open ? 'rounded-2xl bg-green-50' : ''}>
       <button onClick={() => setOpen(!open)} aria-expanded={open}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left font-semibold text-green-800">
+        className="flex items-center gap-2 rounded-full py-1.5 pl-2 pr-4 text-left font-bold text-green-800 transition-colors hover:bg-green-100">
         {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         <BookOpen size={16} className="text-gold-600" aria-hidden />
         Use my prospectus
       </button>
       {open && (
-        <div className="space-y-3 border-t border-green-100 p-3 text-sm">
-          {prospectus.isLoading && <p className="text-green-900/60">Reading your prospectus from ISMIS…</p>}
+        <div className="space-y-3 px-4 pb-4 text-sm">
+          {prospectus.isLoading && <p className="text-green-900/70" role="status">Reading your prospectus from ISMIS…</p>}
           {error && (
-            <p role="alert" className="rounded border border-red-300 bg-red-50 p-2 text-red-900">
+            <p role="alert" className="alert-error">
               {errorHelp(error.code, error.message)}
             </p>
           )}
@@ -74,8 +74,8 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
               <div role="group" aria-label="Year level" className="flex flex-wrap gap-2">
                 {yearLevels.map((y) => (
                   <button key={y} onClick={() => setYearLevel(y)} aria-pressed={yearLevel === y}
-                    className={`rounded-full border px-3 py-1 ${
-                      yearLevel === y ? 'border-green-700 bg-green-700 text-white' : 'border-green-100 text-green-900'}`}>
+                    className={`rounded-full px-4 py-1.5 font-semibold transition-colors ${
+                      yearLevel === y ? 'bg-green-700 text-white' : 'bg-white text-green-900 hover:bg-green-100'}`}>
                     {ORDINAL[y] ?? `${y}th`} year
                   </button>
                 ))}
@@ -83,40 +83,40 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
 
               {yearLevel !== null && (
                 termsForYear.length === 0 ? (
-                  <p className="text-green-900/60">Nothing listed for this year level.</p>
+                  <p className="text-green-900/70">Nothing listed for this year level.</p>
                 ) : (
                   <>
                     <div role="group" aria-label="Term" className="flex flex-wrap gap-2">
                       {termsForYear.map((s) => (
                         <button key={s} onClick={() => setPickerSemester(s)} aria-pressed={pickerSemester === s}
-                          className={`rounded-full border px-3 py-1 text-xs ${
-                            pickerSemester === s ? 'border-gold-500 bg-gold-100 text-green-900' : 'border-green-100 text-green-900/70'}`}>
+                          className={`rounded-full px-3.5 py-1 text-sm font-semibold transition-colors ${
+                            pickerSemester === s ? 'bg-gold-400 text-green-900' : 'bg-white text-green-900/70 hover:bg-green-100'}`}>
                           {SEMESTER_LABEL[s]}
                         </button>
                       ))}
                     </div>
                     {pickerSemester !== semester && (
-                      <p className="rounded bg-gold-50 px-2 py-1.5 text-xs text-green-900">
+                      <p className="rounded-xl bg-gold-50 px-3 py-2 text-sm text-green-900">
                         You're currently searching <strong>{SEMESTER_LABEL[semester]}</strong>. These are{' '}
                         <strong>{SEMESTER_LABEL[pickerSemester]}</strong> subjects from your prospectus — ISMIS may not
                         have them listed as offered right now.
                       </p>
                     )}
                     {matching.length === 0 ? (
-                      <p className="text-green-900/60">Nothing listed for this year and term.</p>
+                      <p className="text-green-900/70">Nothing listed for this year and term.</p>
                     ) : (
                       <>
-                        <ul className="space-y-1">
+                        <ul className="space-y-1.5 rounded-2xl bg-white p-3">
                           {matching.map((c) => (
                             <li key={c.code} className="flex justify-between gap-2 text-green-900">
                               <span><strong>{c.code}</strong> {c.title}</span>
-                              <span className="shrink-0 text-green-900/60">{c.units}u</span>
+                              <span className="shrink-0 text-green-900/70">{c.units}u</span>
                             </li>
                           ))}
                         </ul>
                         <button onClick={() => onAddCodes(addCodes(codes, matching.map((c) => c.code)))}
                           disabled={disabled || newCodes.length === 0}
-                          className="rounded-md bg-green-700 px-3 py-1.5 font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-green-700/30">
+                          className="btn btn-primary">
                           {newCodes.length === 0 ? 'Already in your search list' : `Add ${newCodes.length} to the search list`}
                         </button>
                       </>

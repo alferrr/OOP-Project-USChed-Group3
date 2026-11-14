@@ -16,7 +16,6 @@ vi.mock('../api/hooks', () => ({
   useSemesters: () => ({ data: [{ code: '1ST', label: '1st Semester' }] }),
   useDepartments: () => ({ data: [] }),
   useCourses: (p: unknown) => useCoursesSpy(p),
-  useCourseDirectory: () => ({ data: undefined, isPlaceholderData: false }),
   useSearchStatus: () => ({ data: undefined }),
   useStartSearch: () => ({ mutate: vi.fn(), isPending: false, error: null }),
   useGenerate: () => ({ mutate: vi.fn(), isPending: false, error: null }),

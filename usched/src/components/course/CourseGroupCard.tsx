@@ -24,25 +24,25 @@ export default function CourseGroupCard({ family, selected, semester, academicYe
   const selectedCount = courses.filter((c) => selected.some((s) => s.id === c.id)).length
 
   return (
-    <li className="rounded-lg border border-green-100 bg-white">
+    <li className="surface overflow-hidden sm:col-span-2">
       <button onClick={() => setOpen(!open)} aria-expanded={open} aria-label={`Courses under ${family}`}
-        className="flex w-full items-center gap-3 p-3 text-left">
+        className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-green-50/70">
         {open ? <ChevronDown size={18} className="shrink-0 text-green-700" aria-hidden /> : <ChevronRight size={18} className="shrink-0 text-green-700" aria-hidden />}
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-green-900">{family}</p>
+          <p className="truncate text-base font-bold text-green-900">{family}</p>
           <p className="truncate text-sm text-green-900/80">
             {offerings.data ? `${offerings.data.total} courses offered` : 'Loading…'}
           </p>
         </div>
         {selectedCount > 0 && (
-          <span className="shrink-0 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+          <span className="chip shrink-0">
             {selectedCount} selected
           </span>
         )}
       </button>
       {open && (
-        <div className="max-h-80 overflow-y-auto border-t border-green-100 p-3">
-          <ul className="space-y-2">
+        <div className="max-h-80 overflow-y-auto bg-green-50/70 p-3">
+          <ul className="space-y-3">
             {courses.map((c) => (
               <CourseCard key={c.id} course={c} semester={semester} academicYear={academicYear}
                 selected={selected.some((s) => s.id === c.id)} onToggle={() => onToggle(c)} />

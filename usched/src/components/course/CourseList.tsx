@@ -14,10 +14,10 @@ interface Props {
 
 export default function CourseList({ data, loading, semester, academicYear, onPage }: Props) {
   const { selected, toggle } = useSelectionStore()
-  if (loading && !data) return <p className="text-green-900/60">Loading courses…</p>
+  if (loading && !data) return <p className="text-green-900/70" role="status">Loading courses…</p>
   if (!data || data.items.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-green-100 p-6 text-center text-sm text-green-900/70">
+      <p className="rounded-[var(--radius-card)] bg-green-100/60 p-8 text-center text-base text-green-900/70">
         No saved courses match. Fetch the courses you need from ISMIS using the box above.
       </p>
     )
@@ -26,7 +26,7 @@ export default function CourseList({ data, loading, semester, academicYear, onPa
   const rows = groupCourses(data.items)
   return (
     <div>
-      <ul className="space-y-2">
+      <ul className="grid gap-3 sm:grid-cols-2">
         {rows.map((row) =>
           row.kind === 'group' ? (
             <CourseGroupCard key={row.group.family} family={row.group.family} selected={selected}
@@ -37,14 +37,14 @@ export default function CourseList({ data, loading, semester, academicYear, onPa
           ),
         )}
       </ul>
-      <div className="mt-4 flex items-center justify-between text-sm text-green-900/70">
+      <div className="mt-5 flex items-center justify-between text-sm text-green-900/70">
         <span>{data.total} courses</span>
         <div className="flex items-center gap-2">
           <button disabled={data.page === 0} onClick={() => onPage(data.page - 1)}
-            className="rounded border border-green-100 px-3 py-1 disabled:opacity-40">Previous</button>
+            className="btn btn-quiet px-4 py-1.5">Previous</button>
           <span>Page {data.page + 1} of {pages}</span>
           <button disabled={data.page + 1 >= pages} onClick={() => onPage(data.page + 1)}
-            className="rounded border border-green-100 px-3 py-1 disabled:opacity-40">Next</button>
+            className="btn btn-quiet px-4 py-1.5">Next</button>
         </div>
       </div>
     </div>
