@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import CourseCodesInput from './CourseCodesInput'
 
 function Harness({ initial = [] as string[] }) {
@@ -50,5 +50,63 @@ describe('CourseCodesInput', () => {
     await user.type(screen.getByLabelText('Course codes'), 'CIS 2105')
     await user.tab()
     expect(value()).toBe('CIS 2105')
+  })
+
+  describe('suggestions', () => {
+    const suggestions = [
+      { code: 'CIS 2105', name: 'Networking II' },
+      { code: 'CIS 2201', name: 'Systems Analysis' },
+    ]
+    function SuggestHarness({ onQuery }: { onQuery: (t: string) => void }) {
+      const [codes, setCodes] = useState<string[]>([])
+      return (
+        <>
+          <CourseCodesInput codes={codes} onChange={setCodes} suggestions={suggestions} onQuery={onQuery} />
+          <output data-testid="codes">{codes.join('|')}</output>
+        </>
+      )
+    }
+
+    it('debounces onQuery and ignores text shorter than two characters', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const onQuery = vi.fn()
+      render(<SuggestHarness onQuery={onQuery} />)
+      onQuery.mockClear()
+      await user.type(screen.getByLabelText('Course codes'), 'cis')
+      expect(onQuery).not.toHaveBeenCalledWith('cis')
+      await act(async () => { vi.advanceTimersByTime(350) })
+      expect(onQuery).toHaveBeenLastCalledWith('cis')
+      expect(onQuery.mock.calls.filter(([t]) => t === 'cis')).toHaveLength(1)
+      vi.useRealTimers()
+    })
+
+    it('shows suggestions after the pause and adds one on click', async () => {
+      const user = userEvent.setup()
+      render(<SuggestHarness onQuery={() => {}} />)
+      await user.type(screen.getByLabelText('Course codes'), 'cis')
+      const option = await screen.findByRole('option', { name: /CIS 2201/ })
+      await user.click(option)
+      expect(value()).toBe('CIS 2201')
+      expect(screen.queryByRole('option', { name: /CIS 2201/ })).not.toBeInTheDocument()
+    })
+
+    it('picks the highlighted suggestion with the arrow keys and Enter', async () => {
+      const user = userEvent.setup()
+      render(<SuggestHarness onQuery={() => {}} />)
+      await user.type(screen.getByLabelText('Course codes'), 'cis')
+      await screen.findByRole('listbox')
+      await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+      expect(value()).toBe('CIS 2201')
+    })
+
+    it('closes the list on Escape', async () => {
+      const user = userEvent.setup()
+      render(<SuggestHarness onQuery={() => {}} />)
+      await user.type(screen.getByLabelText('Course codes'), 'cis')
+      await screen.findByRole('listbox')
+      await user.keyboard('{Escape}')
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    })
   })
 })

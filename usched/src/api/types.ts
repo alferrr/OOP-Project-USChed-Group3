@@ -22,6 +22,7 @@ export interface CourseSummary {
   department: string | null
   prerequisites: string | null
 }
+export interface DirectoryEntry { code: string; name: string; units: number | null; department: string | null }
 export interface CoursePage { items: CourseSummary[]; page: number; size: number; total: number }
 
 export interface Meeting { day: DayCode; start: string; end: string; room: string | null; type: 'LECTURE' | 'LAB' }

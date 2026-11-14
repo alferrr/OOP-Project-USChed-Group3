@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { useAcademicYears, useClearCatalog, useCourses, useDepartments, useGenerate, useSemesters, useSearchStatus, useStartSearch } from '../api/hooks'
+import { useAcademicYears, useClearCatalog, useCourseDirectory, useCourses, useDepartments, useGenerate, useSemesters, useSearchStatus, useStartSearch } from '../api/hooks'
 import type { SemesterCode } from '../api/types'
 import CourseCodesInput from '../components/course/CourseCodesInput'
 import ProspectusPicker from '../components/course/ProspectusPicker'
@@ -41,6 +41,8 @@ export default function CourseSelectionPage() {
   // means a family (e.g. GE-FEL's dozens of offerings) collapses into its one dropdown row instead of
   // scattering across several "pages" that are each, confusingly, still just more of that same family.
   const courses = useCourses({ q: debouncedQ, department, semester, academicYear, page, size: 100 })
+  const [suggestQ, setSuggestQ] = useState('')
+  const suggestions = useCourseDirectory(suggestQ)
   const startSearch = useStartSearch()
   const search = useSearchStatus(jobId)
   const { selected, addMany, clear: clearSelection } = useSelectionStore()
@@ -109,7 +111,8 @@ export default function CourseSelectionPage() {
           <div className="space-y-4">
             <div className="space-y-3 rounded-lg border border-green-100 bg-white p-4">
               <ProspectusPicker semester={semester} codes={codes} onAddCodes={setCodes} disabled={running} />
-              <CourseCodesInput codes={codes} onChange={setCodes} disabled={running} />
+              <CourseCodesInput codes={codes} onChange={setCodes} disabled={running} onQuery={setSuggestQ}
+                suggestions={suggestQ && !suggestions.isPlaceholderData ? suggestions.data : undefined} />
               <button onClick={fetchCourses} disabled={codes.length === 0 || running}
                 className="rounded-md bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-green-700/30">
                 {running ? 'Fetching…' : `Fetch ${codes.length || ''} ${codes.length === 1 ? 'course' : 'courses'} from ISMIS`}
