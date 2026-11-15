@@ -148,17 +148,20 @@ export default function CourseSelectionPage() {
           </div>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-[var(--radius-card)] bg-green-800 p-5 text-white shadow-[var(--shadow-lift)]">
+        {/* Sticky column. Only the Preferences card scrolls (inside PreferencesForm); it overlaps the plan card's bottom edge. */}
+        <aside className="flex flex-col lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-[var(--radius-card)] bg-green-800 p-5 pb-10 text-white shadow-[var(--shadow-lift)]">
             <SelectedCoursesPanel />
             <button onClick={submitGenerate} disabled={selected.length === 0 || generate.isPending}
               className="btn btn-gold mt-5 w-full py-3.5 text-base">
               {generate.isPending ? 'Generating…' : 'Generate Schedules'}
             </button>
           </div>
-          <PreferencesForm value={preferences} onChange={setPreferences} />
+          <div className="relative z-10 -mt-6 px-2">
+            <PreferencesForm value={preferences} onChange={setPreferences} />
+          </div>
           {genError && (
-            <div role="alert" className="alert-error">
+            <div role="alert" className="alert-error mt-4">
               <p className="font-medium">{genError.message}</p>
               {genError.details.length > 0 && (
                 <ul className="mt-1 list-disc pl-5">{genError.details.map((d) => <li key={d}>{d}</li>)}</ul>

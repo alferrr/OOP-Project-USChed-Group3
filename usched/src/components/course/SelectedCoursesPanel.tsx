@@ -82,7 +82,7 @@ export default function SelectedCoursesPanel() {
       {selected.length === 0 ? (
         <p className="mb-3 text-sm text-white/75">Nothing selected yet.</p>
       ) : (
-        <ul className="mb-4 max-h-72 space-y-1.5 overflow-y-auto">
+        <ul className="mb-4 max-h-48 space-y-1.5 overflow-y-auto">
           {selected.map((c) => (
             <SelectedCourseRow key={c.id} course={c} onRemove={() => remove(c.id)} />
           ))}
