@@ -39,7 +39,7 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-1 items-center justify-center px-6 pb-16 sm:px-10">
-          <div className="surface rise w-full max-w-md p-7 sm:p-9">
+          <div className="rise w-full max-w-md">
             <h1 className="text-3xl font-extrabold tracking-tight text-green-900">
               Welcome to US<span className="text-green-500">Ched</span>
             </h1>
