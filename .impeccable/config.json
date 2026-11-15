@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "usched-api/src/test/resources/fixtures/prospectus.html"
+        ],
+        "createdAt": "2026-11-15T05:29:37.402Z",
+        "reason": "Claude decided: backend parser test fixture (saved ISMIS HTML), never rendered as UI"
+      }
+    ]
+  }
+}
