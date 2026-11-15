@@ -67,10 +67,6 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
           )}
           {prospectus.data && (
             <>
-              <p className="text-green-900/80">
-                <strong>{prospectus.data.programName}</strong>
-                {prospectus.data.effectiveYear && ` (effective ${prospectus.data.effectiveYear})`}
-              </p>
               <div role="group" aria-label="Year level" className="flex flex-wrap gap-2">
                 {yearLevels.map((y) => (
                   <button key={y} onClick={() => setYearLevel(y)} aria-pressed={yearLevel === y}

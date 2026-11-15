@@ -46,9 +46,7 @@ describe('ProspectusPicker', () => {
     const user = userEvent.setup()
     renderPicker()
     await user.click(screen.getByRole('button', { name: /use my prospectus/i }))
-    expect(await screen.findByText(/BACHELOR OF SCIENCE/)).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: '1st year' }))
+    await user.click(await screen.findByRole('button', { name: '1st year' }))
     expect(screen.getByText('CIS 1101')).toBeInTheDocument() // defaults to the page's current term, 1ST
     expect(screen.getByRole('button', { name: '1st Semester' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '2nd Semester' })).toBeInTheDocument()
