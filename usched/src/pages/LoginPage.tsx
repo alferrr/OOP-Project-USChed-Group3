@@ -30,7 +30,7 @@ export default function LoginPage() {
 
       <div className="flex w-full flex-col lg:w-1/2">
         <div className="flex items-center justify-between px-6 py-5 sm:px-10">
-          <span className="text-xl font-extrabold tracking-tight text-green-800">
+          <span className="font-display text-xl font-extrabold tracking-tight text-green-800">
             US<span className="text-green-500">Ched</span>
           </span>
           <Link to="/terms" className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-green-900/70 transition-colors hover:bg-green-100 hover:text-green-800">

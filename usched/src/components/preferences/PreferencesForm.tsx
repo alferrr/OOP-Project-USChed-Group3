@@ -104,6 +104,7 @@ const TIME_OF_DAY_OPTIONS = [
 ]
 const ANY_TIME_OPTIONS = [{ value: '', label: 'Any time' }, ...TIME_SLOTS.map((t) => ({ value: t, label: format12(t) }))]
 
+// On desktop this card sits in a sticky column, so only its body (not the page or the column) scrolls.
 export default function PreferencesForm({ value, onChange }: Props) {
   const [open, setOpen] = useState(false)
   const { hard, soft } = value
@@ -119,7 +120,7 @@ export default function PreferencesForm({ value, onChange }: Props) {
       selected ? 'bg-gold-400 text-green-900' : 'bg-white text-green-900/70 hover:bg-green-100'}`
 
   return (
-    <div className="surface">
+    <div className="surface shadow-[var(--shadow-lift)]">
       <div className="flex items-center gap-2 px-4 py-3">
         <button onClick={() => setOpen(!open)} aria-expanded={open}
           className="flex flex-1 items-center gap-2 text-left text-lg font-bold text-green-900">
@@ -138,12 +139,12 @@ export default function PreferencesForm({ value, onChange }: Props) {
       </div>
 
       {open && (
-        <div className="space-y-4 px-4 pb-4">
+        <div className="space-y-4 px-4 pb-4 lg:max-h-[max(12rem,calc(100vh-36rem))] lg:overflow-y-auto lg:overscroll-contain">
           <fieldset className="rounded-2xl bg-green-50 p-4">
-            <legend className="-ml-1 flex items-center gap-1.5 px-1 font-bold text-green-900">
+            <legend className="float-left mb-2 flex w-full items-center gap-1.5 font-bold text-green-900">
               <ShieldAlert size={15} className="text-green-700" aria-hidden /> Must follow
             </legend>
-            <p className="mb-3 text-sm text-green-900/70">Any schedule that breaks these is dropped entirely, not just ranked lower.</p>
+            <p className="clear-both mb-3 text-sm text-green-900/70">Any schedule that breaks these is dropped entirely, not just ranked lower.</p>
             {/* Always one column: this form is embedded in a fixed ~20rem sidebar on desktop, narrower
                 than any viewport-based breakpoint would ever reflect, so a viewport-driven multi-column
                 grid here just crams everything into that same narrow width regardless of screen size. */}
@@ -179,10 +180,10 @@ export default function PreferencesForm({ value, onChange }: Props) {
           </fieldset>
 
           <fieldset className="rounded-2xl bg-green-50 p-4">
-            <legend className="-ml-1 flex items-center gap-1.5 px-1 font-bold text-green-900">
+            <legend className="float-left mb-2 flex w-full items-center gap-1.5 font-bold text-green-900">
               <ThumbsUp size={15} className="text-green-700" aria-hidden /> Nice to have
             </legend>
-            <p className="mb-3 text-sm text-green-900/70">These only nudge which schedules rank higher - nothing is ever dropped for them.</p>
+            <p className="clear-both mb-3 text-sm text-green-900/70">These only nudge which schedules rank higher - nothing is ever dropped for them.</p>
             <div className="max-w-xs">
               <ScrollPicker label="Time of day" options={TIME_OF_DAY_OPTIONS} value={timeOfDay}
                 onChange={(t) => setSoft({ preferMorning: t === 'morning', preferAfternoon: t === 'afternoon' })} />
