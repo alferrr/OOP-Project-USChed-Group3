@@ -22,7 +22,7 @@ class ProspectusParserTest {
         var p = parser.parseProspectus(fixture());
         assertThat(p.programName()).isEqualTo("BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY");
         assertThat(p.effectiveYear()).isEqualTo("2023");
-        assertThat(p.courses()).hasSize(4);
+        assertThat(p.courses()).hasSize(5);
 
         var first = p.courses().get(0);
         assertThat(first.yearLevel()).isEqualTo(1);

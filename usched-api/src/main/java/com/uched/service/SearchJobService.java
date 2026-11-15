@@ -3,6 +3,7 @@ package com.uched.service;
 import com.uched.datasource.FetchedCourseDataSource;
 import com.uched.datasource.SourceType;
 import com.uched.datasource.ismis.IsmisConnection;
+import com.uched.datasource.ismis.ProspectusCourse;
 import com.uched.domain.exception.InvalidCourseDataException;
 import com.uched.domain.exception.IsmisNoResultsException;
 import com.uched.domain.exception.IsmisSessionExpiredException;
@@ -268,12 +269,47 @@ public class SearchJobService {
         ImportReport report = importer.importFrom(
                 new FetchedCourseDataSource(SourceType.ISMIS, result.courses(), result.skipped(), connection.providesUnits()),
                 semester, year, studentIdNumber);
+        applyProspectusUnits(connection, result.courses(), studentIdNumber);
         List<CourseRef> found = importedRefs(result.courses(), studentIdNumber);
         return new Item(query, ItemStatus.DONE, "", report.courses(), report.sections(), found, List.of(), searchedAsOf(query, actual));
     }
 
     private static String searchedAsOf(String query, String actual) {
         return query.equalsIgnoreCase(actual) ? null : actual;
+    }
+
+    /**
+     * ISMIS's offered-courses table has no units column, so freshly imported courses carry a default. The
+     * student's own prospectus does list real units: where a searched course appears in it, store those
+     * instead. Best effort: if the prospectus cannot be read, the search result stands as it is.
+     */
+    private void applyProspectusUnits(IsmisConnection connection, List<Course> imported, String studentIdNumber) {
+        Map<String, Double> known = new java.util.HashMap<>();
+        try {
+            for (ProspectusCourse pc : connection.prospectus().courses()) {
+                known.putIfAbsent(codeKey(pc.code()), pc.units());
+            }
+        } catch (RuntimeException e) {
+            log.debug("Prospectus units unavailable: {}", e.getClass().getSimpleName());
+            return;
+        }
+        for (Course c : imported) {
+            Double units = known.get(codeKey(c.getCode()));
+            if (units == null || units <= 0) {
+                continue;
+            }
+            courses.findByStudentIdNumberAndCode(studentIdNumber, c.getCode()).ifPresent(e -> {
+                java.math.BigDecimal value = java.math.BigDecimal.valueOf(units);
+                if (e.getUnits() == null || e.getUnits().compareTo(value) != 0) {
+                    e.setUnits(value);
+                    courses.save(e);
+                }
+            });
+        }
+    }
+
+    private static String codeKey(String code) {
+        return code == null ? "" : code.trim().replaceAll("\\s+", " ").toUpperCase(Locale.ROOT);
     }
 
     private List<CourseRef> importedRefs(List<Course> imported, String studentIdNumber) {
@@ -314,6 +350,7 @@ public class SearchJobService {
             ImportReport report = importer.importFrom(
                     new FetchedCourseDataSource(SourceType.ISMIS, result.courses(), result.skipped(), connection.providesUnits()),
                     semester, year, studentIdNumber);
+            applyProspectusUnits(connection, result.courses(), studentIdNumber);
             List<CourseRef> suggestions = importedRefs(result.courses(), studentIdNumber);
             if (suggestions.size() > MAX_SUGGESTIONS) {
                 suggestions = List.copyOf(suggestions.subList(0, MAX_SUGGESTIONS));

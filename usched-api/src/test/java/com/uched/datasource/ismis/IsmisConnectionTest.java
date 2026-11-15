@@ -78,7 +78,7 @@ class IsmisConnectionTest {
             var p1 = c.prospectus();
             assertThat(p1.programName()).isEqualTo("BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY");
             assertThat(p1.effectiveYear()).isEqualTo("2023");
-            assertThat(p1.courses()).hasSize(4);
+            assertThat(p1.courses()).hasSize(5);
             var p2 = c.prospectus();
             assertThat(p2).isSameAs(p1); // cached: no second GET
         }

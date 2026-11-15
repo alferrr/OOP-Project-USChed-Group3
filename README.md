@@ -97,7 +97,7 @@ that the results are partial.
 > filtered, multi-page department search once you can test it.
 
 Known gaps (not yet verified against the live site; automated tests only use a local fake ISMIS):
-- The results table has **no units column**: new courses get 3 units and an ISMIS refresh never overwrites units you already have (e.g. from a CSV).
+- The results table has **no units column**: new courses get 3 units, but a searched course that appears in your prospectus takes its real units from there. An ISMIS refresh never overwrites units you already have (e.g. from a CSV); courses not in your prospectus (e.g. electives) stay at 3.
 - Assumed: Academic Year `2026-2027` is submitted as `2026`, and `Enrolled Students` reads `enrolled/capacity`.
 - A search matching several result pages needs plain-href page links; otherwise USChed asks for a more specific search instead of importing part of it. (Whole-term download is not built: ISMIS lists ~204 pages.)
 
