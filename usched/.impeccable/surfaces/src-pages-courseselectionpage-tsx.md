@@ -17,7 +17,7 @@ Unresolved: none.
 
 THESIS: A friendly, smooth-edged planner where each screen has one obvious next step; it refuses the dense bordered-box dashboard and the heavy green header with the gold stripe.
 
-OWN-WORLD: Everyday App Clarity (user-picked grounded direction). Soft sage ground #f5f7f4, white rounded cards (radius 20-28px), tall soft shadows, no hard borders. Deep green #0f6b3f carries primary actions and the plan summary; gold #f0c53d is only for selection, ticks and the single primary call to action. One humanist sans (Atkinson Hyperlegible Next) with tabular figures, weight carrying rank. Big circular add and tick buttons, pill chips.
+OWN-WORLD: Everyday App Clarity (user-picked grounded direction). Soft sage ground #f5f7f4, white rounded cards (radius 20-28px), tall soft shadows, no hard borders. Deep green #0f6b3f carries primary actions and the plan summary; gold #f0c53d is only for selection, ticks and the single primary call to action. DM Sans for headings and big figures, Inter for body and controls (user-pinned), tabular figures, weight carrying rank. Big circular add and tick buttons, pill chips.
 
 STORY: A student understands where they are in three seconds, adds courses without hunting, sees their plan and units grow, generates, and reads why a schedule works in plain language.
 
