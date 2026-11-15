@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { CourseSummary, GenerateResponse, Preferences, SemesterCode } from '../api/types'
+import type { CourseSummary, GenerateResponse, Preferences, RankedSchedule, SemesterCode } from '../api/types'
 
 function defaultAcademicYear(now = new Date()): string {
   const start = now.getMonth() >= 5 ? now.getFullYear() : now.getFullYear() - 1
@@ -55,6 +55,34 @@ export const usePassedStore = create<PassedState>((set) => ({
   addMany: (codes) => set((s) => ({ passed: [...new Set([...s.passed, ...codes])] })),
   clear: () => set({ passed: [] }),
 }))
+
+export interface SavedSchedule {
+  id: string
+  semester: SemesterCode
+  academicYear: string
+  schedule: RankedSchedule
+}
+const sectionKey = (s: RankedSchedule) => s.sections.map((x) => x.sectionId).sort((a, b) => a - b).join(',')
+
+interface SavedState {
+  saved: SavedSchedule[]
+  /** Saves a schedule (a copy of it, so it survives regenerating); saving the same sections twice is a no-op. */
+  save: (schedule: RankedSchedule, semester: SemesterCode, academicYear: string) => void
+  remove: (id: string) => void
+  clear: () => void
+}
+export const useSavedStore = create<SavedState>((set) => ({
+  saved: [],
+  save: (schedule, semester, academicYear) =>
+    set((s) =>
+      s.saved.some((x) => x.id === sectionKey(schedule))
+        ? s
+        : { saved: [...s.saved, { id: sectionKey(schedule), semester, academicYear, schedule }] },
+    ),
+  remove: (id) => set((s) => ({ saved: s.saved.filter((x) => x.id !== id) })),
+  clear: () => set({ saved: [] }),
+}))
+export const savedId = sectionKey
 
 export const emptyPreferences = (): Preferences => ({ hard: { avoidDays: [] }, soft: {} })
 

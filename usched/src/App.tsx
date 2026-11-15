@@ -4,6 +4,7 @@ import RequireIsmisSession from './components/layout/RequireIsmisSession'
 import CourseSelectionPage from './pages/CourseSelectionPage'
 import LoginPage from './pages/LoginPage'
 import SchedulesPage from './pages/SchedulesPage'
+import SharedSchedulePage from './pages/SharedSchedulePage'
 import TermsPage from './pages/TermsPage'
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<AppShell />}>
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="/shared" element={<SharedSchedulePage />} />
         <Route element={<RequireIsmisSession />}>
           <Route path="/courses" element={<CourseSelectionPage />} />
           <Route path="/schedules" element={<SchedulesPage />} />

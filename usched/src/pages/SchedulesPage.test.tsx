@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GenerateResponse } from '../api/types'
 import SchedulesPage from './SchedulesPage'
-import { useScheduleStore, useSelectionStore } from '../store/planStore'
+import { useSavedStore, useScheduleStore, useSelectionStore } from '../store/planStore'
 
 const mutate = vi.fn()
 vi.mock('../api/hooks', () => ({
@@ -96,5 +96,44 @@ describe('SchedulesPage printing', () => {
     render(<SchedulesPage />, { wrapper: MemoryRouter })
     await user.click(screen.getByRole('button', { name: /^print$/i }))
     expect(printSpy).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('SchedulesPage saving and sharing', () => {
+  beforeEach(() => {
+    act(() => {
+      useScheduleStore.getState().reset()
+      useScheduleStore.getState().setResult(result)
+      useSavedStore.getState().clear()
+    })
+  })
+
+  it('saves the active schedule, lists it, and removes it again', async () => {
+    const user = userEvent.setup()
+    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    expect(screen.queryByRole('list', { name: 'Saved schedules' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(screen.getByRole('button', { name: 'Saved' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('list', { name: 'Saved schedules' })).toHaveTextContent('CIS 2105')
+
+    await user.click(screen.getByRole('button', { name: /remove saved schedule/i }))
+    expect(useSavedStore.getState().saved).toEqual([])
+  })
+
+  it('saving the same schedule twice keeps one copy', () => {
+    act(() => {
+      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027')
+      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027')
+    })
+    expect(useSavedStore.getState().saved).toHaveLength(1)
+  })
+
+  it('shows a share link containing the schedule, never a server id', async () => {
+    const user = userEvent.setup()
+    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    await user.click(screen.getByRole('button', { name: /copy link/i }))
+    const input = screen.getByLabelText('Share link') as HTMLInputElement
+    expect(input.value).toMatch(/\/shared#[A-Za-z0-9_-]+$/)
   })
 })
