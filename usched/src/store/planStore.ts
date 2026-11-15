@@ -41,6 +41,21 @@ export const useSelectionStore = create<SelectionState>((set) => ({
   clear: () => set({ selected: [] }),
 }))
 
+interface PassedState {
+  /** Normalised codes of courses the student says they have already passed (ISMIS does not tell us). */
+  passed: string[]
+  toggle: (code: string) => void
+  addMany: (codes: string[]) => void
+  clear: () => void
+}
+export const usePassedStore = create<PassedState>((set) => ({
+  passed: [],
+  toggle: (code) =>
+    set((s) => ({ passed: s.passed.includes(code) ? s.passed.filter((c) => c !== code) : [...s.passed, code] })),
+  addMany: (codes) => set((s) => ({ passed: [...new Set([...s.passed, ...codes])] })),
+  clear: () => set({ passed: [] }),
+}))
+
 export const emptyPreferences = (): Preferences => ({ hard: { avoidDays: [] }, soft: {} })
 
 interface PreferencesState {

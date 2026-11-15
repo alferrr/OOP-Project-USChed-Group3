@@ -5,6 +5,8 @@ import { ApiError } from '../../api/client'
 import type { SemesterCode } from '../../api/types'
 import { addCodes } from '../../lib/search'
 import { errorHelp } from '../../lib/errors'
+import { codesBefore, normCode } from '../../lib/prerequisites'
+import { usePassedStore } from '../../store/planStore'
 
 const ORDINAL: Record<number, string> = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th' }
 const SEMESTER_LABEL: Record<SemesterCode, string> = { '1ST': '1st Semester', '2ND': '2nd Semester', SUMMER: 'Summer' }
@@ -27,6 +29,7 @@ interface Props {
 export default function ProspectusPicker({ semester, codes, onAddCodes, disabled }: Props) {
   const [open, setOpen] = useState(false)
   const prospectus = useProspectus(open)
+  const { passed, toggle: togglePassed, addMany: markPassed } = usePassedStore()
   const [yearLevel, setYearLevel] = useState<number | null>(null)
   // A term picked here only holds while the page's own term selector stays put; once that changes, follow it.
   const [pick, setPick] = useState<{ from: SemesterCode; value: SemesterCode } | null>(null)
@@ -104,12 +107,25 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
                       <>
                         <ul className="space-y-3 rounded-2xl bg-white p-4">
                           {matching.map((c) => (
-                            <li key={c.code} className="flex justify-between gap-2 text-green-900">
-                              <span><strong>{c.code}</strong> {c.title}</span>
+                            <li key={c.code} className="flex items-start justify-between gap-3 text-green-900">
+                              <label className="flex cursor-pointer items-start gap-2">
+                                <input type="checkbox" className="mt-0.5" checked={passed.includes(normCode(c.code))}
+                                  onChange={() => togglePassed(normCode(c.code))} aria-label={`Passed ${c.code}`} />
+                                <span><strong>{c.code}</strong> {c.title}</span>
+                              </label>
                               <span className="shrink-0 text-green-900/70">{c.units}u</span>
                             </li>
                           ))}
                         </ul>
+                        <p className="text-green-900/70">
+                          Tick the subjects you've already passed so USChed can warn you about unmet prerequisites.
+                        </p>
+                        {yearLevel !== null && (
+                          <button onClick={() => markPassed(codesBefore(prospectus.data?.courses ?? [], yearLevel, pickerSemester))}
+                            className="btn btn-quiet">
+                            I've passed everything before this term
+                          </button>
+                        )}
                         <button onClick={() => onAddCodes(addCodes(codes, matching.map((c) => c.code)))}
                           disabled={disabled || newCodes.length === 0}
                           className="btn btn-primary">

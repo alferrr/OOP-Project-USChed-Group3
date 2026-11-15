@@ -2,9 +2,9 @@ import { act } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Section } from '../../api/types'
+import type { Prospectus, Section } from '../../api/types'
 import SelectedCoursesPanel from './SelectedCoursesPanel'
-import { useSelectionStore } from '../../store/planStore'
+import { usePassedStore, useSelectionStore } from '../../store/planStore'
 
 const course = (id: number, code: string) => ({ id, code, name: code + ' name', units: 3, department: null, prerequisites: null })
 
@@ -17,7 +17,10 @@ const geFelSections: Section[] = [
     meetings: [{ day: 'TUE', start: '10:00', end: '11:30', room: 'AVR 2', type: 'LECTURE' }] },
 ]
 
+let prospectusData: Prospectus | undefined
+
 vi.mock('../../api/hooks', () => ({
+  useProspectus: () => ({ data: prospectusData }),
   useSections: (_courseId: number, _sem: string, _year: string, enabled: boolean) => ({
     data: enabled ? geFelSections : undefined,
     isLoading: false,
@@ -26,7 +29,32 @@ vi.mock('../../api/hooks', () => ({
 
 describe('SelectedCoursesPanel', () => {
   beforeEach(() => {
-    act(() => { useSelectionStore.getState().clear() })
+    act(() => { useSelectionStore.getState().clear(); usePassedStore.getState().clear() })
+    prospectusData = undefined
+  })
+
+  const prospectus = (): Prospectus => ({
+    programName: 'BSIT', effectiveYear: '2023',
+    courses: [
+      { yearLevel: 1, semester: '1ST', code: 'CIS 1101', title: 'PROGRAMMING I', units: 3, requisiteNote: '' },
+      { yearLevel: 1, semester: '2ND', code: 'CIS 1201', title: 'PROGRAMMING II', units: 3, requisiteNote: 'PREREQUISITE CIS 1101' },
+    ],
+  })
+
+  it('warns when a selected course has a prerequisite not marked passed, and stops once it is', () => {
+    prospectusData = prospectus()
+    act(() => { useSelectionStore.getState().addMany([course(1, 'CIS 1201')]) })
+    render(<SelectedCoursesPanel />)
+    expect(screen.getByRole('alert')).toHaveTextContent('CIS 1101')
+
+    act(() => { usePassedStore.getState().addMany(['CIS 1101']) })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows no warning before the prospectus has been loaded', () => {
+    act(() => { useSelectionStore.getState().addMany([course(1, 'CIS 1201')]) })
+    render(<SelectedCoursesPanel />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('shows no "Clear all" button when nothing is selected', () => {

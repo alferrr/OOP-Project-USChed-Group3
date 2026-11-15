@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, X } from 'lucide-react'
-import { useSections } from '../../api/hooks'
+import { useProspectus, useSections } from '../../api/hooks'
 import type { CourseSummary, Section } from '../../api/types'
 import { describeMeetings } from '../../lib/time'
-import { useSelectionStore, useTermStore } from '../../store/planStore'
+import { checkPrerequisites } from '../../lib/prerequisites'
+import { usePassedStore, useSelectionStore, useTermStore } from '../../store/planStore'
 import UnitsSummary from './UnitsSummary'
 
 /** The distinct real courses fetched under one code (e.g. the 3 electives ISMIS offers under "GE-FEL"). */
@@ -12,11 +13,17 @@ function distinctCourseNames(sections: Section[] | undefined): string[] {
   return [...new Set(sections.map((s) => s.courseName))]
 }
 
+const ORD = (n: number) => (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th')
+
 function SelectedCourseRow({ course, onRemove }: { course: CourseSummary; onRemove: () => void }) {
   const [open, setOpen] = useState(false)
   const [chosenName, setChosenName] = useState('')
   const { semester, academicYear } = useTermStore()
   const sections = useSections(course.id, semester, academicYear, open)
+  // Read-only: only uses the prospectus if the student already loaded it (opening the picker); never fetches.
+  const prospectus = useProspectus(false)
+  const passed = usePassedStore((s) => s.passed)
+  const check = prospectus.data ? checkPrerequisites(course.code, prospectus.data.courses, passed) : null
 
   const names = distinctCourseNames(sections.data)
   const offerings = (sections.data ?? []).filter((s) => s.courseName === chosenName)
@@ -33,6 +40,14 @@ function SelectedCourseRow({ course, onRemove }: { course: CourseSummary; onRemo
           <X size={14} />
         </button>
       </div>
+      {check && check.missing.length > 0 && (
+        <p role="alert" className="mt-1.5 rounded-xl bg-gold-400/20 px-3 py-1.5 text-xs text-gold-300">
+          Prerequisite not marked passed: <strong>{check.missing.join(', ')}</strong>. You may not be able to enroll.
+        </p>
+      )}
+      {check && check.standingYear !== null && (
+        <p className="mt-1.5 px-1 text-xs text-white/70">Needs {check.standingYear}{ORD(check.standingYear)} year standing.</p>
+      )}
       {open && (
         <div className="mt-2 space-y-2 border-t border-white/15 pt-2">
           {sections.isLoading && <p className="text-white/70">Loading…</p>}

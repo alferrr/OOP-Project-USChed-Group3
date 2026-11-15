@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { Prospectus } from '../../api/types'
 import ProspectusPicker from './ProspectusPicker'
+import { usePassedStore } from '../../store/planStore'
 
 const prospectus: Prospectus = {
   programName: 'BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY',
@@ -85,5 +86,21 @@ describe('ProspectusPicker', () => {
     expect(screen.getByRole('button', { name: '1st Semester' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '2nd Semester' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Summer' })).not.toBeInTheDocument()
+  })
+
+  it('marks subjects as passed, singly or everything before the chosen term', async () => {
+    usePassedStore.getState().clear()
+    const user = userEvent.setup()
+    renderPicker()
+    await user.click(screen.getByRole('button', { name: /use my prospectus/i }))
+    await user.click(await screen.findByRole('button', { name: '1st year' }))
+    await user.click(screen.getByRole('button', { name: 'Summer' }))
+
+    await user.click(screen.getByRole('checkbox', { name: 'Passed CIS 2201' }))
+    expect(usePassedStore.getState().passed).toEqual(['CIS 2201'])
+
+    await user.click(screen.getByRole('button', { name: /passed everything before this term/i }))
+    expect(usePassedStore.getState().passed).toEqual(
+      expect.arrayContaining(['CIS 1101', 'GE-PC', 'CIS 1102N', 'CIS 2201']))
   })
 })
