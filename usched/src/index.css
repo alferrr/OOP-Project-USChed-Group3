@@ -19,7 +19,8 @@
   --color-gold-600: #b48611;
   --color-gold-700: #8a6a0a;
   --color-ground: #f5f7f4;
-  --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "DM Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
   --radius-card: 1.5rem;
   --radius-control: 1rem;
   --shadow-card: 0 1px 2px rgb(10 47 29 / 0.05), 0 12px 32px -14px rgb(10 47 29 / 0.16);
@@ -39,7 +40,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-wrap: pretty;
 }
-h1, h2, h3 { text-wrap: balance; }
+h1, h2, h3, h4 { font-family: var(--font-display); text-wrap: balance; letter-spacing: -0.01em; }
 
 /* Browser surfaces that belong to the design too */
 ::selection { background: var(--color-gold-300); color: var(--color-green-900); }
