@@ -58,7 +58,7 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
         Use my prospectus
       </button>
       {open && (
-        <div className="space-y-3 px-4 pb-4 text-sm">
+        <div className="space-y-3 px-4 pb-4 pt-1 text-sm">
           {prospectus.isLoading && <p className="text-green-900/70" role="status">Reading your prospectus from ISMIS…</p>}
           {error && (
             <p role="alert" className="alert-error">
@@ -102,7 +102,7 @@ export default function ProspectusPicker({ semester, codes, onAddCodes, disabled
                       <p className="text-green-900/70">Nothing listed for this year and term.</p>
                     ) : (
                       <>
-                        <ul className="space-y-1.5 rounded-2xl bg-white p-3">
+                        <ul className="space-y-3 rounded-2xl bg-white p-4">
                           {matching.map((c) => (
                             <li key={c.code} className="flex justify-between gap-2 text-green-900">
                               <span><strong>{c.code}</strong> {c.title}</span>
