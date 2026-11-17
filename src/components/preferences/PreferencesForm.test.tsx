@@ -76,8 +76,31 @@ describe('PreferencesForm', () => {
     const onChange = vi.fn()
     render(<PreferencesForm value={emptyPreferences()} onChange={onChange} instructors={[{ id: 7, name: 'DOE, JANE' }]} />)
     await user.click(screen.getByRole('button', { name: /preferences/i }))
-    await user.click(screen.getByText('DOE, JANE'))
+    await user.click(within(screen.getByRole('group', { name: 'Avoid these instructors' })).getByText('DOE, JANE'))
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ hard: expect.objectContaining({ avoidInstructorIds: [7] }) }))
+  })
+
+  it('filters instructors by search and keeps chosen ones visible', async () => {
+    const user = userEvent.setup()
+    const instructors = [{ id: 1, name: 'DOE, JANE' }, { id: 2, name: 'ROE, RICK' }]
+    render(<PreferencesForm value={{ hard: {}, soft: { preferredInstructorIds: [2] } }} onChange={vi.fn()} instructors={instructors} />)
+    await user.click(screen.getByRole('button', { name: /preferences/i }))
+    const avoidGroup = screen.getByRole('group', { name: 'Avoid these instructors' })
+    await user.type(within(avoidGroup).getByRole('searchbox'), 'doe')
+    expect(within(avoidGroup).getByText('DOE, JANE')).toBeInTheDocument()
+    expect(within(avoidGroup).queryByText('ROE, RICK')).not.toBeInTheDocument()
+  })
+
+  it('marks an instructor preferred, clearing them from the avoid list', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<PreferencesForm value={{ hard: { avoidInstructorIds: [1] }, soft: {} }} onChange={onChange} instructors={[{ id: 1, name: 'DOE, JANE' }]} />)
+    await user.click(screen.getByRole('button', { name: /preferences/i }))
+    await user.click(within(screen.getByRole('group', { name: 'Preferred instructors' })).getByText('DOE, JANE'))
+    expect(onChange).toHaveBeenCalledWith({
+      hard: expect.objectContaining({ avoidInstructorIds: [] }),
+      soft: expect.objectContaining({ preferredInstructorIds: [1] }),
+    })
   })
 
   it('switches time-of-day preference via the scrollable option list', async () => {

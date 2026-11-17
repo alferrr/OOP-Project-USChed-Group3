@@ -1,4 +1,4 @@
-import { ChevronRight, RotateCcw, ShieldAlert, ThumbsUp, X } from 'lucide-react'
+import { ChevronRight, RotateCcw, Search, ShieldAlert, ThumbsUp, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { DayCode, Preferences } from '../../api/types'
@@ -40,6 +40,7 @@ function countActive({ hard, soft }: Preferences): number {
   if (soft.minimizeGaps) n++
   if (soft.minimizeDays) n++
   if (soft.prioritizeLunchBreak) n++
+  if (soft.preferredInstructorIds && soft.preferredInstructorIds.length > 0) n++
   return n
 }
 
@@ -101,6 +102,46 @@ function ScrollPicker({ label, options, value, onChange }: {
   )
 }
 
+/** Searchable pill list of instructors; `selected` ids are highlighted, clicking toggles one. */
+function InstructorPicker({ label, instructors, selected, onToggle, emptyText }: {
+  label: string
+  instructors: { id: number; name: string }[]
+  selected: number[]
+  onToggle: (id: number) => void
+  emptyText: string
+}) {
+  const [query, setQuery] = useState('')
+  const q = query.trim().toLowerCase()
+  // Selected instructors always stay visible, so a search never hides what is already chosen.
+  const shown = instructors.filter((i) => q === '' || selected.includes(i.id) || i.name.toLowerCase().includes(q))
+  return (
+    <div role="group" aria-label={label}>
+      <span className="text-sm font-semibold text-green-900">{label}</span>
+      {instructors.length === 0 ? (
+        <p className="mt-1.5 text-sm text-green-900/70">{emptyText}</p>
+      ) : (
+        <>
+          <div className="relative mt-1.5">
+            <Search size={14} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-green-900/50" />
+            <input type="search" aria-label={`Search ${label.toLowerCase()}`} placeholder="Search instructors" value={query}
+              onChange={(e) => setQuery(e.target.value)} className="control bg-white pl-9" />
+          </div>
+          <div className="mt-1.5 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+            {shown.map((i) => (
+              <label key={i.id} className={`cursor-pointer select-none rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-gold-400 ${
+                selected.includes(i.id) ? 'bg-gold-400 text-green-900' : 'bg-white text-green-900/70 hover:bg-green-100'}`}>
+                <input type="checkbox" className="sr-only" checked={selected.includes(i.id)} onChange={() => onToggle(i.id)} />
+                {i.name}
+              </label>
+            ))}
+            {shown.length === 0 && <p className="text-sm text-green-900/70">No instructors match “{query.trim()}”.</p>}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 const TIME_OF_DAY_OPTIONS = [
   { value: 'none', label: 'No preference' },
   { value: 'morning', label: 'Morning' },
@@ -132,8 +173,22 @@ export default function PreferencesForm({ value, onChange, instructors = [] }: P
   const avoid = hard.avoidDays ?? []
   const toggleDay = (d: DayCode) => setHard({ avoidDays: avoid.includes(d) ? avoid.filter((x) => x !== d) : [...avoid, d] })
   const avoidedInstructors = hard.avoidInstructorIds ?? []
-  const toggleInstructor = (id: number) =>
-    setHard({ avoidInstructorIds: avoidedInstructors.includes(id) ? avoidedInstructors.filter((x) => x !== id) : [...avoidedInstructors, id] })
+  const preferredInstructors = soft.preferredInstructorIds ?? []
+  // An instructor is either avoided or preferred, never both: picking one side clears the other.
+  const toggleAvoided = (id: number) => {
+    const on = avoidedInstructors.includes(id)
+    onChange({
+      hard: { ...hard, avoidInstructorIds: on ? avoidedInstructors.filter((x) => x !== id) : [...avoidedInstructors, id] },
+      soft: { ...soft, preferredInstructorIds: preferredInstructors.filter((x) => x !== id) },
+    })
+  }
+  const togglePreferred = (id: number) => {
+    const on = preferredInstructors.includes(id)
+    onChange({
+      hard: { ...hard, avoidInstructorIds: avoidedInstructors.filter((x) => x !== id) },
+      soft: { ...soft, preferredInstructorIds: on ? preferredInstructors.filter((x) => x !== id) : [...preferredInstructors, id] },
+    })
+  }
   const timeOfDay = soft.preferMorning ? 'morning' : soft.preferAfternoon ? 'afternoon' : 'none'
   const active = countActive(value)
   const field = 'control mt-1.5 bg-white'
@@ -198,21 +253,9 @@ export default function PreferencesForm({ value, onChange, instructors = [] }: P
               ))}
             </div>
           </div>
-          <div className="mt-3" role="group" aria-label="Instructors to avoid">
-            <span className="text-sm font-semibold text-green-900">Avoid these instructors</span>
-            {instructors.length === 0 && avoidedInstructors.length === 0 ? (
-              <p className="mt-1.5 text-sm text-green-900/70">Select courses to see who teaches them.</p>
-            ) : (
-              <div className="mt-1.5 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
-                {instructors.map((i) => (
-                  <label key={i.id} className={dayPill(avoidedInstructors.includes(i.id))}>
-                    <input type="checkbox" className="sr-only" checked={avoidedInstructors.includes(i.id)}
-                      onChange={() => toggleInstructor(i.id)} />
-                    {i.name}
-                  </label>
-                ))}
-              </div>
-            )}
+          <div className="mt-3">
+            <InstructorPicker label="Avoid these instructors" instructors={instructors} selected={avoidedInstructors}
+              onToggle={toggleAvoided} emptyText="Select courses to see who teaches them." />
           </div>
         </fieldset>
 
@@ -232,6 +275,10 @@ export default function PreferencesForm({ value, onChange, instructors = [] }: P
               title="Fewer school days" description="Favor cramming classes into fewer days on campus." />
             <Toggle checked={!!soft.prioritizeLunchBreak} onChange={(v) => setSoft({ prioritizeLunchBreak: v })}
               title="A real lunch break" description="Already favored by default (at least an hour); check this to weigh it even more." />
+          </div>
+          <div className="mt-3">
+            <InstructorPicker label="Preferred instructors" instructors={instructors} selected={preferredInstructors}
+              onToggle={togglePreferred} emptyText="Select courses to see who teaches them." />
           </div>
         </fieldset>
         </div>
