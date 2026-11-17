@@ -21,6 +21,7 @@ vi.mock('../api/hooks', () => ({
   useClearCatalog: () => ({ mutate: clearMutate, isPending: false }),
   useProspectus: () => ({ data: undefined, isLoading: false, error: null }),
   useSections: () => ({ data: undefined, isLoading: false }),
+  useInstructors: () => [],
 }))
 
 describe('CourseSelectionPage "Clear saved courses"', () => {
