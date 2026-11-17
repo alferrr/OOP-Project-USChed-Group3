@@ -4,7 +4,7 @@ import { useConsentStore } from '../store/consentStore'
 import { useIsmisStore } from '../store/ismisStore'
 import { clearStudentData } from '../store/resetAll'
 import type {
-  AdminStats, CompareResponse, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
+  AdminPage, AdminStats, CompareResponse, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
   Option, Prospectus, SearchStart, SearchStatus, SemesterCode, Section, Terms,
 } from './types'
 
@@ -65,6 +65,13 @@ export const useAdminStats = (enabled: boolean) =>
     queryFn: () => api<AdminStats>('/admin/stats', { ismis: true }),
     enabled,
     refetchInterval: 60_000,
+  })
+
+export const useAdminTable = <T>(resource: string, page: number, q = '') =>
+  useQuery({
+    queryKey: ['admin-table', resource, page, q],
+    queryFn: () => api<AdminPage<T>>(`/admin/data/${resource}${qs({ page, q })}`, { ismis: true }),
+    placeholderData: (prev) => prev,
   })
 
 export const useGenerate = () => useMutation({ mutationFn: (req: GenerateRequest) => api<GenerateResponse>('/schedules/generate', { body: req, ismis: true }) })

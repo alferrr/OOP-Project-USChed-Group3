@@ -76,6 +76,22 @@ input, textarea { caret-color: var(--color-green-700); }
     padding: 0.2rem 0.7rem; font-size: 0.8125rem; font-weight: 600; color: var(--color-green-800);
   }
   .alert-error { border-radius: 1rem; background: #fdecea; padding: 0.85rem 1rem; font-size: 0.875rem; color: #7a1d14; }
+  /* Admin console: flat white, thin borders and modest corners, unlike the softer student app. */
+  .adm-card { background: #fff; border: 1px solid var(--color-green-100); border-radius: 0.75rem; box-shadow: 0 1px 2px rgb(10 47 29 / 0.04); }
+  .adm-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 0.5rem; background: #fff;
+    border: 1px solid var(--color-green-200); padding: 0.5rem 0.9rem; font-size: 0.875rem; font-weight: 600; line-height: 1.2;
+    color: var(--color-green-900); cursor: pointer; transition: background-color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+  }
+  .adm-btn:hover:not(:disabled) { background: var(--color-green-50); }
+  .adm-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+  .adm-btn-primary { background: var(--color-green-700); border-color: var(--color-green-700); color: #fff; }
+  .adm-btn-primary:hover:not(:disabled) { background: var(--color-green-800); }
+  .adm-input {
+    width: 100%; border-radius: 0.5rem; border: 1px solid var(--color-green-200); background: #fff; padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+    font-size: 0.875rem; color: var(--color-green-900);
+  }
+  .adm-input:focus { outline: none; border-color: var(--color-green-600); }
   .rise { animation: rise 0.45s var(--ease-out) both; }
   .pop { animation: pop-in 0.32s var(--ease-out) both; }
   .pop[data-closing] { animation: pop-out 0.2s var(--ease-out) both; }

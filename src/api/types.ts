@@ -103,6 +103,13 @@ export interface AdminStats {
   recent: { student: string; semester: string; academicYear: string; courses: number; sections: number; at: string }[]
 }
 
+export interface AdminPage<T> { items: T[]; total: number; page: number; size: number }
+export interface AdminStudentRow { student: string; courses: number; searches: number; lastActive: string | null }
+export interface AdminCourseRow { code: string; name: string; department: string; units: number; students: number }
+export interface AdminSearchRow { student: string; semester: string; academicYear: string; source: string; courses: number; sections: number; skipped: number; at: string }
+export interface AdminConsentRow { session: string; termsVersion: string; agreedTerms: boolean; agreedCredentialUse: boolean; at: string }
+export interface AdminSessionRow { student: string; signedInAt: string; lastUsed: string; expiresAt: string; busy: boolean }
+
 export interface IsmisSession { sessionId: string; expiresAt: string; idleMinutes: number; isAdmin?: boolean }
 
 export type ItemStatus = 'PENDING' | 'RUNNING' | 'DONE' | 'NO_RESULTS' | 'TOO_MANY' | 'FAILED' | 'SKIPPED'
