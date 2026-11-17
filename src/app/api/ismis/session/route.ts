@@ -1,4 +1,4 @@
-import { getConfig } from '@/server/config'
+import { getConfig, isAdminStudent } from '@/server/config'
 import { body, noContent, route } from '@/server/http/api'
 import { loginRequest } from '@/server/http/dto'
 import { ismisSessions } from '@/server/services/ismisSessions'
@@ -17,6 +17,7 @@ export const POST = route({ guard: 'ismis' }, async ({ req }) => {
     sessionId: opened.sessionId,
     expiresAt: opened.expiresAt.toISOString(),
     idleMinutes: getConfig().ismisSession.idleMinutes,
+    isAdmin: isAdminStudent(b.username),
   }
 })
 

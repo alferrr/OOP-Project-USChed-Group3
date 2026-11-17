@@ -4,7 +4,7 @@ import { useConsentStore } from '../store/consentStore'
 import { useIsmisStore } from '../store/ismisStore'
 import { clearStudentData } from '../store/resetAll'
 import type {
-  CompareResponse, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
+  AdminStats, CompareResponse, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
   Option, Prospectus, SearchStart, SearchStatus, SemesterCode, Section, Terms,
 } from './types'
 
@@ -59,6 +59,14 @@ export const useInstructors = (courseIds: number[], semester: SemesterCode, acad
     },
   })
 
+export const useAdminStats = (enabled: boolean) =>
+  useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: () => api<AdminStats>('/admin/stats', { ismis: true }),
+    enabled,
+    refetchInterval: 60_000,
+  })
+
 export const useGenerate = () => useMutation({ mutationFn: (req: GenerateRequest) => api<GenerateResponse>('/schedules/generate', { body: req, ismis: true }) })
 
 export const useCompare = () =>
@@ -90,7 +98,7 @@ export const useIsmisSignIn = () => {
     },
     onSuccess: (s) => {
       clearStudentData()
-      setSession(s.sessionId, s.idleMinutes)
+      setSession(s.sessionId, s.idleMinutes, s.isAdmin)
     },
   })
 }

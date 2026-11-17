@@ -88,7 +88,22 @@ export interface GenerateResponse {
 export interface CompareItem { score: number; breakdown: Record<string, number>; stats: Stats }
 export interface CompareResponse { items: CompareItem[] }
 
-export interface IsmisSession { sessionId: string; expiresAt: string; idleMinutes: number }
+export interface AdminStats {
+  generatedAt: string
+  kpis: {
+    students: number; courses: number; sections: number; instructors: number
+    activeSessions: number; maxSessions: number
+    searchesThisWeek: number; searchesLastWeek: number
+    consentsThisWeek: number; consentsLastWeek: number
+  }
+  searchesByMonth: { month: string; label: string; searches: number; students: number }[]
+  topDepartments: { department: string; courses: number }[]
+  terms: { semester: string; academicYear: string; searches: number; sections: number }[]
+  retention: { rate: number; returning: number; total: number }
+  recent: { student: string; semester: string; academicYear: string; courses: number; sections: number; at: string }[]
+}
+
+export interface IsmisSession { sessionId: string; expiresAt: string; idleMinutes: number; isAdmin?: boolean }
 
 export type ItemStatus = 'PENDING' | 'RUNNING' | 'DONE' | 'NO_RESULTS' | 'TOO_MANY' | 'FAILED' | 'SKIPPED'
 export interface CourseRef { id: number; code: string; name: string; units: number }
