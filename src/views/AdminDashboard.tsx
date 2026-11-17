@@ -117,7 +117,7 @@ function SearchesChart({ data }: { data: AdminStats['searchesByMonth'] }) {
                     </span>
                   )}
                   <span className="flex w-full flex-1 items-end">
-                    <span className={`w-full rounded-t-lg border-t-2 transition-[height,background-color] duration-500 ${on ? 'border-gold-500 bg-green-700' : 'border-green-500 bg-green-100'}`}
+                    <span className={`w-full rounded-t-lg transition-[height,background-color] duration-500 ${on ? 'bg-green-700' : 'bg-green-100'}`}
                       style={{ height: `${Math.max(pct, r.searches > 0 ? 2 : 0.5)}%` }} />
                   </span>
                   <span className={`h-4 text-xs ${on ? 'font-bold text-green-900' : 'text-green-900/60'}`}>{r.label}</span>
