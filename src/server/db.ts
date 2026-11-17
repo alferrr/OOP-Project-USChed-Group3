@@ -1,9 +1,32 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 
-const g = globalThis as unknown as { __uchedPrisma?: PrismaClient }
+interface Cached {
+  client: PrismaClient
+  url: string | undefined
+}
+const g = globalThis as unknown as { __uchedPrisma?: Cached }
 
-/** One client per process (also across dev hot reloads). Connection details come from DATABASE_URL. */
-export const prisma: PrismaClient = (g.__uchedPrisma ??= new PrismaClient({ log: ['error'] }))
+function create(): Cached {
+  const url = process.env.DATABASE_URL
+  return { client: new PrismaClient({ log: ['error'] }), url }
+}
+
+/**
+ * One client per process (also across dev hot reloads). Connection details come from DATABASE_URL. Prisma reads
+ * that variable when the client is built, so if it was missing then (e.g. .env created while `next dev` was
+ * running) the cached client is rebuilt instead of staying broken until a restart.
+ */
+function current(): PrismaClient {
+  if (!g.__uchedPrisma || g.__uchedPrisma.url !== process.env.DATABASE_URL) {
+    void g.__uchedPrisma?.client.$disconnect()
+    g.__uchedPrisma = create()
+  }
+  return g.__uchedPrisma.client
+}
+
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get: (_target, prop) => Reflect.get(current(), prop),
+})
 
 /** True for a unique-constraint violation (a concurrent writer created the same row first). */
 export function isUniqueViolation(e: unknown): boolean {
