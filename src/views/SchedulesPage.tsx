@@ -1,5 +1,7 @@
+'use client'
+
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { Bookmark, BookmarkCheck, Image, Link2, Printer, Sparkles, Undo2, X } from 'lucide-react'
 import { useCompare, useGenerate } from '../api/hooks'
 import { ApiError } from '../api/client'
@@ -38,7 +40,7 @@ export default function SchedulesPage() {
         <PageTitle title="Schedules" />
         <div className="surface p-8 text-center">
           <p className="text-lg text-green-900/80">No schedules yet.</p>
-          <Link to="/courses" className="btn btn-primary mt-4">Choose your courses</Link>
+          <Link href="/courses" className="btn btn-primary mt-4">Choose your courses</Link>
         </div>
       </section>
     )

@@ -4,13 +4,31 @@
     "ignoreFiles": [],
     "ignoreValues": [
       {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/components/schedule/WeeklyCalendar.tsx"
+        ],
+        "createdAt": "2026-11-14T09:37:54.242Z",
+        "reason": "assistant: calendar event blocks use a left color bar per course, the standard calendar-event convention, not a decorative card accent"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/components/consent/TermsViewer.tsx"
+        ],
+        "createdAt": "2026-11-14T09:37:54.257Z",
+        "reason": "assistant: renders a markdown '>' blockquote in the terms text; a left rule is the conventional blockquote marker"
+      },
+      {
         "rule": "cramped-padding",
         "value": "*",
         "files": [
-          "usched-api/src/test/resources/fixtures/prospectus.html"
+          "tests/fixtures/prospectus.html"
         ],
         "createdAt": "2026-11-15T05:29:37.402Z",
-        "reason": "Claude decided: backend parser test fixture (saved ISMIS HTML), never rendered as UI"
+        "reason": "Claude decided: parser test fixture (saved ISMIS HTML), never rendered as UI"
       }
     ]
   }

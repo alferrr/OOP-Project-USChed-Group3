@@ -1,5 +1,4 @@
 import { act } from 'react'
-import { MemoryRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -36,14 +35,14 @@ describe('SchedulesPage "More like this"', () => {
   })
 
   it('shows no banner and no "Back to all results" until More like this is used', () => {
-    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    render(<SchedulesPage />)
     expect(screen.queryByText(/showing schedules similar to/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /back to all results/i })).not.toBeInTheDocument()
   })
 
   it('requests similar schedules using the active schedule\'s own sections', async () => {
     const user = userEvent.setup()
-    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    render(<SchedulesPage />)
     await user.click(screen.getByRole('button', { name: /more like this/i }))
     expect(mutate).toHaveBeenCalledTimes(1)
     const [request] = mutate.mock.calls[0]
@@ -57,7 +56,7 @@ describe('SchedulesPage "More like this"', () => {
         { totalUnits: 6, generatedCount: 1, returnedCount: 1, schedules: [schedule(1, 103)] }, 1,
       )
     })
-    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    render(<SchedulesPage />)
     expect(screen.getByText(/showing schedules similar to #1/i)).toBeInTheDocument()
 
     const backButton = screen.getByRole('button', { name: /back to all results/i })
@@ -76,7 +75,7 @@ describe('SchedulesPage printing', () => {
   })
 
   it('marks everything but the schedule itself as print:hidden', () => {
-    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    render(<SchedulesPage />)
 
     // The switcher (choosing among schedules) and the page intro are UI, not part of the schedule.
     expect(screen.getByRole('list', { name: /ranked schedules/i }).closest('.print\\:hidden')).not.toBeNull()
@@ -93,7 +92,7 @@ describe('SchedulesPage printing', () => {
     const user = userEvent.setup()
     const printSpy = vi.fn()
     window.print = printSpy
-    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    render(<SchedulesPage />)
     await user.click(screen.getByRole('button', { name: /^print$/i }))
     expect(printSpy).toHaveBeenCalledTimes(1)
   })
@@ -110,7 +109,7 @@ describe('SchedulesPage saving and sharing', () => {
 
   it('saves the active schedule, lists it, and removes it again', async () => {
     const user = userEvent.setup()
-    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    render(<SchedulesPage />)
     expect(screen.queryByRole('list', { name: 'Saved schedules' })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -131,7 +130,7 @@ describe('SchedulesPage saving and sharing', () => {
 
   it('shows a share link containing the schedule, never a server id', async () => {
     const user = userEvent.setup()
-    render(<SchedulesPage />, { wrapper: MemoryRouter })
+    render(<SchedulesPage />)
     await user.click(screen.getByRole('button', { name: /copy link/i }))
     const input = screen.getByLabelText('Share link') as HTMLInputElement
     expect(input.value).toMatch(/\/shared#[A-Za-z0-9_-]+$/)

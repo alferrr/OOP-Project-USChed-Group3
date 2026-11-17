@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { ApiError } from '../api/client'
 import { useAcademicYears, useClearCatalog, useCourses, useDepartments, useGenerate, useSemesters, useSearchStatus, useStartSearch } from '../api/hooks'
 import type { SemesterCode } from '../api/types'
@@ -17,7 +19,7 @@ import { useIsmisStore } from '../store/ismisStore'
 import { usePreferencesStore, useScheduleStore, useSelectionStore, useTermStore } from '../store/planStore'
 
 export default function CourseSelectionPage() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const { semester, academicYear, setTerm } = useTermStore()
   const endSession = useIsmisStore((s) => s.end)
 
@@ -77,7 +79,7 @@ export default function CourseSelectionPage() {
   const submitGenerate = () =>
     generate.mutate(
       { courseIds: selected.map((c) => c.id), semester, academicYear, preferences },
-      { onSuccess: (r) => { setResult(r); navigate('/schedules') } },
+      { onSuccess: (r) => { setResult(r); router.push('/schedules') } },
     )
 
   const startError = startSearch.error instanceof ApiError ? startSearch.error : null

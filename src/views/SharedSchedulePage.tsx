@@ -1,14 +1,28 @@
-import { Link, useLocation } from 'react-router-dom'
+'use client'
+
+import { useSyncExternalStore } from 'react'
+import Link from 'next/link'
 import PageTitle from '../components/layout/PageTitle'
 import WeeklyCalendar from '../components/schedule/WeeklyCalendar'
 import { decodeSchedule } from '../lib/shareSchedule'
 import { describeMeetings } from '../lib/time'
 
+const subscribeToHash = (notify: () => void) => {
+  window.addEventListener('hashchange', notify)
+  return () => window.removeEventListener('hashchange', notify)
+}
+
+/** window.location.hash, kept in sync with the address bar. null on the server and during hydration. */
+function useHash(): string | null {
+  return useSyncExternalStore(subscribeToHash, () => window.location.hash, () => null)
+}
+
 const TERM_LABEL = { '1ST': '1st Semester', '2ND': '2nd Semester', SUMMER: 'Summer' } as const
 
 /** A schedule someone shared by link. Read-only, no sign-in: the whole schedule travels in the URL fragment. */
 export default function SharedSchedulePage() {
-  const { hash } = useLocation()
+  const hash = useHash()
+  if (hash === null) return null // the schedule lives in the URL fragment, which the server never sees
   const schedule = decodeSchedule(hash.replace(/^#/, ''))
 
   if (!schedule) {
@@ -17,7 +31,7 @@ export default function SharedSchedulePage() {
         <PageTitle title="Shared schedule" />
         <div className="surface p-8 text-center">
           <p className="text-lg text-green-900/80">This link doesn't contain a valid schedule. It may have been cut off when it was copied.</p>
-          <Link to="/courses" className="btn btn-primary mt-4">Plan your own</Link>
+          <Link href="/courses" className="btn btn-primary mt-4">Plan your own</Link>
         </div>
       </section>
     )
@@ -41,7 +55,7 @@ export default function SharedSchedulePage() {
             </li>
           ))}
         </ul>
-        <Link to="/courses" className="btn btn-primary">Plan your own schedule</Link>
+        <Link href="/courses" className="btn btn-primary">Plan your own schedule</Link>
       </div>
     </section>
   )

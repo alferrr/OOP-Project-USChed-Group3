@@ -1,6 +1,11 @@
-import { Navigate, Link, useLocation } from 'react-router-dom'
+'use client'
+
+import { useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
 import IsmisSignInPanel from '../components/ismis/IsmisSignInPanel'
+import { safeRedirectTarget } from '../lib/redirect'
 import { useIsmisStore } from '../store/ismisStore'
 
 function Artwork() {
@@ -18,9 +23,12 @@ function Artwork() {
  */
 export default function LoginPage() {
   const signedIn = useIsmisStore((s) => !!s.sessionId)
-  const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/courses'
-  if (signedIn) return <Navigate to={from} replace />
+  const router = useRouter()
+  const from = safeRedirectTarget(useSearchParams().get('from'))
+  useEffect(() => {
+    if (signedIn) router.replace(from)
+  }, [signedIn, from, router])
+  if (signedIn) return null
 
   return (
     <div className="flex min-h-screen">
@@ -33,7 +41,7 @@ export default function LoginPage() {
           <span className="font-display text-xl font-extrabold tracking-tight text-green-800">
             US<span className="text-green-500">Ched</span>
           </span>
-          <Link to="/terms" className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-green-900/70 transition-colors hover:bg-green-100 hover:text-green-800">
+          <Link href="/terms" className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-green-900/70 transition-colors hover:bg-green-100 hover:text-green-800">
             <ShieldCheck size={16} aria-hidden /> Terms
           </Link>
         </div>

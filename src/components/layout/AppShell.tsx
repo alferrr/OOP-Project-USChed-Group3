@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+'use client'
+
+import { useEffect, useState, type ReactNode } from 'react'
+import NavLink from './NavLink'
 import { CalendarDays, ListChecks, LogOut, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
 import { useIsmisStore } from '../../store/ismisStore'
@@ -14,11 +16,11 @@ const linkClass = (scrolled: boolean) => ({ isActive }: { isActive: boolean }) =
       : isActive ? 'bg-white text-green-800' : 'text-white/80 hover:bg-white/10 hover:text-white'
   }`
 
-export default function AppShell() {
+export default function AppShell({ children }: { children: ReactNode }) {
   const signedIn = useIsmisStore((s) => !!s.sessionId)
   const idleMinutes = useIsmisStore((s) => s.idleMinutes)
   const signOut = useIsmisSignOut()
-  const [scrolled, setScrolled] = useState(() => window.scrollY > 8)
+  const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
@@ -48,15 +50,15 @@ export default function AppShell() {
             {signedIn && <span className="chip mr-2 hidden md:inline-flex">Signed in to ISMIS</span>}
             {signedIn && (
               <>
-                <NavLink to="/courses" className={link}>
+                <NavLink href="/courses" className={link}>
                   <ListChecks size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Courses</span>
                 </NavLink>
-                <NavLink to="/schedules" className={link}>
+                <NavLink href="/schedules" className={link}>
                   <CalendarDays size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Schedules</span>
                 </NavLink>
               </>
             )}
-            <NavLink to="/terms" className={link}>
+            <NavLink href="/terms" className={link}>
               <ShieldCheck size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Terms</span>
             </NavLink>
             {signedIn && (
@@ -76,7 +78,7 @@ export default function AppShell() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 print:max-w-none print:p-0">
-        <Outlet />
+        {children}
       </main>
 
       <footer className="px-4 pb-6 pt-2 text-center text-xs text-green-900/70 print:hidden">

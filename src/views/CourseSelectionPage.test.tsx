@@ -1,5 +1,4 @@
 import { act } from 'react'
-import { MemoryRouter } from 'react-router-dom'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -36,13 +35,13 @@ describe('CourseSelectionPage "Clear saved courses"', () => {
 
   it('shows no "Clear saved courses" button when the catalog is empty', () => {
     coursesData = { items: [], page: 0, size: 12, total: 0 }
-    render(<CourseSelectionPage />, { wrapper: MemoryRouter })
+    render(<CourseSelectionPage />)
     expect(screen.queryByRole('button', { name: 'Clear saved courses' })).not.toBeInTheDocument()
   })
 
   it('clears the fetched catalog and the current selection when clicked', async () => {
     const user = userEvent.setup()
-    render(<CourseSelectionPage />, { wrapper: MemoryRouter })
+    render(<CourseSelectionPage />)
 
     await user.click(screen.getByRole('button', { name: 'Clear saved courses' }))
 
@@ -51,7 +50,7 @@ describe('CourseSelectionPage "Clear saved courses"', () => {
   })
 
   it('fetches a large enough page that a big family does not spill across several "pages"', () => {
-    render(<CourseSelectionPage />, { wrapper: MemoryRouter })
+    render(<CourseSelectionPage />)
     expect(useCoursesSpy).toHaveBeenCalledWith(expect.objectContaining({ size: 100 }))
   })
 })

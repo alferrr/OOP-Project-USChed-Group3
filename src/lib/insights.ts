@@ -5,7 +5,7 @@ const NOON = 12 * 60
 const EARLY = 7 * 60 // 7:00 AM
 const LATE = 20 * 60 // 8:00 PM
 const LOW_SLOTS = 3
-/** Mirrors the backend's CampusTravelConstraint.TRAVEL_MINUTES (~30 min trip plus margin) - change both together. */
+/** Mirrors TRAVEL_MINUTES in src/server/engine/constraints.ts (~30 min trip plus margin) - change both together (a test pins the server value). */
 const TRAVEL_MINUTES = 45
 
 /** Share of total class time that falls before noon, computed straight from the meetings themselves (not

@@ -34,7 +34,7 @@ It works from the student's own live ISMIS data, not a stale shared timetable, a
 - Hard preferences ("Must follow") and soft preferences (weighted scoring) for schedule generation.
 - Ranked results with score, insights, "more like this", and a side-by-side comparison of up to 4 schedules.
 - Weekly calendar in 30-minute rows; print-friendly output.
-- Frontend: React 19, TypeScript, Vite, Tailwind 4. Backend: Spring Boot with scheduling engine.
+- One Next.js 15 app (App Router): React 19, TypeScript, Tailwind 4 for the UI; route handlers for the API; the scheduling engine and ISMIS scraper are plain TypeScript in `src/server`; MySQL via Prisma.
 - Prerequisites and requisites from ISMIS are shown but not enforced.
 
 ## Brand Commitments
@@ -45,7 +45,7 @@ It works from the student's own live ISMIS data, not a stale shared timetable, a
 
 ## Evidence on Hand
 
-- A terms-of-use document at `usched-api/src/main/resources/terms.md`.
+- A terms-of-use document at `src/server/terms.ts`.
 - A login image at `public/login.jpg` and `favicon.svg`/`icons.svg`.
 - No testimonials, user counts, press, or benchmarks exist. Future work must not fabricate any.
 

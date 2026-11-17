@@ -1,4 +1,3 @@
-import { MemoryRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { encodeSchedule } from '../lib/shareSchedule'
@@ -10,8 +9,10 @@ const section = {
   meetings: [{ day: 'MON' as const, start: '08:00', end: '09:30', room: 'LB 1', type: 'LECTURE' as const }],
 }
 
-const renderAt = (hash: string) =>
-  render(<MemoryRouter initialEntries={[`/shared${hash}`]}><SharedSchedulePage /></MemoryRouter>)
+const renderAt = (hash: string) => {
+  window.location.hash = hash
+  return render(<SharedSchedulePage />)
+}
 
 describe('SharedSchedulePage', () => {
   it('shows a shared schedule without needing a sign-in', () => {

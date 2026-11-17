@@ -1,3 +1,5 @@
+'use client'
+
 import PageTitle from '../components/layout/PageTitle'
 import TermsViewer from '../components/consent/TermsViewer'
 import { useTerms } from '../api/hooks'
