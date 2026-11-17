@@ -1,0 +1,119 @@
+// USChed database schema (MySQL 8 / MariaDB 10.6+).
+//
+// Course data is private per student, keyed by their ISMIS ID number (student_id_number). Instructors and
+// rooms are the one shared exception: reference facts about people and places, not a student's own data.
+//
+// Enum-like columns (semester, day, meeting type, source) are plain strings validated by the app, which
+// keeps the stored values identical to the ones the API speaks: '1ST' | '2ND' | 'SUMMER', 'MON'..'SAT'.
+// Meeting times are minutes since midnight.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Instructor {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique(map: "uq_instructor_name") @db.VarChar(150)
+  sections Section[]
+
+  @@map("instructors")
+}
+
+model Room {
+  id       Int       @id @default(autoincrement())
+  building String    @default("") @db.VarChar(50)
+  roomCode String    @map("room_code") @db.VarChar(30)
+  campus   String    @db.VarChar(50)
+  meetings Meeting[]
+
+  @@unique([campus, building, roomCode], map: "uq_room")
+  @@map("rooms")
+}
+
+model Course {
+  id              Int       @id @default(autoincrement())
+  studentIdNumber String    @map("student_id_number") @db.VarChar(64)
+  code            String    @db.VarChar(20)
+  name            String    @db.VarChar(200)
+  description     String?   @db.Text
+  units           Decimal   @db.Decimal(3, 1)
+  department      String?   @db.VarChar(50)
+  prerequisites   String?   @db.VarChar(255)
+  sections        Section[]
+
+  @@unique([studentIdNumber, code], map: "uq_course_code")
+  @@index([studentIdNumber], map: "idx_course_student")
+  @@index([name], map: "idx_course_name")
+  @@map("courses")
+}
+
+model Section {
+  id              Int         @id @default(autoincrement())
+  studentIdNumber String      @map("student_id_number") @db.VarChar(64)
+  courseId        Int         @map("course_id")
+  instructorId    Int?        @map("instructor_id")
+  sectionCode     String      @map("section_code") @db.VarChar(20)
+  semester        String      @db.VarChar(6)
+  academicYear    String      @map("academic_year") @db.VarChar(9)
+  availableSlots  Int?        @map("available_slots")
+  course          Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  instructor      Instructor? @relation(fields: [instructorId], references: [id])
+  meetings        Meeting[]
+
+  @@unique([courseId, sectionCode, semester, academicYear], map: "uq_section")
+  @@index([semester, academicYear], map: "idx_section_term")
+  @@index([studentIdNumber], map: "idx_section_student")
+  @@index([instructorId], map: "idx_section_instructor")
+  @@map("sections")
+}
+
+model Meeting {
+  id          Int     @id @default(autoincrement())
+  sectionId   Int     @map("section_id")
+  roomId      Int?    @map("room_id")
+  meetingType String  @default("LECTURE") @map("meeting_type") @db.VarChar(7)
+  dayOfWeek   String  @map("day_of_week") @db.VarChar(3)
+  startMinute Int     @map("start_minute")
+  endMinute   Int     @map("end_minute")
+  section     Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  room        Room?   @relation(fields: [roomId], references: [id])
+
+  @@index([sectionId], map: "idx_meeting_section")
+  @@index([roomId], map: "idx_meeting_room")
+  @@map("meetings")
+}
+
+model CatalogSnapshot {
+  id              Int      @id @default(autoincrement())
+  studentIdNumber String   @map("student_id_number") @db.VarChar(64)
+  source          String   @db.VarChar(5)
+  semester        String   @db.VarChar(6)
+  academicYear    String   @map("academic_year") @db.VarChar(9)
+  courseCount     Int      @map("course_count")
+  sectionCount    Int      @map("section_count")
+  skippedCount    Int      @default(0) @map("skipped_count")
+  scrapedAt       DateTime @default(now()) @map("scraped_at")
+
+  @@index([studentIdNumber, semester, academicYear, scrapedAt], map: "idx_snapshot_student")
+  @@map("catalog_snapshots")
+}
+
+// Consent evidence: no credentials, no names.
+model ConsentRecord {
+  id                  Int      @id @default(autoincrement())
+  sessionId           String   @map("session_id") @db.Char(36)
+  termsVersion        String   @map("terms_version") @db.VarChar(20)
+  agreedTerms         Boolean  @map("agreed_terms")
+  agreedCredentialUse Boolean  @map("agreed_credential_use")
+  ipHash              String   @map("ip_hash") @db.Char(64)
+  userAgent           String?  @map("user_agent") @db.VarChar(255)
+  acceptedAt          DateTime @default(now()) @map("accepted_at")
+
+  @@index([sessionId, termsVersion], map: "idx_consent_session")
+  @@map("consent_records")
+}
