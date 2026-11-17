@@ -1,83 +1,112 @@
 # USChed
 
-Course-enrollment **schedule planner** for University of San Carlos students. It never enrolls, drops or changes anything in ISMIS. Full design: [USChed-overview.md](USChed-overview.md).
+Course-enrollment **schedule planner** for University of San Carlos students. It never enrolls, drops or changes anything in ISMIS.
 
-| Folder | What |
+One **Next.js 15** app (App Router, TypeScript, Tailwind 4) that serves both the UI and the API, backed by **MySQL** through Prisma. Full design notes: [PRODUCT.md](PRODUCT.md).
+
+> The previous Spring Boot + Vite implementation is kept on the `java-backend` branch.
+
+## What is where
+
+| Path | What |
 |---|---|
-| `usched-api/` | Java 21, Spring Boot 3, Maven, MySQL (Flyway). Framework-free `domain/` and `engine/` (ArchUnit-enforced). |
-| `usched/` | React + TypeScript + Vite + Tailwind (green / gold / white theme). |
+| `src/app` | Next.js routes: pages (`login`, `courses`, `schedules`, `terms`, `shared`) and the API (`app/api/**/route.ts`) |
+| `src/views`, `src/components` | The screens and their parts (client components) |
+| `src/store`, `src/api`, `src/lib` | zustand stores, fetch client + React Query hooks, pure helpers |
+| `src/server/domain`, `src/server/engine` | Framework-free scheduling core: models, hard constraints, scoring, backtracking generator (a test enforces the layering) |
+| `src/server/ismis` | The read-only ISMIS scraper: HTTP session, page parser, row mapper, connection |
+| `src/server/services` | Sessions, consent, catalog import, queries, schedule generation, background search jobs |
+| `src/server/http` | The request guards (HTTPS, consent, student session, admin token), validation, DTOs, error mapping |
+| `prisma/` | Schema and SQL migrations |
+| `tests/` | Server tests (engine, scraper against a fake ISMIS, API against MySQL) |
 
 ## Run locally
 
+Needs Node 20.9+ and a MySQL 8 (or MariaDB 10.6+) you can create a database in.
+
 ```bash
-# 1. Database: your local MySQL (root, no password) works; the "uched" database is created for you.
-#    (Or use Docker instead: docker compose up -d mysql, then use port 3307 below.)
-
-# 2. API on :8080 (starts with an empty catalog; courses arrive from your ISMIS searches)
-export JAVA_HOME=/opt/homebrew/opt/openjdk@21 PATH=$JAVA_HOME/bin:$PATH
-cd usched-api
-DB_URL='jdbc:mysql://localhost:3306/uched?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC' \
-DB_USER=root DB_PASSWORD= \
-mvn spring-boot:run
-#   Swagger UI: http://localhost:8080/swagger-ui.html
-
-# Easiest: ./start-uched.command does steps 1-3 for you.
-
-# 3. Frontend on :5173 (proxies /api to :8080; override with VITE_API_PROXY)
-cd ../usched && npm install && npm run dev
+npm install                          # also generates the Prisma client
+cp .env.example .env                 # then set DATABASE_URL
+mysql -uroot -e "CREATE DATABASE uched CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+npm run db:migrate                   # applies prisma/migrations
+npm run dev                          # http://localhost:3000
 ```
 
-Tests: `cd usched-api && mvn test` and `cd usched && npm test`.
+Tests and checks:
+
+```bash
+npm test                             # UI + server tests (no database needed)
+npm run typecheck && npm run lint
+
+# The API tests need a *_test database; they wipe it:
+mysql -uroot -e "CREATE DATABASE uched_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+DATABASE_URL=mysql://root@localhost:3306/uched_test npm run db:migrate
+TEST_DATABASE_URL=mysql://root@localhost:3306/uched_test npm test
+```
 
 ## Configuration (environment variables)
 
+See [.env.example](.env.example) for the full list.
+
 | Variable | Purpose |
 |---|---|
-| `DB_URL`, `DB_USER`, `DB_PASSWORD` | MySQL connection |
-| `UCHED_CONSENT_SECRET`, `UCHED_IP_SALT` | **Set both outside local dev.** HMAC key for consent tokens; salt for IP hashes |
-| `UCHED_ADMIN_TOKEN` | Enables `POST /api/admin/import` (CSV) via `X-Admin-Token`; blank = disabled |
-| `UCHED_CORS_ORIGINS` | Allowed browser origins (default `http://localhost:5173`) |
-| `UCHED_REQUIRE_HTTPS` | `true` rejects plain HTTP on `/api/ismis/**` |
-| `UCHED_ISMIS_*` | Base URL, paths and form-field names for the live scrape (see below) |
+| `DATABASE_URL` | MySQL connection string, e.g. `mysql://user:pass@host:3306/uched` |
+| `UCHED_CONSENT_SECRET`, `UCHED_IP_SALT` | **Required when `UCHED_REQUIRE_HTTPS=true`** (the server refuses to start with the dev defaults). HMAC key for consent tokens; salt for the IP hashes kept as consent evidence |
+| `UCHED_REQUIRE_HTTPS` | `true` rejects plain HTTP on `/api/ismis/**` (honours `X-Forwarded-Proto`) and sends HSTS |
+| `UCHED_ADMIN_TOKEN` | Enables `POST /api/admin/import` (CSV) via the `X-Admin-Token` header; blank = disabled |
+| `UCHED_ISMIS_*` | Base URL, paths, form-field names and user agent for the live scrape |
+
+The UI and API share one origin, so there is no CORS setup.
+
+## Deploying (Node server + PM2)
+
+USChed holds ISMIS sign-in sessions and running search jobs **in server memory**, so it must run as **one long-lived Node process**. It does not work as serverless functions or PM2 cluster mode.
+
+```bash
+git clone <repo> && cd USChed
+npm ci
+cp .env.example .env && nano .env      # DATABASE_URL, secrets, UCHED_REQUIRE_HTTPS=true behind HTTPS
+npm run db:migrate                     # create the tables
+npm run build
+pm2 start ecosystem.config.cjs && pm2 save
+```
+
+Update later with `git pull && npm ci && npm run db:migrate && npm run build && pm2 restart usched`.
+Restarting signs everyone out of ISMIS (their sessions live in memory) but loses no saved data.
+Put a reverse proxy (nginx/Apache) with HTTPS in front of port 3000 and make sure it sets `X-Forwarded-Proto`.
 
 ## Private per-student catalog
 
-Course data is **private to each student**, keyed by their ISMIS ID number (the username they sign in with) —
-not a shared, institution-wide catalog. A student's fetched courses, sections, generated schedules and catalog
-status are all invisible to every other student. Instructors and rooms are the one exception: shared reference
-facts (who teaches, which room), not treated as anyone's private data.
+Course data is **private to each student**, keyed by their ISMIS ID number (the username they sign in with), not a shared institution-wide catalog. A student's fetched courses, sections, generated schedules and catalog status are invisible to every other student. Instructors and rooms are the one exception: shared reference facts (who teaches, which room).
 
-- **Identity:** established once, at ISMIS sign-in — ISMIS accepting the login is what proves the ID number is
-  genuinely theirs. The `X-Ismis-Session` header (an unguessable random id, not the ID number itself) then
-  carries that identity on every request; `StudentCatalogFilter` resolves it for `/api/courses/**`,
-  `/api/schedules/**`, `/api/meta/**` and `/api/catalog/**`.
-- **Admin CSV import** (`/api/admin/import`) now also takes a `studentIdNumber` parameter, since it has to know
-  whose private catalog to import into.
-- **Migration:** `V2__student_scoped_catalog.sql` adds `student_id_number` to `courses`, `sections` and
-  `catalog_snapshots`. It clears those tables first, since pre-existing rows predate the ownership model and
-  cannot be attributed to a student.
+- **Identity** is established once, at ISMIS sign-in: ISMIS accepting the login is what proves the ID number is theirs. The `X-Ismis-Session` header (an unguessable random id, not the ID number) then carries that identity; the `student` guard in `src/server/http/api.ts` resolves it for `/api/courses`, `/api/schedules`, `/api/meta/{departments,academic-years}` and `/api/catalog`.
+- **Passwords** are used only for the sign-in request and never stored, logged or echoed; a test signs in with a sentinel password and proves it appears in no response, log line or database row. (JavaScript strings cannot be wiped from memory, unlike the Java version's `char[]`; what is guaranteed is that nothing retains it.)
+- **Admin CSV import** (`POST /api/admin/import`, multipart: `file`, `semester`, `academicYear`, `studentIdNumber`) imports into that student's private catalog.
 
 ## Prospectus-based course picking
 
 On the Courses page, "Use my prospectus" reads the student's own degree-program curriculum from ISMIS
-(`/prospectus/StudentProspectus` by default, `UCHED_ISMIS_PROSPECTUS_PATH` to override) — fetched once per
-ISMIS session and cached. Pick a year level; it's matched against the semester already selected above, and its
+(`/prospectus/StudentProspectus` by default, `UCHED_ISMIS_PROSPECTUS_PATH` to override), fetched once per
+ISMIS session and cached. Pick a year level; it is matched against the semester already selected above, and its
 course codes (with real units, from a page that actually has them) can be added straight to the search list.
-This is a *plan*, not what's currently offered — the codes still go through the normal per-code ISMIS search
-before anything is imported. Requisite text (e.g. "PREREQUISITE CIS 1204") is shown as-is; USChed does not
-enforce it.
+This is a *plan*, not what is currently offered: the codes still go through the normal per-code ISMIS search
+before anything is imported. Requisite text (e.g. "PREREQUISITE CIS 1204") is shown as-is.
+
+Prospectus placeholders such as `GE-FEL 2` are resolved to the real searchable family code, and an elective "slot"
+with no exact match offers whatever ISMIS has under that family.
 
 ## Live ISMIS sync (sign in once, fetch several courses)
 
-1. On the Courses page the **Terms are shown every time** before ISMIS sign-in; both boxes must be ticked. Consent is kept in memory only.
-2. Sign in once. The password is used for that one sign-in and destroyed; USChed keeps only the ISMIS **session cookies**, in server memory,
+1. On the Login page the **Terms are shown every time** before ISMIS sign-in; both boxes must be ticked. Consent is kept in memory only.
+2. Sign in once. The password is used for that one sign-in and never stored; USChed keeps only the ISMIS **session cookies**, in server memory,
    for up to 20 minutes idle / 60 minutes total, or until you sign out. Nothing is written to disk or the database.
 3. Enter several course codes (type them or paste a list). USChed searches ISMIS **one by one** with per-code progress, imports each
    result, and adds the matching courses to your selection. A code with no match or too many matches does not stop the others.
 
 Behind it: sign in at `/Account/Login` (anti-forgery token echoed back), open `/courseschedule/CourseScheduleOfferedIndex`, submit its
 term search (a read-only POST to `/CourseSchedule/CourseScheduleOffered`) and parse the `table-forum` results.
-Only GETs, the login POST and that one search POST are ever allowed; every other request is blocked in code.
+Only GETs, the login POST and that one search POST are ever allowed; every other request is blocked in code
+(`src/server/ismis/session.ts`), and a CAPTCHA or one-time-code page stops the scrape rather than being solved.
 
 > Design change from the overview: "credentials used once, single scrape" became "password used once, session kept in memory".
 > The Terms (v2026-9-2) say so explicitly.
@@ -85,20 +114,23 @@ Only GETs, the login POST and that one search POST are ever allowed; every other
 ### Searching by department
 
 ISMIS has no separate department filter; a department is really just a course-code prefix. Typing a department
-code (e.g. "CIS", "AC") in the course-codes box searches it the same way as a full code, and now pages through
-every page of results (built from USChed's own request, up to `uched.ismis.max-pages`, default 50) instead of
-refusing a broad search. If a department has more pages than the cap, USChed imports what it fetched and notes
-that the results are partial.
+code (e.g. "CIS", "AC") in the course-codes box searches it the same way as a full code, and pages through
+every page of results (built from USChed's own request, up to `UCHED_ISMIS_MAX_PAGES`, default 50). If a department
+has more pages than the cap, USChed imports what it fetched and notes that the results are partial.
 
 > Unverified: the real multi-page example I was given was an *unfiltered* "show everything" listing (204 pages),
 > so I don't yet know for certain whether ISMIS's own pagination preserves a course-code search term across pages.
 > USChed builds each page's URL itself (its own academic period, year and search text, plus `page=N`) rather than
-> trusting a scraped link, which should keep the filter intact — but this needs confirming against a real,
-> filtered, multi-page department search once you can test it.
+> trusting a scraped link, which should keep the filter intact, but this needs confirming against a real,
+> filtered, multi-page department search.
 
 Known gaps (not yet verified against the live site; automated tests only use a local fake ISMIS):
 - The results table has **no units column**: new courses get 3 units, but a searched course that appears in your prospectus takes its real units from there. An ISMIS refresh never overwrites units you already have (e.g. from a CSV); courses not in your prospectus (e.g. electives) stay at 3.
 - Assumed: Academic Year `2026-2027` is submitted as `2026`, and `Enrolled Students` reads `enrolled/capacity`.
-- A search matching several result pages needs plain-href page links; otherwise USChed asks for a more specific search instead of importing part of it. (Whole-term download is not built: ISMIS lists ~204 pages.)
+- Whole-term download is not built: ISMIS lists ~204 pages.
 
-Get written permission from USC/ISMIS administrators and a legal review of the Terms (`usched-api/src/main/resources/terms.md`, a draft) before any public launch.
+Get written permission from USC/ISMIS administrators and a legal review of the Terms (`src/server/terms.ts`, a draft) before any public launch.
+
+## Keep in sync
+
+`src/lib/insights.ts` duplicates the campus-travel rule (45 minutes between classes on different campuses, campus inferred from the room suffix `TC`/`MC`). Change it together with `TRAVEL_MINUTES` in `src/server/engine/constraints.ts`.
