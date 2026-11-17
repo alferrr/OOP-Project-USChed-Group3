@@ -4,7 +4,7 @@ interface Cached {
   client: PrismaClient
   url: string | undefined
 }
-const g = globalThis as unknown as { __uchedPrisma?: Cached }
+const g = globalThis as unknown as { __uchedPrismaCache?: Cached }
 
 function create(): Cached {
   const url = process.env.DATABASE_URL
@@ -17,11 +17,11 @@ function create(): Cached {
  * running) the cached client is rebuilt instead of staying broken until a restart.
  */
 function current(): PrismaClient {
-  if (!g.__uchedPrisma || g.__uchedPrisma.url !== process.env.DATABASE_URL) {
-    void g.__uchedPrisma?.client.$disconnect()
-    g.__uchedPrisma = create()
+  if (!g.__uchedPrismaCache || g.__uchedPrismaCache.url !== process.env.DATABASE_URL) {
+    void g.__uchedPrismaCache?.client.$disconnect()
+    g.__uchedPrismaCache = create()
   }
-  return g.__uchedPrisma.client
+  return g.__uchedPrismaCache.client
 }
 
 export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
