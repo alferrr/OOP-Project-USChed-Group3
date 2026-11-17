@@ -1,4 +1,4 @@
-import { ChevronRight, RotateCcw, Search, ShieldAlert, ThumbsUp, X } from 'lucide-react'
+import { ChevronRight, RotateCcw, Search, ShieldAlert, ThumbsUp, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { DayCode, Preferences } from '../../api/types'
@@ -253,10 +253,6 @@ export default function PreferencesForm({ value, onChange, instructors = [] }: P
               ))}
             </div>
           </div>
-          <div className="mt-3">
-            <InstructorPicker label="Avoid these instructors" instructors={instructors} selected={avoidedInstructors}
-              onToggle={toggleAvoided} emptyText="Select courses to see who teaches them." />
-          </div>
         </fieldset>
 
         <fieldset className="rounded-2xl bg-green-50 p-4">
@@ -276,9 +272,22 @@ export default function PreferencesForm({ value, onChange, instructors = [] }: P
             <Toggle checked={!!soft.prioritizeLunchBreak} onChange={(v) => setSoft({ prioritizeLunchBreak: v })}
               title="A real lunch break" description="Already favored by default (at least an hour); check this to weigh it even more." />
           </div>
-          <div className="mt-3">
+        </fieldset>
+
+        <fieldset className="rounded-2xl bg-green-50 p-4 md:col-span-2">
+          <legend className="float-left mb-2 flex w-full items-center gap-1.5 font-bold text-green-900">
+            <Users size={15} className="text-green-700" aria-hidden /> Instructors
+          </legend>
+          <p className="clear-both mb-3 text-sm text-green-900/70">Avoiding an instructor drops any schedule with their sections; preferring one only ranks those schedules higher.</p>
+          <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <InstructorPicker label="Avoid these instructors" instructors={instructors} selected={avoidedInstructors}
+              onToggle={toggleAvoided} emptyText="Select courses to see who teaches them." />
+          </div>
+          <div>
             <InstructorPicker label="Preferred instructors" instructors={instructors} selected={preferredInstructors}
               onToggle={togglePreferred} emptyText="Select courses to see who teaches them." />
+          </div>
           </div>
         </fieldset>
         </div>
