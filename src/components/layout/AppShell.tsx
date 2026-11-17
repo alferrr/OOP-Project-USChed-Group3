@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
-import { CalendarDays, ListChecks, LogOut, ShieldCheck } from 'lucide-react'
+import { CalendarDays, LayoutDashboard, ListChecks, LogOut, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
 import { useIsmisStore } from '../../store/ismisStore'
 
@@ -18,6 +18,7 @@ const linkClass = (scrolled: boolean) => ({ isActive }: { isActive: boolean }) =
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const signedIn = useIsmisStore((s) => !!s.sessionId)
+  const isAdmin = useIsmisStore((s) => s.isAdmin)
   const idleMinutes = useIsmisStore((s) => s.idleMinutes)
   const signOut = useIsmisSignOut()
   const [scrolled, setScrolled] = useState(false)
@@ -57,6 +58,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   <CalendarDays size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Schedules</span>
                 </NavLink>
               </>
+            )}
+            {signedIn && isAdmin && (
+              <NavLink href="/admin" className={link}>
+                <LayoutDashboard size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Admin</span>
+              </NavLink>
             )}
             <NavLink href="/terms" className={link}>
               <ShieldCheck size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Terms</span>
