@@ -180,4 +180,10 @@ export class IsmisSessionService {
 
 const newId = () => randomBytes(24).toString('base64url')
 
-export const ismisSessions = (): IsmisSessionService => singleton('ismisSessions', () => new IsmisSessionService())
+export const ismisSessions = (): IsmisSessionService => {
+  const service = singleton('ismisSessions', () => new IsmisSessionService())
+  // Dev hot reload keeps the instance pinned on globalThis while the class is re-evaluated, so an instance built
+  // before a new method was added would not have it. Re-point it at the current class; its state is untouched.
+  if (Object.getPrototypeOf(service) !== IsmisSessionService.prototype) Object.setPrototypeOf(service, IsmisSessionService.prototype)
+  return service
+}
