@@ -44,6 +44,7 @@ export interface HardPrefs {
   earliestStart?: string | null
   latestEnd?: string | null
   avoidDays?: DayCode[]
+  avoidInstructorIds?: number[]
 }
 export interface SoftPrefs {
   preferMorning?: boolean

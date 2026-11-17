@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from './client'
 import { useConsentStore } from '../store/consentStore'
 import { useIsmisStore } from '../store/ismisStore'
@@ -39,6 +39,24 @@ export const useSections = (courseId: number, semester: SemesterCode, academicYe
     queryKey: ['sections', courseId, semester, academicYear],
     queryFn: () => api<Section[]>(`/courses/${courseId}/sections${qs({ semester, academicYear })}`, { ismis: true }),
     enabled,
+  })
+
+/** Distinct instructors teaching any section of the given courses this term, sorted by name. */
+export const useInstructors = (courseIds: number[], semester: SemesterCode, academicYear: string) =>
+  useQueries({
+    queries: courseIds.map((courseId) => ({
+      queryKey: ['sections', courseId, semester, academicYear],
+      queryFn: () => api<Section[]>(`/courses/${courseId}/sections${qs({ semester, academicYear })}`, { ismis: true }),
+    })),
+    combine: (results) => {
+      const byId = new Map<number, string>()
+      for (const r of results) {
+        for (const s of r.data ?? []) {
+          if (s.instructorId !== null && s.instructor) byId.set(s.instructorId, s.instructor)
+        }
+      }
+      return [...byId].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name))
+    },
   })
 
 export const useGenerate = () => useMutation({ mutationFn: (req: GenerateRequest) => api<GenerateResponse>('/schedules/generate', { body: req, ismis: true }) })

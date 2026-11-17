@@ -8,6 +8,8 @@ import { emptyPreferences } from '../../store/planStore'
 interface Props {
   value: Preferences
   onChange: (p: Preferences) => void
+  /** Instructors teaching the selected courses, offered as people to avoid. */
+  instructors?: { id: number; name: string }[]
 }
 
 /** Turns "" / NaN into null so blank fields are simply not sent. */
@@ -32,6 +34,7 @@ function countActive({ hard, soft }: Preferences): number {
   if (hard.earliestStart) n++
   if (hard.latestEnd) n++
   if (hard.avoidDays && hard.avoidDays.length > 0) n++
+  if (hard.avoidInstructorIds && hard.avoidInstructorIds.length > 0) n++
   if (soft.preferMorning || soft.preferAfternoon) n++
   if (soft.minimizeGaps) n++
   if (soft.minimizeDays) n++
@@ -105,13 +108,16 @@ const TIME_OF_DAY_OPTIONS = [
 const ANY_TIME_OPTIONS = [{ value: '', label: 'Any time' }, ...TIME_SLOTS.map((t) => ({ value: t, label: format12(t) }))]
 
 // On desktop this card sits in a sticky column, so only its body (not the page or the column) scrolls.
-export default function PreferencesForm({ value, onChange }: Props) {
+export default function PreferencesForm({ value, onChange, instructors = [] }: Props) {
   const [open, setOpen] = useState(false)
   const { hard, soft } = value
   const setHard = (patch: Partial<Preferences['hard']>) => onChange({ ...value, hard: { ...hard, ...patch } })
   const setSoft = (patch: Partial<Preferences['soft']>) => onChange({ ...value, soft: { ...soft, ...patch } })
   const avoid = hard.avoidDays ?? []
   const toggleDay = (d: DayCode) => setHard({ avoidDays: avoid.includes(d) ? avoid.filter((x) => x !== d) : [...avoid, d] })
+  const avoidedInstructors = hard.avoidInstructorIds ?? []
+  const toggleInstructor = (id: number) =>
+    setHard({ avoidInstructorIds: avoidedInstructors.includes(id) ? avoidedInstructors.filter((x) => x !== id) : [...avoidedInstructors, id] })
   const timeOfDay = soft.preferMorning ? 'morning' : soft.preferAfternoon ? 'afternoon' : 'none'
   const active = countActive(value)
   const field = 'control mt-1.5 bg-white'
@@ -176,6 +182,22 @@ export default function PreferencesForm({ value, onChange }: Props) {
                   </label>
                 ))}
               </div>
+            </div>
+            <div className="mt-3" role="group" aria-label="Instructors to avoid">
+              <span className="text-sm font-semibold text-green-900">Avoid these instructors</span>
+              {instructors.length === 0 && avoidedInstructors.length === 0 ? (
+                <p className="mt-1.5 text-sm text-green-900/70">Select courses to see who teaches them.</p>
+              ) : (
+                <div className="mt-1.5 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+                  {instructors.map((i) => (
+                    <label key={i.id} className={dayPill(avoidedInstructors.includes(i.id))}>
+                      <input type="checkbox" className="sr-only" checked={avoidedInstructors.includes(i.id)}
+                        onChange={() => toggleInstructor(i.id)} />
+                      {i.name}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </fieldset>
 

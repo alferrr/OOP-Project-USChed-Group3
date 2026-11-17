@@ -13,6 +13,7 @@ export interface SchedulePreference {
   readonly earliestStart: Minutes | null
   readonly latestEnd: Minutes | null
   readonly avoidDays: ReadonlySet<Day>
+  readonly avoidInstructorIds: ReadonlySet<number>
   // Soft
   readonly preferMorning: boolean
   readonly preferAfternoon: boolean
@@ -30,6 +31,7 @@ export function preference(overrides: Partial<SchedulePreference> = {}): Schedul
     earliestStart: null,
     latestEnd: null,
     avoidDays: new Set<Day>(),
+    avoidInstructorIds: new Set<number>(),
     preferMorning: false,
     preferAfternoon: false,
     minimizeGaps: false,

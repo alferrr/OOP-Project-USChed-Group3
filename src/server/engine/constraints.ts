@@ -26,6 +26,21 @@ export class AvoidDaysConstraint implements ScheduleConstraint {
   }
 }
 
+export class AvoidInstructorsConstraint implements ScheduleConstraint {
+  constructor(private readonly instructorIds: ReadonlySet<number>) {}
+
+  isSatisfiedBy(schedule: Schedule): boolean {
+    return schedule.sections.every((s) => {
+      const id = s.instructor?.id
+      return id === null || id === undefined || !this.instructorIds.has(id)
+    })
+  }
+
+  description(): string {
+    return 'no sections taught by an avoided instructor'
+  }
+}
+
 /**
  * USC's two campuses (Main and Talamban) are a real commute apart - roughly half an hour by jeepney in
  * typical Cebu traffic, not a room-to-room walk - so two classes back-to-back (or nearly so) on different
@@ -137,5 +152,6 @@ export function constraintsFrom(p: SchedulePreference): ScheduleConstraint[] {
   if (p.earliestStart !== null) list.push(new EarliestStartConstraint(p.earliestStart))
   if (p.latestEnd !== null) list.push(new LatestEndConstraint(p.latestEnd))
   if (p.avoidDays.size > 0) list.push(new AvoidDaysConstraint(p.avoidDays))
+  if (p.avoidInstructorIds.size > 0) list.push(new AvoidInstructorsConstraint(p.avoidInstructorIds))
   return list
 }

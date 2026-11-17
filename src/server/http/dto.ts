@@ -39,6 +39,7 @@ const hardPrefs = z.object({
   earliestStart: z.string().nullish(),
   latestEnd: z.string().nullish(),
   avoidDays: z.array(z.string()).nullish(),
+  avoidInstructorIds: z.array(id).nullish(),
 })
 
 const softPrefs = z.object({
@@ -82,6 +83,7 @@ export function toPreference(dto: PreferencesDto | null | undefined): SchedulePr
           earliestStart: time(hard.earliestStart),
           latestEnd: time(hard.latestEnd),
           avoidDays: new Set((hard.avoidDays ?? []).map(dayFromCode)),
+          avoidInstructorIds: new Set(hard.avoidInstructorIds ?? []),
         }
       : {}),
     ...(soft

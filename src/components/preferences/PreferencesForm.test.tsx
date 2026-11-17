@@ -71,6 +71,15 @@ describe('PreferencesForm', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ hard: expect.objectContaining({ avoidDays: ['SAT'] }) }))
   })
 
+  it('toggles an avoided instructor and counts it as a setting', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<PreferencesForm value={emptyPreferences()} onChange={onChange} instructors={[{ id: 7, name: 'DOE, JANE' }]} />)
+    await user.click(screen.getByRole('button', { name: /preferences/i }))
+    await user.click(screen.getByText('DOE, JANE'))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ hard: expect.objectContaining({ avoidInstructorIds: [7] }) }))
+  })
+
   it('switches time-of-day preference via the scrollable option list', async () => {
     const user = userEvent.setup()
     const { onChange } = renderForm()

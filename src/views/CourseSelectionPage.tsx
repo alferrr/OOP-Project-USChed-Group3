@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ApiError } from '../api/client'
-import { useAcademicYears, useClearCatalog, useCourses, useDepartments, useGenerate, useSemesters, useSearchStatus, useStartSearch } from '../api/hooks'
+import { useAcademicYears, useClearCatalog, useCourses, useDepartments, useGenerate, useInstructors, useSemesters, useSearchStatus, useStartSearch } from '../api/hooks'
 import type { SemesterCode } from '../api/types'
 import CourseCodesInput from '../components/course/CourseCodesInput'
 import ProspectusPicker from '../components/course/ProspectusPicker'
@@ -50,6 +50,7 @@ export default function CourseSelectionPage() {
   const { selected, addMany, clear: clearSelection } = useSelectionStore()
   const { preferences, setPreferences } = usePreferencesStore()
   const generate = useGenerate()
+  const instructors = useInstructors(selected.map((c) => c.id), semester, academicYear)
   const setResult = useScheduleStore((s) => s.setResult)
   const clearCatalog = useClearCatalog()
 
@@ -160,7 +161,7 @@ export default function CourseSelectionPage() {
             </button>
           </div>
           <div className="relative z-10 -mt-6 px-2">
-            <PreferencesForm value={preferences} onChange={setPreferences} />
+            <PreferencesForm value={preferences} onChange={setPreferences} instructors={instructors} />
           </div>
           {genError && (
             <div role="alert" className="alert-error mt-4">

@@ -4,6 +4,7 @@ import { Schedule } from '@/server/domain/model'
 import { hm } from '@/server/domain/time'
 import {
   AvoidDaysConstraint,
+  AvoidInstructorsConstraint,
   CampusTravelConstraint,
   EarliestStartConstraint,
   LatestEndConstraint,
@@ -35,6 +36,24 @@ describe('hard constraints', () => {
   it('earliestStart', () => check(new EarliestStartConstraint(hm(8)), new EarliestStartConstraint(hm(9))))
   it('latestEnd', () => check(new LatestEndConstraint(hm(14)), new LatestEndConstraint(hm(13))))
   it('avoidDays', () => check(new AvoidDaysConstraint(new Set(['FRI'])), new AvoidDaysConstraint(new Set(['SAT']))))
+})
+
+describe('AvoidInstructorsConstraint', () => {
+  const taught = (id: number | null) =>
+    Schedule.of([section('A 1', 'A', id === null ? null : { id, name: `T${id}` }, lecture('MON', '08:00', '09:00'))])
+
+  it('rejects a schedule with an avoided instructor and keeps others, including unassigned sections', () => {
+    const c = new AvoidInstructorsConstraint(new Set([5]))
+    expect(c.isSatisfiedBy(taught(5))).toBe(false)
+    expect(c.isSatisfiedBy(taught(6))).toBe(true)
+    expect(c.isSatisfiedBy(taught(null))).toBe(true)
+  })
+
+  it('is added by constraintsFrom only when instructors are avoided', () => {
+    const has = (p: Parameters<typeof constraintsFrom>[0]) => constraintsFrom(p).some((c) => c instanceof AvoidInstructorsConstraint)
+    expect(has(NO_PREFERENCE)).toBe(false)
+    expect(has(preference({ avoidInstructorIds: new Set([5]) }))).toBe(true)
+  })
 })
 
 describe('CampusTravelConstraint', () => {
