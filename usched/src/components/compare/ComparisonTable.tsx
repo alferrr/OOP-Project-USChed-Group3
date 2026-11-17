@@ -27,7 +27,7 @@ export default function ComparisonTable({ ranks, items }: Props) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.label} className="border-t border-green-100">
+            <tr key={row.label} className="odd:bg-green-50 [&>*:first-child]:rounded-l-xl [&>*:last-child]:rounded-r-xl">
               <th scope="row" className="px-4 py-3 text-left font-semibold text-green-900">{row.label}</th>
               {items.map((item, i) => (
                 <td key={i} className={`px-4 py-3 ${row.label === 'Score' && item.score === bestScore ? 'rounded-xl bg-gold-400 font-bold' : ''}`}>
