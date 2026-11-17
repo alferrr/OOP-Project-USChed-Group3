@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronRight, RotateCcw, ShieldAlert, ThumbsUp } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { ChevronRight, RotateCcw, ShieldAlert, ThumbsUp, X } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import type { DayCode, Preferences } from '../../api/types'
 import { DAYS } from '../../lib/days'
 import { dayShort, format12 } from '../../lib/time'
@@ -109,7 +110,22 @@ const ANY_TIME_OPTIONS = [{ value: '', label: 'Any time' }, ...TIME_SLOTS.map((t
 
 // On desktop this card sits in a sticky column, so only its body (not the page or the column) scrolls.
 export default function PreferencesForm({ value, onChange, instructors = [] }: Props) {
+  // `open` mounts the centered panel; `closing` keeps it on screen for the exit animation.
   const [open, setOpen] = useState(false)
+  const [closing, setClosing] = useState(false)
+  const dialog = useRef<HTMLDivElement>(null)
+  const opener = useRef<HTMLButtonElement>(null)
+  const close = () => {
+    setClosing(true)
+    setTimeout(() => { setOpen(false); setClosing(false); opener.current?.focus() }, 200)
+  }
+  useEffect(() => {
+    if (!open) return
+    dialog.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
   const { hard, soft } = value
   const setHard = (patch: Partial<Preferences['hard']>) => onChange({ ...value, hard: { ...hard, ...patch } })
   const setSoft = (patch: Partial<Preferences['soft']>) => onChange({ ...value, soft: { ...soft, ...patch } })
@@ -125,12 +141,113 @@ export default function PreferencesForm({ value, onChange, instructors = [] }: P
     `cursor-pointer select-none rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-gold-400 ${
       selected ? 'bg-gold-400 text-green-900' : 'bg-white text-green-900/70 hover:bg-green-100'}`
 
+  const panel = (
+    <div className="backdrop fixed inset-0 z-50 flex items-center justify-center bg-green-900/50 p-4 backdrop-blur-sm"
+      data-closing={closing || undefined} onMouseDown={(e) => { if (e.target === e.currentTarget) close() }}>
+      <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="preferences-title" tabIndex={-1}
+        data-closing={closing || undefined}
+        className="pop flex max-h-[90vh] w-full max-w-3xl flex-col rounded-[2rem] bg-white shadow-[var(--shadow-lift)] outline-none">
+        <div className="flex items-center gap-2 px-6 pb-2 pt-5">
+          <h2 id="preferences-title" className="flex-1 text-2xl font-extrabold text-green-900">Preferences</h2>
+          {active > 0 && (
+            <button onClick={() => onChange(emptyPreferences())}
+              className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-green-700 transition-colors hover:bg-green-100">
+              <RotateCcw size={12} aria-hidden /> Reset
+            </button>
+          )}
+          <button onClick={close} aria-label="Close preferences"
+            className="rounded-full p-2 text-green-700 transition-colors hover:bg-green-100">
+            <X size={18} aria-hidden />
+          </button>
+        </div>
+        <div className="grid gap-4 overflow-y-auto px-6 pb-4 md:grid-cols-2">
+        <fieldset className="rounded-2xl bg-green-50 p-4">
+          <legend className="float-left mb-2 flex w-full items-center gap-1.5 font-bold text-green-900">
+            <ShieldAlert size={15} className="text-green-700" aria-hidden /> Must follow
+          </legend>
+          <p className="clear-both mb-3 text-sm text-green-900/70">Any schedule that breaks these is dropped entirely, not just ranked lower.</p>
+          {/* Always one column: this form is embedded in a fixed ~20rem sidebar on desktop, narrower
+              than any viewport-based breakpoint would ever reflect, so a viewport-driven multi-column
+              grid here just crams everything into that same narrow width regardless of screen size. */}
+          <div className="grid grid-cols-1 gap-3">
+            <Field label="Max school days">
+              <input type="number" min={1} max={6} placeholder="No limit" className={field} value={hard.maxSchoolDays ?? ''}
+                onChange={(e) => setHard({ maxSchoolDays: num(e.target.value) })} />
+            </Field>
+            <Field label="Max classes / day">
+              <input type="number" min={1} placeholder="No limit" className={field} value={hard.maxClassesPerDay ?? ''}
+                onChange={(e) => setHard({ maxClassesPerDay: num(e.target.value) })} />
+            </Field>
+            <Field label="Min break (mins)">
+              <input type="number" min={0} step={5} placeholder="e.g. 15" className={field} value={hard.minBreakMinutes ?? ''}
+                onChange={(e) => setHard({ minBreakMinutes: num(e.target.value) })} />
+            </Field>
+            <ScrollPicker label="Earliest start" options={ANY_TIME_OPTIONS} value={hard.earliestStart ?? ''}
+              onChange={(v) => setHard({ earliestStart: v || null })} />
+            <ScrollPicker label="Latest end" options={ANY_TIME_OPTIONS} value={hard.latestEnd ?? ''}
+              onChange={(v) => setHard({ latestEnd: v || null })} />
+          </div>
+          <div className="mt-3" role="group" aria-label="Days to avoid">
+            <span className="text-sm font-semibold text-green-900">Avoid these days</span>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {DAYS.map((d) => (
+                <label key={d} className={dayPill(avoid.includes(d))}>
+                  <input type="checkbox" className="sr-only" checked={avoid.includes(d)} onChange={() => toggleDay(d)} />
+                  {dayShort(d)}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="mt-3" role="group" aria-label="Instructors to avoid">
+            <span className="text-sm font-semibold text-green-900">Avoid these instructors</span>
+            {instructors.length === 0 && avoidedInstructors.length === 0 ? (
+              <p className="mt-1.5 text-sm text-green-900/70">Select courses to see who teaches them.</p>
+            ) : (
+              <div className="mt-1.5 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+                {instructors.map((i) => (
+                  <label key={i.id} className={dayPill(avoidedInstructors.includes(i.id))}>
+                    <input type="checkbox" className="sr-only" checked={avoidedInstructors.includes(i.id)}
+                      onChange={() => toggleInstructor(i.id)} />
+                    {i.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </fieldset>
+
+        <fieldset className="rounded-2xl bg-green-50 p-4">
+          <legend className="float-left mb-2 flex w-full items-center gap-1.5 font-bold text-green-900">
+            <ThumbsUp size={15} className="text-green-700" aria-hidden /> Nice to have
+          </legend>
+          <p className="clear-both mb-3 text-sm text-green-900/70">These only nudge which schedules rank higher - nothing is ever dropped for them.</p>
+          <div className="max-w-xs">
+            <ScrollPicker label="Time of day" options={TIME_OF_DAY_OPTIONS} value={timeOfDay}
+              onChange={(t) => setSoft({ preferMorning: t === 'morning', preferAfternoon: t === 'afternoon' })} />
+          </div>
+          <div className="mt-3">
+            <Toggle checked={!!soft.minimizeGaps} onChange={(v) => setSoft({ minimizeGaps: v })}
+              title="Fewer gaps between classes" description="Favor back-to-back schedules over spread-out ones." />
+            <Toggle checked={!!soft.minimizeDays} onChange={(v) => setSoft({ minimizeDays: v })}
+              title="Fewer school days" description="Favor cramming classes into fewer days on campus." />
+            <Toggle checked={!!soft.prioritizeLunchBreak} onChange={(v) => setSoft({ prioritizeLunchBreak: v })}
+              title="A real lunch break" description="Already favored by default (at least an hour); check this to weigh it even more." />
+          </div>
+        </fieldset>
+        </div>
+        <div className="flex justify-end px-6 pb-5 pt-2">
+          <button type="button" onClick={close} className="btn btn-primary">Done</button>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="surface shadow-[var(--shadow-lift)]">
       <div className="flex items-center gap-2 px-4 py-3">
-        <button onClick={() => setOpen(!open)} aria-expanded={open}
+        <button ref={opener} onClick={() => (open ? close() : setOpen(true))} aria-expanded={open} aria-haspopup="dialog"
           className="flex flex-1 items-center gap-2 text-left text-lg font-bold text-green-900">
-          {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          <ChevronRight size={16} aria-hidden />
           Preferences
           <span className="chip">
             {active === 0 ? 'none set' : `${active} set`}
@@ -143,84 +260,7 @@ export default function PreferencesForm({ value, onChange, instructors = [] }: P
           </button>
         )}
       </div>
-
-      {open && (
-        <div className="space-y-4 px-4 pb-4 lg:max-h-[max(12rem,calc(100vh-36rem))] lg:overflow-y-auto lg:overscroll-contain">
-          <fieldset className="rounded-2xl bg-green-50 p-4">
-            <legend className="float-left mb-2 flex w-full items-center gap-1.5 font-bold text-green-900">
-              <ShieldAlert size={15} className="text-green-700" aria-hidden /> Must follow
-            </legend>
-            <p className="clear-both mb-3 text-sm text-green-900/70">Any schedule that breaks these is dropped entirely, not just ranked lower.</p>
-            {/* Always one column: this form is embedded in a fixed ~20rem sidebar on desktop, narrower
-                than any viewport-based breakpoint would ever reflect, so a viewport-driven multi-column
-                grid here just crams everything into that same narrow width regardless of screen size. */}
-            <div className="grid grid-cols-1 gap-3">
-              <Field label="Max school days">
-                <input type="number" min={1} max={6} placeholder="No limit" className={field} value={hard.maxSchoolDays ?? ''}
-                  onChange={(e) => setHard({ maxSchoolDays: num(e.target.value) })} />
-              </Field>
-              <Field label="Max classes / day">
-                <input type="number" min={1} placeholder="No limit" className={field} value={hard.maxClassesPerDay ?? ''}
-                  onChange={(e) => setHard({ maxClassesPerDay: num(e.target.value) })} />
-              </Field>
-              <Field label="Min break (mins)">
-                <input type="number" min={0} step={5} placeholder="e.g. 15" className={field} value={hard.minBreakMinutes ?? ''}
-                  onChange={(e) => setHard({ minBreakMinutes: num(e.target.value) })} />
-              </Field>
-              <ScrollPicker label="Earliest start" options={ANY_TIME_OPTIONS} value={hard.earliestStart ?? ''}
-                onChange={(v) => setHard({ earliestStart: v || null })} />
-              <ScrollPicker label="Latest end" options={ANY_TIME_OPTIONS} value={hard.latestEnd ?? ''}
-                onChange={(v) => setHard({ latestEnd: v || null })} />
-            </div>
-            <div className="mt-3" role="group" aria-label="Days to avoid">
-              <span className="text-sm font-semibold text-green-900">Avoid these days</span>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {DAYS.map((d) => (
-                  <label key={d} className={dayPill(avoid.includes(d))}>
-                    <input type="checkbox" className="sr-only" checked={avoid.includes(d)} onChange={() => toggleDay(d)} />
-                    {dayShort(d)}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="mt-3" role="group" aria-label="Instructors to avoid">
-              <span className="text-sm font-semibold text-green-900">Avoid these instructors</span>
-              {instructors.length === 0 && avoidedInstructors.length === 0 ? (
-                <p className="mt-1.5 text-sm text-green-900/70">Select courses to see who teaches them.</p>
-              ) : (
-                <div className="mt-1.5 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
-                  {instructors.map((i) => (
-                    <label key={i.id} className={dayPill(avoidedInstructors.includes(i.id))}>
-                      <input type="checkbox" className="sr-only" checked={avoidedInstructors.includes(i.id)}
-                        onChange={() => toggleInstructor(i.id)} />
-                      {i.name}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          </fieldset>
-
-          <fieldset className="rounded-2xl bg-green-50 p-4">
-            <legend className="float-left mb-2 flex w-full items-center gap-1.5 font-bold text-green-900">
-              <ThumbsUp size={15} className="text-green-700" aria-hidden /> Nice to have
-            </legend>
-            <p className="clear-both mb-3 text-sm text-green-900/70">These only nudge which schedules rank higher - nothing is ever dropped for them.</p>
-            <div className="max-w-xs">
-              <ScrollPicker label="Time of day" options={TIME_OF_DAY_OPTIONS} value={timeOfDay}
-                onChange={(t) => setSoft({ preferMorning: t === 'morning', preferAfternoon: t === 'afternoon' })} />
-            </div>
-            <div className="mt-3">
-              <Toggle checked={!!soft.minimizeGaps} onChange={(v) => setSoft({ minimizeGaps: v })}
-                title="Fewer gaps between classes" description="Favor back-to-back schedules over spread-out ones." />
-              <Toggle checked={!!soft.minimizeDays} onChange={(v) => setSoft({ minimizeDays: v })}
-                title="Fewer school days" description="Favor cramming classes into fewer days on campus." />
-              <Toggle checked={!!soft.prioritizeLunchBreak} onChange={(v) => setSoft({ prioritizeLunchBreak: v })}
-                title="A real lunch break" description="Already favored by default (at least an hour); check this to weigh it even more." />
-            </div>
-          </fieldset>
-        </div>
-      )}
+      {open && createPortal(panel, document.body)}
     </div>
   )
 }
