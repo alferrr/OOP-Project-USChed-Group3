@@ -110,6 +110,17 @@ export class IsmisSessionService {
     if (e) this.remove(e)
   }
 
+  /** For the admin dashboard: who is signed in and for how long. Never exposes session ids or connections. */
+  overview(): { studentIdNumber: string; createdAt: Date; lastUsed: Date; expiresAt: Date; busy: boolean }[] {
+    return [...this.sessions.values()].map((e) => ({
+      studentIdNumber: e.studentIdNumber,
+      createdAt: new Date(e.createdAt),
+      lastUsed: new Date(e.lastUsed),
+      expiresAt: new Date(this.expiresAt(e)),
+      busy: e.busy,
+    }))
+  }
+
   activeSessions(): number {
     return this.sessions.size
   }
