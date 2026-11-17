@@ -39,7 +39,7 @@ export interface AppConfig {
   catalog: { ttlHours: number }
   scrape: { maxConcurrent: number; timeoutSeconds: number }
   generation: { cap: number; defaultLimit: number }
-  admin: { token: string }
+  admin: { token: string; studentIds: string[] }
   ismisSession: { idleMinutes: number; maxMinutes: number; maxSessions: number }
   ismis: IsmisConfig
 }
@@ -70,7 +70,11 @@ export function loadConfig(env: Env = process.env): AppConfig {
     },
     generation: { cap: num(env, 'UCHED_GENERATION_CAP', 500), defaultLimit: num(env, 'UCHED_GENERATION_DEFAULT_LIMIT', 20) },
     // A blank token disables /api/admin/**.
-    admin: { token: str(env, 'UCHED_ADMIN_TOKEN', '') },
+    admin: {
+      token: str(env, 'UCHED_ADMIN_TOKEN', ''),
+      // ISMIS ID numbers that may open the admin dashboard once signed in (comma-separated).
+      studentIds: str(env, 'UCHED_ADMIN_IDS', '19020241').split(',').map((s) => s.trim()).filter(Boolean),
+    },
     ismisSession: {
       idleMinutes: num(env, 'UCHED_ISMIS_SESSION_IDLE_MINUTES', 20),
       maxMinutes: num(env, 'UCHED_ISMIS_SESSION_MAX_MINUTES', 60),
@@ -114,6 +118,10 @@ export function getConfig(): AppConfig {
 /** Tests only: drop the cached config so the next getConfig() re-reads process.env. */
 export function resetConfigForTests() {
   cached = undefined
+}
+
+export function isAdminStudent(studentIdNumber: string): boolean {
+  return getConfig().admin.studentIds.includes(studentIdNumber)
 }
 
 export function ismisConfigured(c: IsmisConfig): boolean {

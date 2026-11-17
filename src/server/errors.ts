@@ -37,6 +37,16 @@ export class ConsentRequiredError extends USChedError {
   readonly code = 'CONSENT_REQUIRED'
 }
 
+export class AdminForbiddenError extends USChedError {
+  static readonly kind: string = 'AdminForbiddenError'
+  readonly status = 403
+  readonly code = 'ADMIN_FORBIDDEN'
+
+  constructor(message = 'This account is not allowed to open the admin dashboard.') {
+    super(message)
+  }
+}
+
 export class ResourceNotFoundError extends USChedError {
   static readonly kind: string = 'ResourceNotFoundError'
   readonly status = 404

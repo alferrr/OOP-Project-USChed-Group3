@@ -1,8 +1,8 @@
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
 import { ZodError, type ZodType } from 'zod'
-import { getConfig } from '../config'
-import { InvalidCourseDataError, NoValidScheduleError, USChedError } from '../errors'
+import { getConfig, isAdminStudent } from '../config'
+import { AdminForbiddenError, InvalidCourseDataError, NoValidScheduleError, USChedError } from '../errors'
 import { verifyConsent } from '../services/consent'
 import { ismisSessions } from '../services/ismisSessions'
 
@@ -27,9 +27,10 @@ export interface RouteOptions {
    * ismis:   /api/ismis/**       - HTTPS-only when required, never cached, consent token required.
    * student: private catalog     - a live ISMIS session id (X-Ismis-Session) identifies the student.
    * admin:   /api/admin/**       - shared X-Admin-Token.
+   * adminSession: the dashboard - a live ISMIS session whose ID number is on the admin list.
    * open:    anything else.
    */
-  guard?: 'ismis' | 'student' | 'admin' | 'open'
+  guard?: 'ismis' | 'student' | 'admin' | 'adminSession' | 'open'
 }
 
 type Handler = (ctx: Ctx) => Promise<Response | object | undefined | void>
@@ -61,7 +62,8 @@ export function route(options: RouteOptions, handler: Handler) {
         if (denied) return finish(denied)
       }
       const sessionId = req.headers.get(SESSION_HEADER)
-      const studentIdNumber = guard === 'student' ? ismisSessions().identify(sessionId) : ''
+      const studentIdNumber = guard === 'student' || guard === 'adminSession' ? ismisSessions().identify(sessionId) : ''
+      if (guard === 'adminSession' && !isAdminStudent(studentIdNumber)) throw new AdminForbiddenError()
       const out = await handler({ req, params: await context.params, studentIdNumber, sessionId })
       if (out instanceof Response) return finish(out)
       return finish(out === undefined ? new NextResponse(null, { status: 204 }) : NextResponse.json(out))
