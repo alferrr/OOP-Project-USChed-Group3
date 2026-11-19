@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
 import TourGuide from '../guide/TourGuide'
-import { Bookmark, CalendarDays, LayoutDashboard, ListChecks, LogOut, Rocket, ShieldCheck } from 'lucide-react'
+import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, Rocket, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
 import { useTourStore } from '../../store/tourStore'
 import { useIsmisStore } from '../../store/ismisStore'
@@ -59,6 +59,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 </NavLink>
                 <NavLink href="/schedules" className={link}>
                   <CalendarDays size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Schedules</span>
+                </NavLink>
+                <NavLink href="/build" className={link}>
+                  <Hammer size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Build</span>
                 </NavLink>
                 <NavLink href="/saved" className={link}>
                   <Bookmark size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Saved</span>

@@ -147,3 +147,21 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     ),
   reset: () => set({ result: null, baseResult: null, showingSimilarTo: null, activeIndex: 0, compareRanks: [] }),
 }))
+
+interface BuildState {
+  /** The section the student picked for each course on the "Build your own" page: course id -> section id. */
+  picks: Record<number, number>
+  pick: (courseId: number, sectionId: number) => void
+  unpick: (courseId: number) => void
+  clear: () => void
+}
+export const useBuildStore = create<BuildState>((set) => ({
+  picks: {},
+  pick: (courseId, sectionId) => set((s) => ({ picks: { ...s.picks, [courseId]: sectionId } })),
+  unpick: (courseId) =>
+    set((s) => {
+      const { [courseId]: _gone, ...rest } = s.picks
+      return { picks: rest }
+    }),
+  clear: () => set({ picks: {} }),
+}))

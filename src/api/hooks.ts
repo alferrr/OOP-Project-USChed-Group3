@@ -121,6 +121,27 @@ export const useSavedActions = () => {
   }
 }
 
+/** Every section of each given course for the term, keyed by course id, for the hand-built schedule page. */
+export const useSectionsOf = (courseIds: number[], semester: SemesterCode, academicYear: string) =>
+  useQueries({
+    queries: courseIds.map((courseId) => ({
+      queryKey: ['sections', courseId, semester, academicYear],
+      queryFn: () => api<Section[]>(`/courses/${courseId}/sections${qs({ semester, academicYear })}`, { ismis: true }),
+    })),
+    combine: (results) => ({
+      byCourse: new Map(courseIds.map((id, i) => [id, results[i]?.data] as const)),
+      loading: results.some((r) => r.isLoading),
+      failed: results.some((r) => r.isError),
+    }),
+  })
+
+/** Scores a hand-built schedule on the server (same scoring as generated ones). */
+export const useScoreSchedule = () =>
+  useMutation({
+    mutationFn: (v: { sectionIds: number[]; preferences?: GenerateRequest['preferences'] }) =>
+      api<RankedSchedule>('/schedules/score', { body: v, ismis: true }),
+  })
+
 export const useGenerate = () => useMutation({ mutationFn: (req: GenerateRequest) => api<GenerateResponse>('/schedules/generate', { body: req, ismis: true }) })
 
 export const useCompare = () =>

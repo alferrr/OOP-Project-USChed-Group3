@@ -1,6 +1,6 @@
 import { queryClient } from '../api/queryClient'
 import { useTourStore } from './tourStore'
-import { useSelectionStore, useScheduleStore, usePreferencesStore, usePassedStore, useSavedStore } from './planStore'
+import { useSelectionStore, useScheduleStore, usePreferencesStore, usePassedStore, useSavedStore, useBuildStore } from './planStore'
 
 /**
  * Clears every piece of state that reflects a specific student's own courses, schedules and preferences, so
@@ -18,5 +18,6 @@ export function clearStudentData() {
   usePreferencesStore.getState().reset()
   usePassedStore.getState().clear()
   useSavedStore.getState().clear()
+  useBuildStore.getState().clear()
   useTourStore.getState().stop()
 }
