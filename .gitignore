@@ -3,3 +3,4 @@
 /docker-compose.yml
 /start-uched.command
 /studentProspectus.txt
+node_modules
