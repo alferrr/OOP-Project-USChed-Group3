@@ -125,3 +125,18 @@ model TourCompletion {
 
   @@map("tour_completions")
 }
+
+// Schedules a student chose to save, so they are still there after signing out or on another device. The payload is
+// the ranked schedule exactly as the student saw it (sections, meetings, score), stored as JSON text.
+model SavedSchedule {
+  id              Int      @id @default(autoincrement())
+  studentIdNumber String   @map("student_id_number") @db.VarChar(64)
+  scheduleKey     String   @map("schedule_key") @db.VarChar(255)
+  semester        String   @db.VarChar(6)
+  academicYear    String   @map("academic_year") @db.VarChar(9)
+  payload         String   @db.MediumText
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([studentIdNumber, scheduleKey], map: "uq_saved_schedule")
+  @@map("saved_schedules")
+}
