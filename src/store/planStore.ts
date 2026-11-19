@@ -58,6 +58,7 @@ export const usePassedStore = create<PassedState>((set) => ({
 
 export interface SavedSchedule {
   id: string
+  name: string
   semester: SemesterCode
   academicYear: string
   schedule: RankedSchedule
@@ -66,8 +67,8 @@ const sectionKey = (s: RankedSchedule) => s.sections.map((x) => x.sectionId).sor
 
 interface SavedState {
   saved: SavedSchedule[]
-  /** Saves a schedule (a copy of it, so it survives regenerating); saving the same sections twice is a no-op. */
-  save: (schedule: RankedSchedule, semester: SemesterCode, academicYear: string) => void
+  /** Saves a schedule (a copy of it, so it survives regenerating). Saving the same sections again keeps one copy and takes the new name. */
+  save: (schedule: RankedSchedule, semester: SemesterCode, academicYear: string, name: string) => void
   remove: (id: string) => void
   /** Replaces everything with what the server has (on load). */
   setAll: (items: SavedSchedule[]) => void
@@ -77,11 +78,11 @@ interface SavedState {
 }
 export const useSavedStore = create<SavedState>((set) => ({
   saved: [],
-  save: (schedule, semester, academicYear) =>
+  save: (schedule, semester, academicYear, name) =>
     set((s) =>
       s.saved.some((x) => x.id === sectionKey(schedule))
-        ? s
-        : { saved: [...s.saved, { id: sectionKey(schedule), semester, academicYear, schedule }] },
+        ? { saved: s.saved.map((x) => (x.id === sectionKey(schedule) ? { ...x, name } : x)) }
+        : { saved: [...s.saved, { id: sectionKey(schedule), name, semester, academicYear, schedule }] },
     ),
   remove: (id) => set((s) => ({ saved: s.saved.filter((x) => x.id !== id) })),
   setAll: (saved) => set({ saved }),

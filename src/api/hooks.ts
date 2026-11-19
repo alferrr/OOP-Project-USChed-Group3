@@ -103,9 +103,9 @@ export const useSyncSavedSchedules = () => {
 /** Save and remove with an instant update on screen; a failed request puts things back and reports why. */
 export const useSavedActions = () => {
   const save = useMutation({
-    mutationFn: (v: { schedule: RankedSchedule; semester: SemesterCode; academicYear: string }) =>
-      api<void>('/saved-schedules', { method: 'PUT', body: { semester: v.semester, academicYear: v.academicYear, schedule: v.schedule }, ismis: true }),
-    onMutate: (v) => useSavedStore.getState().save(v.schedule, v.semester, v.academicYear),
+    mutationFn: (v: { schedule: RankedSchedule; semester: SemesterCode; academicYear: string; name: string }) =>
+      api<void>('/saved-schedules', { method: 'PUT', body: { name: v.name, semester: v.semester, academicYear: v.academicYear, schedule: v.schedule }, ismis: true }),
+    onMutate: (v) => useSavedStore.getState().save(v.schedule, v.semester, v.academicYear, v.name),
     onError: (_e, v) => useSavedStore.getState().remove(savedId(v.schedule)),
   })
   const remove = useMutation({
@@ -115,7 +115,7 @@ export const useSavedActions = () => {
   })
   const failed = save.error ?? remove.error
   return {
-    save: (schedule: RankedSchedule, semester: SemesterCode, academicYear: string) => save.mutate({ schedule, semester, academicYear }),
+    save: (schedule: RankedSchedule, semester: SemesterCode, academicYear: string, name: string) => save.mutate({ schedule, semester, academicYear, name }),
     remove: (item: SavedSchedule) => remove.mutate(item),
     error: failed ? failed.message : null,
   }

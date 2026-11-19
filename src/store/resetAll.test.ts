@@ -10,7 +10,7 @@ describe('clearStudentData', () => {
     useScheduleStore.getState().setResult({ totalUnits: 3, generatedCount: 1, returnedCount: 1, schedules: [] })
     usePreferencesStore.getState().setPreferences({ hard: { avoidDays: ['MON'] }, soft: {} })
     usePassedStore.getState().addMany(['CIS 1101'])
-    useSavedStore.getState().save({ rank: 1, score: 1, breakdown: {}, sections: [], stats: { schoolDays: 0, earliestStart: null, latestEnd: null, totalGapMinutes: 0, totalUnits: 0 } }, '1ST', '2026-2027')
+    useSavedStore.getState().save({ rank: 1, score: 1, breakdown: {}, sections: [], stats: { schoolDays: 0, earliestStart: null, latestEnd: null, totalGapMinutes: 0, totalUnits: 0 } }, '1ST', '2026-2027', 'Test')
 
     clearStudentData()
 
