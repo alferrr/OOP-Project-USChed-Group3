@@ -18,7 +18,7 @@ export interface GenerationResult {
 
 const scorer = defaultScorer()
 
-/** Every function is scoped to one student's own catalog by their ISMIS ID number. */
+/** Every function is scoped to one student's own catalog by their student ID number. */
 export async function generateForStudent(
   studentIdNumber: string,
   courseIds: number[],

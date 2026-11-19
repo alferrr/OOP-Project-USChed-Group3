@@ -14,7 +14,7 @@ export function AdminStudentsPage() {
   return (
     <TablePage<AdminStudentRow> icon={<Users size={20} />} title="Students" resource="students" empty="No students have used USChed yet."
       columns={[
-        { header: 'ID number', cell: (r) => <span className={mono}>{r.student}</span> },
+        { header: 'Student ID number', cell: (r) => <span className={mono}>{r.student}</span> },
         { header: 'Courses', cell: (r) => nf.format(r.courses), className: 'text-right' },
         { header: 'Searches', cell: (r) => nf.format(r.searches), className: 'text-right' },
         { header: 'Last active', cell: (r) => <span className={muted}>{r.lastActive ? ago(r.lastActive) : '–'}</span> },

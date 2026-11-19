@@ -17,7 +17,7 @@ export interface Ctx {
   req: NextRequest
   /** Dynamic path segments, already awaited. */
   params: Record<string, string>
-  /** Set when the route is student-scoped: the ISMIS ID number of the signed-in student. */
+  /** Set when the route is student-scoped: the student ID number of the signed-in student. */
   studentIdNumber: string
   sessionId: string | null
 }
@@ -27,7 +27,7 @@ export interface RouteOptions {
    * ismis:   /api/ismis/**       - HTTPS-only when required, never cached, consent token required.
    * student: private catalog     - a live ISMIS session id (X-Ismis-Session) identifies the student.
    * admin:   /api/admin/**       - shared X-Admin-Token.
-   * adminSession: the dashboard - a live ISMIS session whose ID number is on the admin list.
+   * adminSession: the dashboard - a live ISMIS session whose student ID number is on the admin list.
    * open:    anything else.
    */
   guard?: 'ismis' | 'student' | 'admin' | 'adminSession' | 'open'

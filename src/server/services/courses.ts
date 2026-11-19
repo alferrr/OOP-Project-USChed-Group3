@@ -12,7 +12,7 @@ export interface PageResult<T> {
 
 const SECTION_INCLUDE = { course: true, instructor: true, meetings: { include: { room: true } } } as const
 
-/** Every function is scoped to one student's own catalog by their ISMIS ID number; nothing here is shared. */
+/** Every function is scoped to one student's own catalog by their student ID number; nothing here is shared. */
 
 export async function searchCourses(
   studentIdNumber: string,

@@ -77,9 +77,9 @@ Put a reverse proxy (nginx/Apache) with HTTPS in front of port 3000 and make sur
 
 ## Private per-student catalog
 
-Course data is **private to each student**, keyed by their ISMIS ID number (the username they sign in with), not a shared institution-wide catalog. A student's fetched courses, sections, generated schedules and catalog status are invisible to every other student. Instructors and rooms are the one exception: shared reference facts (who teaches, which room).
+Course data is **private to each student**, keyed by their student ID number (the username they sign in with), not a shared institution-wide catalog. A student's fetched courses, sections, generated schedules and catalog status are invisible to every other student. Instructors and rooms are the one exception: shared reference facts (who teaches, which room).
 
-- **Identity** is established once, at ISMIS sign-in: ISMIS accepting the login is what proves the ID number is theirs. The `X-Ismis-Session` header (an unguessable random id, not the ID number) then carries that identity; the `student` guard in `src/server/http/api.ts` resolves it for `/api/courses`, `/api/schedules`, `/api/meta/{departments,academic-years}` and `/api/catalog`.
+- **Identity** is established once, at ISMIS sign-in: ISMIS accepting the login is what proves the student ID number is theirs. The `X-Ismis-Session` header (an unguessable random id, not the student ID number) then carries that identity; the `student` guard in `src/server/http/api.ts` resolves it for `/api/courses`, `/api/schedules`, `/api/meta/{departments,academic-years}` and `/api/catalog`.
 - **Passwords** are used only for the sign-in request and never stored, logged or echoed; a test signs in with a sentinel password and proves it appears in no response, log line or database row. (JavaScript strings cannot be wiped from memory, unlike the Java version's `char[]`; what is guaranteed is that nothing retains it.)
 - **Admin CSV import** (`POST /api/admin/import`, multipart: `file`, `semester`, `academicYear`, `studentIdNumber`) imports into that student's private catalog.
 

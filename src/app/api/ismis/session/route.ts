@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * Signs in to ISMIS once, using the student's own ISMIS username as their ID number. The password is never
+ * Signs in to ISMIS once, using the student's own ISMIS username as their student ID number. The password is never
  * stored or logged; only a session id comes back. Request bodies are never logged anywhere in USChed.
  */
 export const POST = route({ guard: 'ismis' }, async ({ req }) => {

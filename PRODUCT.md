@@ -23,7 +23,7 @@ It works from the student's own live ISMIS data, not a stale shared timetable, a
 ## Operating Context
 
 - Sign-in uses the student's ISMIS credentials once; the password is discarded immediately and only a session id is kept in memory.
-- The catalog is private per student (keyed by ISMIS ID number); nothing is shared between students except instructors and rooms.
+- The catalog is private per student (keyed by student ID number); nothing is shared between students except instructors and rooms.
 - A terms-of-use and consent step gates anything that talks to ISMIS.
 - Sessions end after 20 minutes idle or 60 minutes total, so the flow must handle expiry gracefully.
 - Schedules are meant to be printed or screenshotted for reference at enrollment.

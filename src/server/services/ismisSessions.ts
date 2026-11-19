@@ -51,7 +51,7 @@ export class Lease {
 
 /**
  * Holds signed-in ISMIS connections in memory so a student signs in once and then runs several searches.
- * Each session is identified by the student's own ISMIS ID number (their username) and by a separate,
+ * Each session is identified by the student's own student ID number (their username) and by a separate,
  * unguessable session id that the browser holds and presents on every later call; that id alone is proof
  * enough of who is asking, the same way any bearer session token is. The password is used only inside
  * login() and never stored; only the session cookies and the ID number live on, in memory, never on disk or

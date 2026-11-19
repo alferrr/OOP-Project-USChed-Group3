@@ -72,7 +72,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
     // A blank token disables /api/admin/**.
     admin: {
       token: str(env, 'UCHED_ADMIN_TOKEN', ''),
-      // ISMIS ID numbers that may open the admin dashboard once signed in (comma-separated).
+      // student ID numbers that may open the admin dashboard once signed in (comma-separated).
       studentIds: str(env, 'UCHED_ADMIN_IDS', '19020241').split(',').map((s) => s.trim()).filter(Boolean),
     },
     ismisSession: {

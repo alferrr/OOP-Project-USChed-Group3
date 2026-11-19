@@ -3,7 +3,7 @@ import { listSessions } from '@/server/services/adminLists'
 import { ismisSessions } from '@/server/services/ismisSessions'
 
 describe('admin sessions list', () => {
-  it('lists signed-in students by ID number, even when the pinned instance predates overview()', () => {
+  it('lists signed-in students by student ID number, even when the pinned instance predates overview()', () => {
     const service = ismisSessions()
     service.seedTestSession('19020241')
     // Simulate a hot-reloaded dev server: an instance from an older class that has no overview().
