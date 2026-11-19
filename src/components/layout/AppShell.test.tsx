@@ -7,6 +7,7 @@ import AppShell from './AppShell'
 vi.mock('next/navigation', () => ({ usePathname: () => '/courses' }))
 vi.mock('../../api/hooks', () => ({ useIsmisSignOut: () => ({ mutate: vi.fn(), isPending: false }) }))
 vi.mock('../guide/TourGuide', () => ({ default: () => null }))
+vi.mock('../chat/ChatPanel', () => ({ default: () => null }))
 
 const signIn = (isAdmin: boolean) => act(() => useIsmisStore.getState().setSession('s', 20, isAdmin))
 
@@ -29,6 +30,13 @@ describe('AppShell header', () => {
   it('hides it when signed out', () => {
     render(<AppShell>x</AppShell>)
     expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument()
+  })
+
+  it('has an Ask button for the assistant in place of the old Tour button', () => {
+    signIn(false)
+    render(<AppShell>x</AppShell>)
+    expect(screen.getByRole('button', { name: 'Ask' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Tour' })).not.toBeInTheDocument()
   })
 
   it('drops the admin flag as soon as the session ends', () => {

@@ -2,10 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
+import ChatPanel from '../chat/ChatPanel'
 import TourGuide from '../guide/TourGuide'
-import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, Rocket, ShieldCheck } from 'lucide-react'
+import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, Sparkles, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
-import { useTourStore } from '../../store/tourStore'
+import { useChatStore } from '../../store/chatStore'
 import { useIsmisStore } from '../../store/ismisStore'
 
 const linkBase = 'flex items-center gap-2 rounded-full px-3 py-2.5 text-sm sm:px-4 sm:py-2 font-semibold transition-colors duration-300'
@@ -20,7 +21,8 @@ const linkClass = (scrolled: boolean) => ({ isActive }: { isActive: boolean }) =
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const signedIn = useIsmisStore((s) => !!s.sessionId)
-  const startTour = useTourStore((s) => s.start)
+  const chatOpen = useChatStore((s) => s.open)
+  const toggleChat = useChatStore((s) => s.setOpen)
   const isAdmin = useIsmisStore((s) => s.isAdmin)
   const idleMinutes = useIsmisStore((s) => s.idleMinutes)
   const signOut = useIsmisSignOut()
@@ -69,8 +71,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
               </>
             )}
             {signedIn && (
-              <button onClick={startTour} className={`${linkBase} ${scrolled ? 'text-green-900/70 hover:bg-green-100 hover:text-green-900' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
-                <Rocket size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Tour</span>
+              <button onClick={() => toggleChat(!chatOpen)} aria-expanded={chatOpen} aria-haspopup="dialog" className={`${linkBase} ${scrolled ? 'text-green-900/70 hover:bg-green-100 hover:text-green-900' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
+                <Sparkles size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Ask</span>
               </button>
             )}
             {signedIn && isAdmin && (
@@ -102,6 +104,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       {signedIn && <TourGuide />}
+      {signedIn && <ChatPanel />}
 
       <footer className="px-4 pb-6 pt-2 text-center text-xs text-green-900/70 print:hidden">
         USChed is an independent planner. It never enrolls, drops, or changes anything in ISMIS, so always enroll in the official ISMIS.

@@ -13,6 +13,7 @@ const HELP: Record<string, string> = {
   ISMIS_UNAVAILABLE: 'ISMIS could not be reached right now. Try again later.',
   SCRAPE_RATE_LIMITED: 'A search is already running, or USChed is busy with other students. Try again in a moment.',
   CONSENT_REQUIRED: 'Please review the Terms and accept them to continue.',
+  CHAT_UNAVAILABLE: 'The assistant is not available right now. Please try again later.',
   NETWORK: 'Could not reach the USChed server.',
 }
 

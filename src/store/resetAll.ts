@@ -1,4 +1,5 @@
 import { queryClient } from '../api/queryClient'
+import { useChatStore } from './chatStore'
 import { useTourStore } from './tourStore'
 import { useSelectionStore, useScheduleStore, usePreferencesStore, usePassedStore, useSavedStore, useBuildStore } from './planStore'
 
@@ -20,4 +21,5 @@ export function clearStudentData() {
   useSavedStore.getState().clear()
   useBuildStore.getState().clear()
   useTourStore.getState().stop()
+  useChatStore.getState().reset()
 }
