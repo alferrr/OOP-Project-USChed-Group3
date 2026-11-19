@@ -26,6 +26,18 @@
   --shadow-card: 0 1px 2px rgb(10 47 29 / 0.05), 0 12px 32px -14px rgb(10 47 29 / 0.16);
   --shadow-lift: 0 2px 4px rgb(10 47 29 / 0.06), 0 18px 40px -16px rgb(10 47 29 / 0.28);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Type scale, about 8% under Tailwind's defaults so the app reads comfortably at normal browser zoom.
+     Line heights keep their default ratios. */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.1875rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.75rem;
+  --text-4xl: 2.0625rem;
+  --text-5xl: 2.75rem;
+  --text-6xl: 3.375rem;
 }
 
 html, body, #root { min-height: 100%; }
@@ -36,6 +48,7 @@ body {
   background: var(--color-ground);
   color: var(--color-green-900);
   font-family: var(--font-sans);
+  font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   text-wrap: pretty;
@@ -52,7 +65,7 @@ input, textarea { caret-color: var(--color-green-700); }
   .surface { background: #fff; border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
   .control {
     width: 100%; border-radius: var(--radius-control); background: var(--color-green-50); padding: 0.7rem 1rem;
-    font-size: 0.9375rem; color: var(--color-green-900); border: 2px solid transparent;
+    font-size: 0.875rem; color: var(--color-green-900); border: 2px solid transparent;
     transition: border-color 0.2s var(--ease-out), background-color 0.2s var(--ease-out);
   }
   .control::placeholder { color: color-mix(in srgb, var(--color-green-900) 45%, transparent); }
@@ -60,7 +73,7 @@ input, textarea { caret-color: var(--color-green-700); }
   .control:focus { outline: none; background: #fff; border-color: var(--color-green-600); }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 999px;
-    padding: 0.7rem 1.4rem; font-weight: 700; font-size: 0.9375rem; line-height: 1.2; cursor: pointer;
+    padding: 0.7rem 1.4rem; font-weight: 700; font-size: 0.875rem; line-height: 1.2; cursor: pointer;
     transition: transform 0.2s var(--ease-out), background-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
   }
   .btn:active:not(:disabled) { transform: scale(0.97); }
@@ -73,14 +86,14 @@ input, textarea { caret-color: var(--color-green-700); }
   .btn-quiet:hover:not(:disabled) { background: var(--color-green-200); }
   .chip {
     display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 999px; background: var(--color-green-100);
-    padding: 0.2rem 0.7rem; font-size: 0.8125rem; font-weight: 600; color: var(--color-green-800);
+    padding: 0.2rem 0.7rem; font-size: 0.75rem; font-weight: 600; color: var(--color-green-800);
   }
-  .alert-error { border-radius: 1rem; background: #fdecea; padding: 0.85rem 1rem; font-size: 0.875rem; color: #7a1d14; }
+  .alert-error { border-radius: 1rem; background: #fdecea; padding: 0.85rem 1rem; font-size: 0.8125rem; color: #7a1d14; }
   /* Admin console: flat white, thin borders and modest corners, unlike the softer student app. */
   .adm-card { background: #fff; border: 1px solid var(--color-green-100); border-radius: 0.75rem; box-shadow: 0 1px 2px rgb(10 47 29 / 0.04); }
   .adm-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 0.5rem; background: #fff;
-    border: 1px solid var(--color-green-200); padding: 0.5rem 0.9rem; font-size: 0.875rem; font-weight: 600; line-height: 1.2;
+    border: 1px solid var(--color-green-200); padding: 0.5rem 0.9rem; font-size: 0.8125rem; font-weight: 600; line-height: 1.2;
     color: var(--color-green-900); cursor: pointer; transition: background-color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
   }
   .adm-btn:hover:not(:disabled) { background: var(--color-green-50); }
@@ -89,7 +102,7 @@ input, textarea { caret-color: var(--color-green-700); }
   .adm-btn-primary:hover:not(:disabled) { background: var(--color-green-800); }
   .adm-input {
     width: 100%; border-radius: 0.5rem; border: 1px solid var(--color-green-200); background: #fff; padding: 0.5rem 0.75rem 0.5rem 2.25rem;
-    font-size: 0.875rem; color: var(--color-green-900);
+    font-size: 0.8125rem; color: var(--color-green-900);
   }
   .adm-input:focus { outline: none; border-color: var(--color-green-600); }
   .rise { animation: rise 0.45s var(--ease-out) both; }
