@@ -30,6 +30,19 @@ describe('ChatPanel: the octopus', () => {
     expect(screen.queryByRole('button', { name: 'Open USChed help' })).not.toBeInTheDocument()
   })
 
+  it('answers who made USChed, with links that open the creator\'s sites in a new tab', async () => {
+    const u = setup()
+    render(<ChatPanel />)
+    await u.click(screen.getByRole('button', { name: 'Who made USChed?' }))
+    finishTyping()
+    expect(screen.getByText(/made by Alfer Brent Mercado, an IT student/)).toBeInTheDocument()
+    const portfolio = screen.getByRole('link', { name: /portfolio/i })
+    expect(portfolio).toHaveAttribute('href', 'https://alfermercado.com')
+    expect(portfolio).toHaveAttribute('target', '_blank')
+    expect(portfolio).toHaveAttribute('rel', expect.stringContaining('noopener'))
+    expect(screen.getByRole('link', { name: /instagram @alfermercads/i })).toHaveAttribute('href', 'https://instagram.com/alfermercads')
+  })
+
   it('has no "All topics" list, just the starter questions', () => {
     render(<ChatPanel />)
     expect(screen.queryByText(/all topics/i)).not.toBeInTheDocument()

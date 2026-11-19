@@ -56,6 +56,12 @@ describe('answerQuestion: finds the right answer for how students actually ask',
     ['how to use this app', 'tour'],
     ['what data do you keep', 'data'],
     ['i found a bug', 'contact'],
+    ['who made usched', 'creator'],
+    ['who created this app', 'creator'],
+    ['who is the developer', 'creator'],
+    ['tell me about the creator', 'creator'],
+    ['where can i see their portfolio', 'creator'],
+    ['do they have instagram', 'creator'],
   ]
   it.each(cases)('%s -> %s', (q, id) => expect(idOf(q)).toBe(id))
 })
@@ -101,9 +107,16 @@ describe('knowledge base', () => {
     for (const e of ENTRIES) expect(idOf(e.question), e.question).toBe(e.id)
   })
 
-  it('only links to pages that exist', () => {
-    const real = ['/courses', '/schedules', '/saved', '/build', '/terms']
+  it('only links to pages that exist, or to the creator\'s own sites', () => {
+    const real = ['/courses', '/schedules', '/saved', '/build', '/terms', 'https://alfermercado.com', 'https://instagram.com/alfermercads']
     for (const e of ENTRIES) for (const l of e.links ?? []) expect(real, `${e.id} -> ${l.href}`).toContain(l.href)
+  })
+
+  it('credits the creator with their portfolio and Instagram', () => {
+    const r = answerQuestion('who made usched')
+    expect(r.text).toMatch(/Alfer Brent Mercado/)
+    expect(r.text).toMatch(/IT student/)
+    expect(r.links?.map((l) => l.href)).toEqual(['https://alfermercado.com', 'https://instagram.com/alfermercads'])
   })
 
   it('folds plurals and -ing so "schedules" matches "schedule"', () => {

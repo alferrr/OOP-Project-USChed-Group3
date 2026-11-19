@@ -8,7 +8,7 @@ import { useChatStore, type ChatMessage } from '../../store/chatStore'
 import Octopus from './Octopus'
 import { useTourStore } from '../../store/tourStore'
 
-const STARTERS = ['How do I generate schedules?', 'What are preferences?', 'How do I use my prospectus?', 'How do I avoid or prefer a teacher?', 'Where are my saved schedules?']
+const STARTERS = ['How do I generate schedules?', 'What are preferences?', 'How do I use my prospectus?', 'How do I avoid or prefer a teacher?', 'Where are my saved schedules?', 'Who made USChed?']
 
 function Typing() {
   return (
@@ -33,9 +33,14 @@ function Bubble({ message, onAsk, onTour, latest }: { message: ChatMessage; onAs
       </div>
       {(message.links?.length || message.action) && (
         <div className="flex flex-wrap gap-2">
-          {message.links?.map((l, i) => (
-            <Link key={l.href} href={l.href} style={{ ['--i' as string]: i }} className="chip-in rounded-full bg-gold-100 px-3 py-1.5 text-sm font-semibold text-green-900 hover:bg-gold-300">{l.label} →</Link>
-          ))}
+          {message.links?.map((l, i) => {
+            const cls = 'chip-in rounded-full bg-gold-100 px-3 py-1.5 text-sm font-semibold text-green-900 hover:bg-gold-300'
+            const style = { ['--i' as string]: i }
+            // Links to other sites open in a new tab so the planner stays where it was.
+            return /^https?:\/\//.test(l.href)
+              ? <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" style={style} className={cls}>{l.label} ↗</a>
+              : <Link key={l.href} href={l.href} style={style} className={cls}>{l.label} →</Link>
+          })}
           {message.action === 'tour' && (
             <button type="button" onClick={onTour} style={{ ['--i' as string]: message.links?.length ?? 0 }} className="chip-in flex items-center gap-1.5 rounded-full bg-gold-400 px-3 py-1.5 text-sm font-semibold text-green-900 hover:bg-gold-300">
               <Rocket size={14} aria-hidden /> Replay the tour
