@@ -63,6 +63,11 @@ export const generateRequest = z.object({
   likeSectionIds: z.array(id).nullish(),
 })
 
+export const scoreRequest = z.object({
+  sectionIds: z.array(id).min(1, { message: 'must not be empty' }).max(20, { message: 'size must be between 1 and 20' }),
+  preferences: preferencesDto.nullish(),
+})
+
 export const compareRequest = z.object({
   schedules: z.array(z.array(id)).min(1, { message: 'must not be empty' }),
   preferences: preferencesDto.nullish(),

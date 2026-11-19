@@ -66,6 +66,20 @@ export async function generateForStudent(
   return { totalUnits, generatedCount: generated.length, ranked }
 }
 
+/** Scores one hand-built schedule (any number of sections the student picked), exactly like a generated one. */
+export async function scoreForStudent(studentIdNumber: string, sectionIds: number[], prefs: SchedulePreference): Promise<RankedSchedule> {
+  const ids = [...new Set(sectionIds)]
+  if (ids.length === 0 || ids.length > 20) throw new InvalidCourseDataError('Pick between 1 and 20 sections.')
+  const rows = await findSectionsByIds(studentIdNumber, ids)
+  const byId = new Map(rows.map((r) => [r.id, sectionToDomain(r)]))
+  const picked = ids.map((id) => {
+    const s = byId.get(id)
+    if (!s) throw new ResourceNotFoundError(`Unknown section id ${id}`)
+    return s
+  })
+  return scorer.score(Schedule.of(picked), prefs)
+}
+
 /** Metrics for 2-4 schedules, each given as a list of section ids. Always computed server-side. */
 export async function compareForStudent(
   studentIdNumber: string,
