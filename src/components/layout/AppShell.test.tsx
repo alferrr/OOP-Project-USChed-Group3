@@ -32,10 +32,10 @@ describe('AppShell header', () => {
     expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument()
   })
 
-  it('has a Help button for the built-in help in place of the old Tour button', () => {
+  it('keeps the header clean: no Help or Tour button (the owl lives in its own corner)', () => {
     signIn(false)
     render(<AppShell>x</AppShell>)
-    expect(screen.getByRole('button', { name: 'Help' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Help' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Tour' })).not.toBeInTheDocument()
   })
 

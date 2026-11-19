@@ -4,9 +4,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
 import ChatPanel from '../chat/ChatPanel'
 import TourGuide from '../guide/TourGuide'
-import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, CircleHelp, ShieldCheck } from 'lucide-react'
+import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
-import { useChatStore } from '../../store/chatStore'
 import { useIsmisStore } from '../../store/ismisStore'
 
 const linkBase = 'flex items-center gap-2 rounded-full px-3 py-2.5 text-sm sm:px-4 sm:py-2 font-semibold transition-colors duration-300'
@@ -21,8 +20,6 @@ const linkClass = (scrolled: boolean) => ({ isActive }: { isActive: boolean }) =
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const signedIn = useIsmisStore((s) => !!s.sessionId)
-  const chatOpen = useChatStore((s) => s.open)
-  const toggleChat = useChatStore((s) => s.setOpen)
   const isAdmin = useIsmisStore((s) => s.isAdmin)
   const idleMinutes = useIsmisStore((s) => s.idleMinutes)
   const signOut = useIsmisSignOut()
@@ -69,11 +66,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   <Bookmark size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Saved</span>
                 </NavLink>
               </>
-            )}
-            {signedIn && (
-              <button onClick={() => toggleChat(!chatOpen)} aria-expanded={chatOpen} aria-haspopup="dialog" className={`${linkBase} ${scrolled ? 'text-green-900/70 hover:bg-green-100 hover:text-green-900' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
-                <CircleHelp size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Help</span>
-              </button>
             )}
             {signedIn && isAdmin && (
               <NavLink href="/admin" className={link}>

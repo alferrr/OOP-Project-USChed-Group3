@@ -1,73 +1,101 @@
 import { act } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useChatStore } from '../../store/chatStore'
 import { useTourStore } from '../../store/tourStore'
 import ChatPanel from './ChatPanel'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/courses' }))
 
+const setup = () => userEvent.setup({ delay: null })
+/** Lets the owl finish "typing". */
+const finishTyping = () => act(() => { vi.advanceTimersByTime(1500) })
+
 beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true })
   Element.prototype.scrollTo = vi.fn()
   act(() => { useChatStore.getState().reset(); useChatStore.getState().setOpen(true); useTourStore.getState().stop() })
 })
+afterEach(() => { vi.useRealTimers() })
 
-describe('ChatPanel (built-in help)', () => {
-  it('stays hidden until opened', () => {
+describe('ChatPanel: the owl', () => {
+  it('is a floating owl button when closed, and opens the help window', async () => {
     act(() => useChatStore.getState().setOpen(false))
+    const u = setup()
     render(<ChatPanel />)
     expect(screen.queryByRole('region', { name: 'USChed help' })).not.toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Open USChed help' }))
+    expect(screen.getByRole('region', { name: 'USChed help' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open USChed help' })).not.toBeInTheDocument()
   })
 
-  it('answers a typed question instantly, with a link to the right page', async () => {
-    const user = userEvent.setup()
+  it('types for a moment before answering, then shows the answer with a link', async () => {
+    const u = setup()
     render(<ChatPanel />)
-    await user.type(screen.getByLabelText('Ask a question'), 'how do i generate schedules{Enter}')
+    await u.type(screen.getByLabelText('Ask a question'), 'how do i generate schedules{Enter}')
     expect(screen.getByText('how do i generate schedules')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /owl is typing/i })).toBeInTheDocument()
+    expect(screen.queryByText(/press "Generate Schedules"/)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+    finishTyping()
+    expect(screen.queryByRole('status', { name: /owl is typing/i })).not.toBeInTheDocument()
     expect(screen.getByText(/press "Generate Schedules"/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /go to courses/i })).toHaveAttribute('href', '/courses')
   })
 
-  it('answers when a starter question is tapped', async () => {
-    const user = userEvent.setup()
+  it('answers a tapped starter question', async () => {
+    const u = setup()
     render(<ChatPanel />)
-    await user.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    finishTyping()
     expect(screen.getByText(/"Must follow" rules drop any schedule/)).toBeInTheDocument()
   })
 
-  it('says it is not sure and offers questions to tap for something unrelated', async () => {
-    const user = userEvent.setup()
+  it('ignores a second question while the owl is still typing', async () => {
+    const u = setup()
     render(<ChatPanel />)
-    await user.type(screen.getByLabelText('Ask a question'), 'who won the game{Enter}')
+    await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    act(() => useChatStore.getState().send('how do i compare schedules', '/courses'))
+    finishTyping()
+    expect(useChatStore.getState().messages.filter((m) => m.role === 'user')).toHaveLength(1)
+  })
+
+  it('says it is not sure and offers questions to tap for something unrelated', async () => {
+    const u = setup()
+    render(<ChatPanel />)
+    await u.type(screen.getByLabelText('Ask a question'), 'who won the game{Enter}')
+    finishTyping()
     expect(screen.getByText(/not sure about that one/i)).toBeInTheDocument()
-    await user.click(screen.getAllByRole('button', { name: 'How do I save a schedule?' })[0])
+    await u.click(screen.getAllByRole('button', { name: 'How do I save a schedule?' })[0])
+    finishTyping()
     expect(screen.getByText(/give it a name/i)).toBeInTheDocument()
   })
 
-  it('replays the tour from the tour answer and closes the panel', async () => {
-    const user = userEvent.setup()
+  it('replays the tour from the tour button and closes the window', async () => {
+    const u = setup()
     render(<ChatPanel />)
-    await user.click(screen.getAllByRole('button', { name: /replay the tour/i })[0])
+    await u.click(screen.getAllByRole('button', { name: /replay the tour/i })[0])
     expect(useTourStore.getState().active).toBe(true)
     expect(useChatStore.getState().open).toBe(false)
   })
 
-  it('lists every topic and can start over', async () => {
-    const user = userEvent.setup()
+  it('starting over drops an answer that was still on its way', async () => {
+    const u = setup()
     render(<ChatPanel />)
-    await user.click(screen.getByText(/all topics/i))
-    await user.click(screen.getByRole('button', { name: 'Does USChed enroll me?' }))
-    expect(screen.getByText(/never enrolls, drops or changes/i)).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Start over' }))
+    await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    act(() => useChatStore.getState().reset())
+    finishTyping()
     expect(useChatStore.getState().messages).toEqual([])
+    expect(useChatStore.getState().typing).toBe(false)
   })
 
   it('never sends anything over the network', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
-    const user = userEvent.setup()
+    const u = setup()
     render(<ChatPanel />)
-    await user.type(screen.getByLabelText('Ask a question'), 'what data do you keep{Enter}')
+    await u.type(screen.getByLabelText('Ask a question'), 'what data do you keep{Enter}')
+    finishTyping()
     expect(fetchSpy).not.toHaveBeenCalled()
     fetchSpy.mockRestore()
   })

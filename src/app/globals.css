@@ -131,6 +131,20 @@ input, textarea { caret-color: var(--color-green-700); }
   92%, 100% { opacity: 0; transform: none; }
 }
 @keyframes build-say { 0%, 15% { opacity: 1; } 17%, 100% { opacity: 0; } }
+/* Help owl: the blob drifts a little and the owl blinks, only when motion is welcome. Otherwise it simply sits there. */
+@media (prefers-reduced-motion: no-preference) {
+  .owl-blob { animation: owl-morph 9s ease-in-out infinite alternate, owl-float 5s ease-in-out infinite; }
+  .owl-blink { animation: owl-blink 5.5s infinite; }
+  .typing-dot { animation: typing-dot 1.1s ease-in-out infinite; animation-delay: calc(var(--i) * 0.16s); }
+}
+@keyframes owl-morph {
+  0% { border-radius: 58% 42% 55% 45% / 52% 58% 42% 48%; }
+  50% { border-radius: 46% 54% 42% 58% / 58% 44% 56% 42%; }
+  100% { border-radius: 54% 46% 60% 40% / 44% 56% 44% 56%; }
+}
+@keyframes owl-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes owl-blink { 0%, 93%, 100% { transform: scaleY(1); } 95.5% { transform: scaleY(0.08); } }
+@keyframes typing-dot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.45; } 30% { transform: translateY(-4px); opacity: 1; } }
 @keyframes pop-in { from { opacity: 0; transform: scale(0.9) translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.94) translateY(8px); } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
