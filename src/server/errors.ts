@@ -47,16 +47,6 @@ export class AdminForbiddenError extends USChedError {
   }
 }
 
-export class ChatUnavailableError extends USChedError {
-  static readonly kind: string = 'ChatUnavailableError'
-  readonly status = 503
-  readonly code = 'CHAT_UNAVAILABLE'
-
-  constructor(message = 'The assistant is not available right now.') {
-    super(message)
-  }
-}
-
 export class ResourceNotFoundError extends USChedError {
   static readonly kind: string = 'ResourceNotFoundError'
   readonly status = 404

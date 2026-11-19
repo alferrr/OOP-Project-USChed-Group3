@@ -40,7 +40,6 @@ export interface AppConfig {
   scrape: { maxConcurrent: number; timeoutSeconds: number }
   generation: { cap: number; defaultLimit: number }
   admin: { token: string; studentIds: string[] }
-  chat: { enabled: boolean; model: string; maxMessages: number; windowMinutes: number }
   ismisSession: { idleMinutes: number; maxMinutes: number; maxSessions: number }
   ismis: IsmisConfig
 }
@@ -57,7 +56,7 @@ const num = (env: Env, key: string, fallback: number) => {
 
 export function loadConfig(env: Env = process.env): AppConfig {
   return {
-    termsVersion: str(env, 'UCHED_TERMS_VERSION', '2026-11-19-3'),
+    termsVersion: str(env, 'UCHED_TERMS_VERSION', '2026-11-19-2'),
     requireHttps: str(env, 'UCHED_REQUIRE_HTTPS', 'false').toLowerCase() === 'true',
     consent: {
       secret: str(env, 'UCHED_CONSENT_SECRET', DEV_CONSENT_SECRET),
@@ -75,13 +74,6 @@ export function loadConfig(env: Env = process.env): AppConfig {
       token: str(env, 'UCHED_ADMIN_TOKEN', ''),
       // student ID numbers that may open the admin dashboard once signed in (comma-separated).
       studentIds: str(env, 'UCHED_ADMIN_IDS', '19020241').split(',').map((s) => s.trim()).filter(Boolean),
-    },
-    // The help assistant needs ANTHROPIC_API_KEY (read by the SDK itself); without it the chat is simply off.
-    chat: {
-      enabled: str(env, 'ANTHROPIC_API_KEY', '').trim() !== '',
-      model: str(env, 'UCHED_CHAT_MODEL', 'claude-opus-5-5'),
-      maxMessages: num(env, 'UCHED_CHAT_MAX_MESSAGES', 20),
-      windowMinutes: num(env, 'UCHED_CHAT_WINDOW_MINUTES', 10),
     },
     ismisSession: {
       idleMinutes: num(env, 'UCHED_ISMIS_SESSION_IDLE_MINUTES', 20),

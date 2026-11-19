@@ -17,7 +17,6 @@
     "db:migrate:dev": "prisma migrate dev"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.10.0",
     "@prisma/client": "6.19.3",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-query": "^5.103.1",
