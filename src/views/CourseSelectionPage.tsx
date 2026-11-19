@@ -99,7 +99,7 @@ export default function CourseSelectionPage() {
           page, since a plain "1fr" track still defaults to auto-sizing around its content's natural width. */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem]">
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center gap-3">
+          <div data-tour="term" className="flex flex-wrap items-center gap-3">
             <select aria-label="Semester" className={select} value={semester}
               onChange={(e) => { setTerm(e.target.value as SemesterCode, academicYear); setPage(0) }}>
               {(semesters.data ?? [{ code: '1ST', label: '1st Semester' }]).map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
@@ -112,7 +112,7 @@ export default function CourseSelectionPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="surface space-y-5 p-5 sm:p-6">
+            <div data-tour="fetch" className="surface space-y-5 p-5 sm:p-6">
               <ProspectusPicker semester={semester} codes={codes} onAddCodes={setCodes} disabled={running} />
               <CourseCodesInput codes={codes} onChange={setCodes} disabled={running} onQuery={setSuggestQ}
                 suggestions={suggestQ && !suggestions.isPlaceholderData ? suggestions.data?.items : undefined} />
@@ -143,7 +143,7 @@ export default function CourseSelectionPage() {
                 </button>
               )}
             </div>
-            <div className="space-y-4">
+            <div data-tour="saved" className="space-y-4">
               <CourseSearchBar q={q} department={department} departments={departments.data ?? []}
                 onQ={setQ} onDepartment={(d) => { setDepartment(d); setPage(0) }} />
               <CourseList data={courses.data} loading={courses.isLoading} semester={semester} academicYear={academicYear} onPage={setPage} />
@@ -153,14 +153,14 @@ export default function CourseSelectionPage() {
 
         {/* Sticky column. Only the Preferences card scrolls (inside PreferencesForm); it overlaps the plan card's bottom edge. */}
         <aside className="flex flex-col lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-[var(--radius-card)] bg-green-800 p-5 pb-10 text-white shadow-[var(--shadow-lift)]">
+          <div data-tour="plan" className="rounded-[var(--radius-card)] bg-green-800 p-5 pb-10 text-white shadow-[var(--shadow-lift)]">
             <SelectedCoursesPanel />
             <button onClick={submitGenerate} disabled={selected.length === 0 || generate.isPending}
               className="btn btn-gold mt-5 w-full py-3.5 text-base">
               {generate.isPending ? 'Generating…' : 'Generate Schedules'}
             </button>
           </div>
-          <div className="relative z-10 -mt-6 px-2">
+          <div data-tour="preferences" className="relative z-10 -mt-6 px-2">
             <PreferencesForm value={preferences} onChange={setPreferences} instructors={instructors} />
           </div>
           {genError && (

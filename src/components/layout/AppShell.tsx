@@ -2,10 +2,10 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
-import QuestGuide from '../guide/QuestGuide'
+import TourGuide from '../guide/TourGuide'
 import { CalendarDays, LayoutDashboard, ListChecks, LogOut, Rocket, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
-import { useGuideStore } from '../../store/guideStore'
+import { useTourStore } from '../../store/tourStore'
 import { useIsmisStore } from '../../store/ismisStore'
 
 const linkBase = 'flex items-center gap-2 rounded-full px-3 py-2.5 text-sm sm:px-4 sm:py-2 font-semibold transition-colors duration-300'
@@ -20,7 +20,7 @@ const linkClass = (scrolled: boolean) => ({ isActive }: { isActive: boolean }) =
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const signedIn = useIsmisStore((s) => !!s.sessionId)
-  const reopenGuide = useGuideStore((s) => s.reopen)
+  const startTour = useTourStore((s) => s.start)
   const isAdmin = useIsmisStore((s) => s.isAdmin)
   const idleMinutes = useIsmisStore((s) => s.idleMinutes)
   const signOut = useIsmisSignOut()
@@ -50,7 +50,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <span className={`font-display text-xl font-extrabold tracking-tight transition-colors duration-300 ${scrolled ? 'text-green-800' : 'text-white'}`}>
             US<span className={scrolled ? 'text-green-500' : 'text-gold-300'}>Ched</span>
           </span>
-          <nav className="flex items-center gap-0.5 sm:gap-1" aria-label="Main">
+          <nav data-tour="nav" className="flex items-center gap-0.5 sm:gap-1" aria-label="Main">
             {signedIn && <span className="chip mr-2 hidden md:inline-flex">Signed in to ISMIS</span>}
             {signedIn && (
               <>
@@ -63,8 +63,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
               </>
             )}
             {signedIn && (
-              <button onClick={reopenGuide} className={`${linkBase} ${scrolled ? 'text-green-900/70 hover:bg-green-100 hover:text-green-900' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
-                <Rocket size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Guide</span>
+              <button onClick={startTour} className={`${linkBase} ${scrolled ? 'text-green-900/70 hover:bg-green-100 hover:text-green-900' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
+                <Rocket size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Tour</span>
               </button>
             )}
             {signedIn && isAdmin && (
@@ -95,7 +95,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      {signedIn && <QuestGuide />}
+      {signedIn && <TourGuide />}
 
       <footer className="px-4 pb-6 pt-2 text-center text-xs text-green-900/70 print:hidden">
         USChed is an independent planner. It never enrolls, drops, or changes anything in ISMIS, so always enroll in the official ISMIS.
