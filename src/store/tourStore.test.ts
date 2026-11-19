@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { TOUR_STEPS } from '../lib/tour'
 import { useTourStore } from './tourStore'
 
-beforeEach(() => useTourStore.setState({ active: false, step: 0 }))
+beforeEach(() => useTourStore.setState({ active: false, step: 0, regular: null }))
 
 describe('tourStore', () => {
   it('walks forward and back without going below the first step', () => {

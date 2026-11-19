@@ -113,7 +113,7 @@ export default function CourseSelectionPage() {
 
           <div className="space-y-4">
             <div data-tour="fetch" className="surface space-y-5 p-5 sm:p-6">
-              <ProspectusPicker semester={semester} codes={codes} onAddCodes={setCodes} disabled={running} />
+              <div data-tour="prospectus"><ProspectusPicker semester={semester} codes={codes} onAddCodes={setCodes} disabled={running} /></div>
               <CourseCodesInput codes={codes} onChange={setCodes} disabled={running} onQuery={setSuggestQ}
                 suggestions={suggestQ && !suggestions.isPlaceholderData ? suggestions.data?.items : undefined} />
               <button onClick={fetchCourses} disabled={codes.length === 0 || running}

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useMarkTourSeen, useTourSeen } from '../../api/hooks'
-import { TOUR_STEPS } from '../../lib/tour'
+import { tourSteps } from '../../lib/tour'
 import { useTourStore } from '../../store/tourStore'
 
 interface Box { top: number; left: number; width: number; height: number }
@@ -22,7 +22,7 @@ function measure(target: string | undefined): Box | null {
 
 /** A step-by-step product tour: dims the page, highlights one real element at a time and explains it. */
 export default function TourGuide() {
-  const { active, step, start, next, back, stop } = useTourStore()
+  const { active, step, regular, start, next, back, stop, setRegular } = useTourStore()
   const tourSeen = useTourSeen()
   const markSeen = useMarkTourSeen()
   const finish = useCallback(() => { stop(); markSeen.mutate() }, [stop, markSeen])
@@ -41,8 +41,9 @@ export default function TourGuide() {
     }
   }, [tourSeen.data, start])
 
-  const current = TOUR_STEPS[Math.min(step, TOUR_STEPS.length - 1)]
-  const total = TOUR_STEPS.length
+  const steps = tourSteps(regular)
+  const current = steps[Math.min(step, steps.length - 1)]
+  const total = steps.length
   const last = step >= total - 1
 
   // The page-specific steps need their page; take the student there.
@@ -117,12 +118,19 @@ export default function TourGuide() {
         <p className="mt-1.5 text-sm text-green-900/80">{current.body}</p>
         <div className="mt-4 flex items-center justify-between gap-3">
           <div className="flex gap-1" aria-hidden>
-            {TOUR_STEPS.map((s, i) => <span key={s.id} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-5 bg-green-700' : 'w-1.5 bg-green-200'}`} />)}
+            {steps.map((s, i) => <span key={s.id} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-5 bg-green-700' : 'w-1.5 bg-green-200'}`} />)}
           </div>
           <div className="flex items-center gap-2">
             {!last && <button type="button" onClick={finish} className="rounded-full px-3 py-1.5 text-sm font-semibold text-green-900/60 hover:text-green-900">Skip</button>}
             {step > 0 && <button type="button" onClick={back} className="btn btn-quiet px-4 py-2 text-sm">Back</button>}
-            <button type="button" onClick={last ? finish : next} className="btn btn-primary px-4 py-2 text-sm">{last ? 'Done' : step === 0 ? 'Start tour' : 'Next'}</button>
+            {current.asksRegular ? (
+              <>
+                <button type="button" onClick={() => { setRegular(false); next() }} className="btn btn-quiet px-4 py-2 text-sm">Not regular</button>
+                <button type="button" onClick={() => { setRegular(true); next() }} className="btn btn-primary px-4 py-2 text-sm">Yes, regular</button>
+              </>
+            ) : (
+              <button type="button" onClick={last ? finish : next} className="btn btn-primary px-4 py-2 text-sm">{last ? 'Done' : 'Next'}</button>
+            )}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/courses', useRouter: ()
 
 beforeEach(() => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn()
-  useTourStore.setState({ active: false, step: 0 })
+  useTourStore.setState({ active: false, step: 0, regular: null })
   markSeen.mockClear()
   tourSeen.mockReturnValue({ data: { seen: false } })
 })
@@ -22,13 +22,29 @@ describe('TourGuide', () => {
     render(<TourGuide />)
     expect(await screen.findByRole('dialog', { name: /welcome to usched/i })).toBeInTheDocument()
     expect(screen.getByText('Step 1 of 8')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /start tour/i }))
-    expect(screen.getByText('Step 2 of 8')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /yes, regular/i }))
+    expect(screen.getByText('Step 2 of 9')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /back/i }))
-    expect(screen.getByText('Step 1 of 8')).toBeInTheDocument()
+    expect(screen.getByText('Step 1 of 9')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /skip/i }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(markSeen).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows the prospectus step only to regular students', async () => {
+    render(<TourGuide />)
+    await userEvent.click(await screen.findByRole('button', { name: /yes, regular/i }))
+    await userEvent.click(screen.getByRole('button', { name: /next/i }))
+    expect(screen.getByRole('heading', { name: /use your prospectus/i })).toBeInTheDocument()
+  })
+
+  it('leaves the prospectus step out for students who are not regular', async () => {
+    render(<TourGuide />)
+    await userEvent.click(await screen.findByRole('button', { name: /not regular/i }))
+    await userEvent.click(screen.getByRole('button', { name: /next/i }))
+    expect(screen.queryByRole('heading', { name: /use your prospectus/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /find your courses/i })).toBeInTheDocument()
+    expect(screen.getByText('Step 3 of 8')).toBeInTheDocument()
   })
 
   it('does not start for an account that already saw it', () => {
