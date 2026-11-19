@@ -1,4 +1,5 @@
 import { queryClient } from '../api/queryClient'
+import { useGuideStore } from './guideStore'
 import { useSelectionStore, useScheduleStore, usePreferencesStore, usePassedStore, useSavedStore } from './planStore'
 
 /**
@@ -17,4 +18,5 @@ export function clearStudentData() {
   usePreferencesStore.getState().reset()
   usePassedStore.getState().clear()
   useSavedStore.getState().clear()
+  useGuideStore.getState().resetProgress()
 }
