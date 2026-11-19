@@ -2,80 +2,73 @@ import { act } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../api/client'
 import { useChatStore } from '../../store/chatStore'
 import { useTourStore } from '../../store/tourStore'
 import ChatPanel from './ChatPanel'
 
-const streamChat = vi.fn()
-vi.mock('../../lib/chatClient', () => ({ streamChat: (...a: unknown[]) => streamChat(...a) }))
 vi.mock('next/navigation', () => ({ usePathname: () => '/courses' }))
 
 beforeEach(() => {
-  streamChat.mockReset()
   Element.prototype.scrollTo = vi.fn()
   act(() => { useChatStore.getState().reset(); useChatStore.getState().setOpen(true); useTourStore.getState().stop() })
 })
 
-describe('ChatPanel', () => {
+describe('ChatPanel (built-in help)', () => {
   it('stays hidden until opened', () => {
     act(() => useChatStore.getState().setOpen(false))
     render(<ChatPanel />)
-    expect(screen.queryByRole('region', { name: 'USChed assistant' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'USChed help' })).not.toBeInTheDocument()
   })
 
-  it('sends a question with the current page and shows the streamed reply', async () => {
-    streamChat.mockImplementation(async (_m, _p, onText) => { onText('Open'); onText('Open Preferences.') })
+  it('answers a typed question instantly, with a link to the right page', async () => {
     const user = userEvent.setup()
     render(<ChatPanel />)
-    await user.type(screen.getByLabelText('Message the assistant'), 'How do I avoid a day?{Enter}')
-    expect(await screen.findByText('Open Preferences.')).toBeInTheDocument()
-    expect(screen.getByText('How do I avoid a day?')).toBeInTheDocument()
-    expect(streamChat).toHaveBeenCalledWith([{ role: 'user', content: 'How do I avoid a day?' }], '/courses', expect.any(Function), expect.anything())
+    await user.type(screen.getByLabelText('Ask a question'), 'how do i generate schedules{Enter}')
+    expect(screen.getByText('how do i generate schedules')).toBeInTheDocument()
+    expect(screen.getByText(/press "Generate Schedules"/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /go to courses/i })).toHaveAttribute('href', '/courses')
   })
 
-  it('sends the whole conversation on a follow-up', async () => {
-    streamChat.mockImplementation(async (_m, _p, onText) => onText('Answer'))
+  it('answers when a starter question is tapped', async () => {
     const user = userEvent.setup()
     render(<ChatPanel />)
-    await user.type(screen.getByLabelText('Message the assistant'), 'one{Enter}')
-    await screen.findByText('Answer')
-    await user.type(screen.getByLabelText('Message the assistant'), 'two{Enter}')
-    await vi.waitFor(() => expect(streamChat).toHaveBeenCalledTimes(2))
-    expect(streamChat.mock.calls[1][0]).toEqual([
-      { role: 'user', content: 'one' }, { role: 'assistant', content: 'Answer' }, { role: 'user', content: 'two' },
-    ])
+    await user.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    expect(screen.getByText(/"Must follow" rules drop any schedule/)).toBeInTheDocument()
   })
 
-  it('shows a friendly error and keeps the question when the assistant is unavailable', async () => {
-    streamChat.mockRejectedValue(new ApiError(503, 'CHAT_UNAVAILABLE', 'The assistant is not available right now.'))
+  it('says it is not sure and offers questions to tap for something unrelated', async () => {
     const user = userEvent.setup()
     render(<ChatPanel />)
-    await user.type(screen.getByLabelText('Message the assistant'), 'hello{Enter}')
-    expect(await screen.findByRole('alert')).toHaveTextContent(/not available right now/i)
-    expect(screen.getByText('hello')).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Ask a question'), 'who won the game{Enter}')
+    expect(screen.getByText(/not sure about that one/i)).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: 'How do I save a schedule?' })[0])
+    expect(screen.getByText(/give it a name/i)).toBeInTheDocument()
   })
 
-  it('offers suggested questions and replays the tour', async () => {
-    streamChat.mockImplementation(async (_m, _p, onText) => onText('Sure.'))
+  it('replays the tour from the tour answer and closes the panel', async () => {
     const user = userEvent.setup()
     render(<ChatPanel />)
-    await user.click(screen.getByRole('button', { name: 'How do I build a schedule?' }))
-    expect(streamChat.mock.calls[0][0][0].content).toBe('How do I build a schedule?')
-    act(() => useChatStore.getState().reset())
-    act(() => useChatStore.getState().setOpen(true))
-    await user.click(screen.getByRole('button', { name: /replay the tour/i }))
+    await user.click(screen.getAllByRole('button', { name: /replay the tour/i })[0])
     expect(useTourStore.getState().active).toBe(true)
     expect(useChatStore.getState().open).toBe(false)
   })
 
-  it('starts a new chat', async () => {
-    streamChat.mockImplementation(async (_m, _p, onText) => onText('Hi'))
+  it('lists every topic and can start over', async () => {
     const user = userEvent.setup()
     render(<ChatPanel />)
-    await user.type(screen.getByLabelText('Message the assistant'), 'q{Enter}')
-    await screen.findByText('Hi')
-    await user.click(screen.getByRole('button', { name: 'Start a new chat' }))
+    await user.click(screen.getByText(/all topics/i))
+    await user.click(screen.getByRole('button', { name: 'Does USChed enroll me?' }))
+    expect(screen.getByText(/never enrolls, drops or changes/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Start over' }))
     expect(useChatStore.getState().messages).toEqual([])
+  })
+
+  it('never sends anything over the network', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const user = userEvent.setup()
+    render(<ChatPanel />)
+    await user.type(screen.getByLabelText('Ask a question'), 'what data do you keep{Enter}')
+    expect(fetchSpy).not.toHaveBeenCalled()
+    fetchSpy.mockRestore()
   })
 })

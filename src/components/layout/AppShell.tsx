@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
 import ChatPanel from '../chat/ChatPanel'
 import TourGuide from '../guide/TourGuide'
-import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, Sparkles, ShieldCheck } from 'lucide-react'
+import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, CircleHelp, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
 import { useChatStore } from '../../store/chatStore'
 import { useIsmisStore } from '../../store/ismisStore'
@@ -72,7 +72,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             )}
             {signedIn && (
               <button onClick={() => toggleChat(!chatOpen)} aria-expanded={chatOpen} aria-haspopup="dialog" className={`${linkBase} ${scrolled ? 'text-green-900/70 hover:bg-green-100 hover:text-green-900' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
-                <Sparkles size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Ask</span>
+                <CircleHelp size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Help</span>
               </button>
             )}
             {signedIn && isAdmin && (

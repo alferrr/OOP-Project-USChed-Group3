@@ -24,8 +24,6 @@ interface Options {
   /** Also attach the student's ISMIS session id. */
   ismis?: boolean
   signal?: AbortSignal
-  /** Resolve with the raw Response (for streaming bodies) once the status is known to be OK. */
-  raw?: boolean
 }
 
 export function qs(params: Record<string, string | number | undefined | null>): string {
@@ -85,7 +83,6 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
     }
     throw new ApiError(res.status, code, message, details)
   }
-  if (opts.raw) return res as unknown as T
   if (res.status === 204) return undefined as T
   return (await res.json()) as T
 }
