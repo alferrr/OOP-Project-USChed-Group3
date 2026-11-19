@@ -40,7 +40,7 @@ export default function NotFound() {
 
       <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-16">
         <div>
-          <p className="font-mono text-sm font-semibold uppercase tracking-widest text-gold-700">Error 404 · Section not found</p>
+          <p className="font-display text-sm font-semibold uppercase tracking-widest text-gold-700">Error 404 · Section not found</p>
           <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-green-900 sm:text-6xl">
             This page isn’t on your&nbsp;schedule.
           </h1>
@@ -48,7 +48,7 @@ export default function NotFound() {
             No section matches that address. It may have been dropped, moved to another room, or never offered this semester.
           </p>
 
-          <dl className="mt-7 grid max-w-sm grid-cols-2 gap-x-6 gap-y-2 border-y border-green-200 py-4 font-mono text-sm">
+          <dl className="mt-7 grid max-w-sm grid-cols-2 gap-x-6 gap-y-2 border-y border-green-200 py-4 text-sm">
             <div><dt className="text-green-900/55">Room</dt><dd className="font-semibold text-green-900">404</dd></div>
             <div><dt className="text-green-900/55">Instructor</dt><dd className="font-semibold text-green-900">TBA</dd></div>
             <div><dt className="text-green-900/55">Units</dt><dd className="font-semibold text-green-900">0</dd></div>
@@ -64,10 +64,10 @@ export default function NotFound() {
         <div aria-hidden>
           <div className="grid grid-cols-[2rem_1fr] gap-x-2 sm:grid-cols-[2.5rem_1fr]">
             <span />
-            <div className="grid grid-cols-6 pb-2 text-center font-mono text-xs font-semibold text-green-900/60">
+            <div className="grid grid-cols-6 pb-2 text-center text-xs font-semibold text-green-900/60">
               {DAYS.map((d) => <span key={d}>{d}</span>)}
             </div>
-            <div className="grid grid-rows-8 text-right font-mono text-xs text-green-900/50">
+            <div className="grid grid-rows-8 text-right text-xs text-green-900/50">
               {HOURS.map((h) => <span key={h} className="-translate-y-1.5">{h}</span>)}
             </div>
             <div className="relative aspect-[6/7] overflow-hidden rounded-xl border border-green-200 bg-white"
@@ -80,7 +80,7 @@ export default function NotFound() {
                 const col = COURSE_COLORS[c.color]
                 return (
                   <span key={c.code}
-                    className={`absolute flex items-start rounded-md p-1.5 font-mono text-[0.65rem] font-semibold leading-tight sm:text-xs ${c.clash !== undefined ? 'lost-clash' : ''}`}
+                    className={`absolute flex items-start rounded-md p-1.5 text-[0.65rem] font-semibold leading-tight sm:text-xs ${c.clash !== undefined ? 'lost-clash' : ''}`}
                     style={{
                       ['--i' as string]: c.clash ?? 0,
                       left: `calc(${c.col} * 100% / 6 + 2px)`, width: 'calc(100% / 6 - 4px)',
@@ -92,14 +92,14 @@ export default function NotFound() {
                 )
               })}
               <span className="absolute left-0 top-0 h-1/4 w-1/6 p-0.5">
-                <span className="lost-block flex h-full w-full flex-col items-center justify-center rounded-md border-2 border-dashed border-gold-500 bg-gold-50/95 text-center font-mono text-green-900 shadow-sm">
+                <span className="lost-block flex h-full w-full flex-col items-center justify-center rounded-md border-2 border-dashed border-gold-500 bg-gold-50/95 text-center text-green-900 shadow-sm">
                   <span className="text-lg font-extrabold leading-none sm:text-2xl">404</span>
                   <span className="mt-0.5 text-[0.55rem] leading-tight sm:text-[0.65rem]">no section</span>
                 </span>
               </span>
             </div>
           </div>
-          <p className="relative mt-3 h-5 pl-[2.5rem] font-mono text-xs font-semibold text-red-700 sm:text-sm">
+          <p className="relative mt-3 h-5 pl-[2.5rem] text-xs font-semibold text-red-700 sm:text-sm">
             {SAYS.map((s, i) => <span key={s} style={{ ['--i' as string]: i }} className="lost-say absolute left-[2.5rem] top-0">{s}</span>)}
           </p>
         </div>

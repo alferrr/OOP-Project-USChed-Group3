@@ -23,7 +23,7 @@ export default function BuildWeek() {
   return (
     <div aria-hidden className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[2rem] bg-green-900 p-8 text-white shadow-[var(--shadow-lift)]">
       <div>
-        <p className="font-mono text-xs font-semibold uppercase tracking-widest text-gold-300">Your week, assembled</p>
+        <p className="font-display text-xs font-semibold uppercase tracking-widest text-gold-300">Your week, assembled</p>
         <p className="mt-3 max-w-sm font-display text-3xl font-extrabold leading-tight tracking-tight">
           Every class in its place. Nothing on top of anything else.
         </p>
@@ -32,10 +32,10 @@ export default function BuildWeek() {
       <div className="mx-auto w-full max-w-lg">
         <div className="grid grid-cols-[1.75rem_1fr] gap-x-2">
           <span />
-          <div className="grid grid-cols-6 pb-2 text-center font-mono text-[0.7rem] font-semibold text-white/55">
+          <div className="grid grid-cols-6 pb-2 text-center text-[0.7rem] font-semibold text-white/55">
             {DAYS.map((d) => <span key={d}>{d}</span>)}
           </div>
-          <div className="grid grid-rows-8 text-right font-mono text-[0.65rem] text-white/40">
+          <div className="grid grid-rows-8 text-right text-[0.65rem] text-white/40">
             {HOURS.map((h) => <span key={h} className="-translate-y-1.5">{h}</span>)}
           </div>
           <div className="relative aspect-[6/6.5] overflow-hidden rounded-xl bg-white"
@@ -48,7 +48,7 @@ export default function BuildWeek() {
               c.meets.map(([col, row, rows]) => {
                 const k = COURSE_COLORS[c.color]
                 return (
-                  <span key={`${c.code}-${col}`} className="build-in absolute rounded-md p-1.5 font-mono text-[0.6rem] font-semibold leading-tight sm:text-[0.7rem]"
+                  <span key={`${c.code}-${col}`} className="build-in absolute rounded-md p-1.5 text-[0.6rem] font-semibold leading-tight sm:text-[0.7rem]"
                     style={{
                       ['--i' as string]: i,
                       left: `calc(${col} * 100% / 6 + 2px)`, width: 'calc(100% / 6 - 4px)',
@@ -65,10 +65,10 @@ export default function BuildWeek() {
       </div>
 
       <div className="flex items-end justify-between gap-4">
-        <p className="relative h-5 flex-1 font-mono text-xs font-semibold text-white/80 sm:text-sm">
+        <p className="relative h-5 flex-1 text-xs font-semibold text-white/80 sm:text-sm">
           {CLASSES.map((c, i) => <span key={c.code} style={{ ['--i' as string]: i }} className="build-say absolute left-0 top-0 whitespace-nowrap">{c.says}</span>)}
         </p>
-        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-gold-400 px-3 py-1.5 font-mono text-xs font-bold text-green-900">
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-gold-400 px-3 py-1.5 text-xs font-bold text-green-900">
           <Check size={13} aria-hidden /> 0 conflicts
         </span>
       </div>

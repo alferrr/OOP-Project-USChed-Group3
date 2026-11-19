@@ -100,7 +100,7 @@ function RecentSearches({ rows }: { rows: AdminStats['recent'] }) {
           {rows.map((r, i) => (
             <li key={`${r.student}-${r.at}-${i}`} className="rounded-lg bg-green-50/70 px-4 py-3">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="font-mono text-sm font-medium text-green-900">{r.student}</span>
+                <span className="text-sm font-medium text-green-900">{r.student}</span>
                 <span className="text-xs text-green-900/60">{ago(r.at)}</span>
               </div>
               <p className="mt-0.5 text-xs text-green-900/60">

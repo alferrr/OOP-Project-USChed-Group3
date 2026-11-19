@@ -5,7 +5,7 @@ import type { AdminConsentRow, AdminCourseRow, AdminSearchRow, AdminSessionRow, 
 import { ago, nf, SEMESTER_LABEL } from '../../components/admin/AdminUi'
 import TablePage from '../../components/admin/TablePage'
 
-const mono = 'font-mono font-medium'
+const mono = 'font-semibold tabular-nums'
 const muted = 'text-green-900/70'
 const term = (semester: string, year: string) => `${SEMESTER_LABEL[semester] ?? semester} ${year}`
 const clock = (iso: string) => new Date(iso).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })
