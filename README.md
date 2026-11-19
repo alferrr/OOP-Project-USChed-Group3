@@ -109,7 +109,7 @@ Only GETs, the login POST and that one search POST are ever allowed; every other
 (`src/server/ismis/session.ts`), and a CAPTCHA or one-time-code page stops the scrape rather than being solved.
 
 > Design change from the overview: "credentials used once, single scrape" became "password used once, session kept in memory".
-> The Terms (v2026-11-19) say so explicitly.
+> The Terms (v2026-11-19-2) say so explicitly.
 
 ### Searching by department
 
