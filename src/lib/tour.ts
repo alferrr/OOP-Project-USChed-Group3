@@ -27,7 +27,7 @@ const ALL_STEPS: TourStep[] = [
   { id: 'preferences', page: '/courses', target: 'preferences', title: 'Say what matters to you',
     body: 'Open Preferences to avoid certain days or teachers, set the earliest start, or prefer mornings. Rules under "Must follow" drop schedules; the rest just rank them.' },
   { id: 'nav', target: 'nav', title: 'Find your results',
-    body: 'Schedules is where results show up: a weekly calendar, a score and trade-offs for each option, saving favorites, comparing up to four, and printing.' },
+    body: 'Schedules is where results show up: a weekly calendar, a score and trade-offs for each option, comparing up to four, and printing. Name and save your favorites, and find them under Saved.' },
   { id: 'done', title: 'You are ready', body: 'You can replay this tour any time from "Tour" in the top bar. USChed never enrolls you, so always enroll in the official ISMIS.' },
 ]
 

@@ -14,7 +14,7 @@ vi.mock('../api/hooks', async () => {
     useGenerate: () => ({ mutate, isPending: false, error: null }),
     useSyncSavedSchedules: () => ({ isLoading: false }),
     useSavedActions: () => ({
-      save: (s: never, sem: never, y: string) => saved.getState().save(s, sem, y),
+      save: (s: never, sem: never, y: string, name: string) => saved.getState().save(s, sem, y, name),
       remove: (item: { id: string }) => saved.getState().remove(item.id),
       error: null,
     }),
@@ -116,37 +116,47 @@ describe('SchedulesPage saving and sharing', () => {
     })
   })
 
-  it('saves the active schedule, lists it, and removes it again', async () => {
+  it('asks for a name before saving, then shows the schedule as saved', async () => {
     const user = userEvent.setup()
     render(<SchedulesPage />)
-    expect(screen.queryByRole('list', { name: 'Saved schedules' })).not.toBeInTheDocument()
-
     await user.click(screen.getByRole('button', { name: 'Save' }))
+    const dialog = screen.getByRole('dialog', { name: /name this schedule/i })
+    const input = screen.getByLabelText('Schedule name')
+    expect(input).toHaveValue('Schedule #1')
+    expect(useSavedStore.getState().saved).toEqual([]) // nothing is saved until the name is confirmed
+    await user.clear(input)
+    expect(screen.getByRole('button', { name: 'Save schedule' })).toBeDisabled()
+    await user.type(input, 'Light Fridays')
+    await user.click(screen.getByRole('button', { name: 'Save schedule' }))
+    expect(dialog).not.toBeInTheDocument()
+    expect(useSavedStore.getState().saved[0]).toMatchObject({ name: 'Light Fridays' })
     expect(screen.getByRole('button', { name: 'Saved' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('list', { name: 'Saved schedules' })).toHaveTextContent('CIS 2105')
+  })
 
-    await user.click(screen.getByRole('button', { name: /remove saved schedule/i }))
+  it('cancelling the name dialog saves nothing', async () => {
+    const user = userEvent.setup()
+    render(<SchedulesPage />)
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(useSavedStore.getState().saved).toEqual([])
   })
 
-  it('still shows saved schedules when there are no fresh results (e.g. after signing in again)', () => {
-    act(() => {
-      useScheduleStore.getState().reset()
-      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027')
-    })
+  it('unsaves with one click, without asking for a name', async () => {
+    const user = userEvent.setup()
+    act(() => { useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027', 'Mine') })
     render(<SchedulesPage />)
-    expect(screen.getByRole('heading', { name: /your saved schedules/i })).toBeInTheDocument()
-    expect(screen.getByRole('list', { name: 'Saved schedules' })).toHaveTextContent('CIS 2105')
-    expect(screen.queryByRole('button', { name: /more like this/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Saved' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Saved' }))
+    expect(useSavedStore.getState().saved).toEqual([])
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('saving the same schedule twice keeps one copy', () => {
+  it('saving the same schedule twice keeps one copy and takes the newest name', () => {
     act(() => {
-      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027')
-      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027')
+      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027', 'First')
+      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027', 'Second')
     })
     expect(useSavedStore.getState().saved).toHaveLength(1)
+    expect(useSavedStore.getState().saved[0].name).toBe('Second')
   })
 
   it('shows a share link containing the schedule, never a server id', async () => {
