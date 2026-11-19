@@ -52,6 +52,7 @@ export default function BuildSchedulePage() {
   const [naming, setNaming] = useState(false)
   const [savedAs, setSavedAs] = useState<string | null>(null)
   const [q, setQ] = useState('')
+  const [activeId, setActiveId] = useState<number | null>(null)
   const [debouncedQ, setDebouncedQ] = useState('')
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 250)
@@ -104,6 +105,17 @@ export default function BuildSchedulePage() {
     (byCourse.get(c.id) ?? []).some((x) => x.courseName.toLowerCase().includes(needle) || (x.instructor ?? '').toLowerCase().includes(needle))
   const visible = selected.filter(matches)
   const addable = (found.data?.items ?? []).filter((c) => !selected.some((x) => x.id === c.id))
+  // One course is open at a time, so there is no long list to scroll. It follows the search, then the student's
+  // last choice, then the first course still without a section.
+  const firstUnplaced = selected.find((c) => picks[c.id] === undefined)
+  const active =
+    (activeId !== null && visible.find((c) => c.id === activeId)) || (needle !== '' ? visible[0] : undefined) || firstUnplaced || selected[0]
+  // After choosing a section, move on to the next course that still needs one.
+  const chooseSection = (courseId: number, sectionId: number) => {
+    pick(courseId, sectionId)
+    const next = selected.find((c) => c.id !== courseId && picks[c.id] === undefined)
+    setActiveId(next ? next.id : courseId)
+  }
 
   return (
     <section>
@@ -142,7 +154,30 @@ export default function BuildSchedulePage() {
           {visible.length === 0 && (
             <p className="surface p-5 text-sm text-green-900/70">No course in your plan matches “{q.trim()}”.{addable.length > 0 ? ' Add one from above.' : ''}</p>
           )}
-          {visible.map((c) => {
+          {visible.length > 0 && (
+            <div role="group" aria-label="Courses in your plan" className="flex flex-wrap gap-2">
+              {visible.map((c) => {
+                const placed = chosen.find((x) => x.courseCode === c.code)
+                const on = active?.id === c.id
+                return (
+                  <button key={c.id} type="button" onClick={() => setActiveId(c.id)} aria-pressed={on} title={c.name}
+                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold transition-colors ${
+                      on ? 'bg-green-700 text-white' : 'surface text-green-900 hover:bg-green-50'}`}>
+                    {c.code}
+                    {placed && (
+                      <span className={`flex items-center gap-0.5 text-xs ${on ? 'text-gold-300' : 'text-green-700'}`}>
+                        <Check size={12} aria-hidden /> {placed.sectionCode}
+                        <span className="sr-only">section placed</span>
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {active && visible.some((c) => c.id === active.id) && (() => {
+            const c = active
             const sections = byCourse.get(c.id) ?? []
             const others = chosen.filter((x) => x.courseCode !== c.code)
             const names = [...new Set(sections.map((x) => x.courseName))]
@@ -165,14 +200,14 @@ export default function BuildSchedulePage() {
                       {names.length > 1 && <p className="text-sm font-semibold text-green-900">{n}</p>}
                       {sections.filter((x) => x.courseName === n).map((x) => (
                         <SectionOption key={x.sectionId} section={x} selected={picks[c.id] === x.sectionId}
-                          clash={clashesWith(x, others)} onPick={() => pick(c.id, x.sectionId)} />
+                          clash={clashesWith(x, others)} onPick={() => chooseSection(c.id, x.sectionId)} />
                       ))}
                     </div>
                   ))}
                 </div>
               </fieldset>
             )
-          })}
+          })()}
         </div>
 
         {/* Right: the week and its summary stay in view while you scroll the choices. */}

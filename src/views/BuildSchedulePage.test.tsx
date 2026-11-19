@@ -53,11 +53,23 @@ describe('BuildSchedulePage', () => {
     expect(screen.getByText('3 units')).toBeInTheDocument()
   })
 
+  it('shows one course at a time, moves on to the next unplaced one after a pick, and switches from the course chips', async () => {
+    const user = userEvent.setup()
+    render(<BuildSchedulePage />)
+    expect(screen.getByRole('radio', { name: 'CIS 2105 section A' })).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: 'MATH 101 section A' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('radio', { name: 'CIS 2105 section B' }))
+    expect(screen.getByRole('radio', { name: 'MATH 101 section A' })).toBeInTheDocument() // advanced
+    expect(screen.queryByRole('radio', { name: 'CIS 2105 section A' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^CIS 2105/ }))
+    expect(screen.getByRole('radio', { name: 'CIS 2105 section B' })).toBeChecked()
+  })
+
   it('flags a section that would clash before it is picked, and blocks saving a clashing pick', async () => {
     const user = userEvent.setup()
     render(<BuildSchedulePage />)
     await user.click(screen.getByRole('radio', { name: 'CIS 2105 section A' }))
-    expect(screen.getByText('Clashes with CIS 2105')).toBeInTheDocument() // MATH 101 A overlaps it
+    expect(screen.getByText('Clashes with CIS 2105')).toBeInTheDocument() // now on MATH 101, whose section A overlaps it
     await user.click(screen.getByRole('radio', { name: 'MATH 101 section A' }))
     expect(screen.getByRole('alert')).toHaveTextContent(/can't be saved/i)
     expect(screen.getByRole('button', { name: 'Save schedule' })).toBeDisabled()
