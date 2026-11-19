@@ -7,6 +7,7 @@ const MAX_PAYLOAD_CHARS = 200_000
 
 export interface SavedItem {
   id: string
+  name: string
   semester: string
   academicYear: string
   schedule: unknown
@@ -17,11 +18,12 @@ export const scheduleKey = (sectionIds: number[]): string => [...sectionIds].sor
 
 export async function listSaved(studentIdNumber: string): Promise<SavedItem[]> {
   const rows = await prisma.savedSchedule.findMany({ where: { studentIdNumber }, orderBy: { createdAt: 'asc' } })
-  return rows.map((r) => ({ id: r.scheduleKey, semester: r.semester, academicYear: r.academicYear, schedule: JSON.parse(r.payload) }))
+  return rows.map((r) => ({ id: r.scheduleKey, name: r.name, semester: r.semester, academicYear: r.academicYear, schedule: JSON.parse(r.payload) }))
 }
 
 export async function saveSchedule(
   studentIdNumber: string,
+  name: string,
   semester: string,
   academicYear: string,
   sectionIds: number[],
@@ -37,8 +39,8 @@ export async function saveSchedule(
   }
   await prisma.savedSchedule.upsert({
     where: { studentIdNumber_scheduleKey: { studentIdNumber, scheduleKey: key } },
-    create: { studentIdNumber, scheduleKey: key, semester, academicYear, payload },
-    update: { semester, academicYear, payload },
+    create: { studentIdNumber, scheduleKey: key, name, semester, academicYear, payload },
+    update: { name, semester, academicYear, payload },
   })
 }
 

@@ -132,6 +132,7 @@ model SavedSchedule {
   id              Int      @id @default(autoincrement())
   studentIdNumber String   @map("student_id_number") @db.VarChar(64)
   scheduleKey     String   @map("schedule_key") @db.VarChar(255)
+  name            String   @default("") @db.VarChar(60)
   semester        String   @db.VarChar(6)
   academicYear    String   @map("academic_year") @db.VarChar(9)
   payload         String   @db.MediumText
