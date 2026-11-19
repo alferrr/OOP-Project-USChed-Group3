@@ -29,6 +29,15 @@
         ],
         "createdAt": "2026-11-15T05:29:37.402Z",
         "reason": "Claude decided: parser test fixture (saved ISMIS HTML), never rendered as UI"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "tests/fixtures/login-form.html"
+        ],
+        "createdAt": "2026-11-19T09:40:01.408Z",
+        "reason": "model decided: tests/fixtures/login-form.html is a captured third-party ISMIS page used as a scraper test fixture, not USChed UI; editing it would break the parser tests"
       }
     ]
   }
