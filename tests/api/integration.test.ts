@@ -109,7 +109,7 @@ describe.skipIf(!safe)('API against MySQL', () => {
 
   const grant = async (): Promise<string> => {
     const r = await call(m.r.consentR.POST, 'POST', '/api/consent', {
-      json: { termsVersion: '2026-11-19-3', agreedTerms: true, agreedCredentialUse: true },
+      json: { termsVersion: '2026-11-19-2', agreedTerms: true, agreedCredentialUse: true },
     })
     expect(r.status).toBe(200)
     return r.json.consentToken
@@ -280,7 +280,7 @@ describe.skipIf(!safe)('API against MySQL', () => {
 
     it('serves the terms with their version', async () => {
       const r = await call(m.r.termsR.GET, 'GET', '/api/consent/terms')
-      expect(r.json.version).toBe('2026-11-19-3')
+      expect(r.json.version).toBe('2026-11-19-2')
       expect(r.json.text).toContain('Terms of Use')
     })
 
@@ -355,7 +355,7 @@ describe.skipIf(!safe)('API against MySQL', () => {
 
     it('needs both consents and the current version to issue a token', async () => {
       for (const json of [
-        { termsVersion: '2026-11-19-3', agreedTerms: true, agreedCredentialUse: false },
+        { termsVersion: '2026-11-19-2', agreedTerms: true, agreedCredentialUse: false },
         { termsVersion: '1999-1-1', agreedTerms: true, agreedCredentialUse: true },
       ]) {
         expect((await call(m.r.consentR.POST, 'POST', '/api/consent', { json })).status).toBe(403)
@@ -365,7 +365,7 @@ describe.skipIf(!safe)('API against MySQL', () => {
     it('records consent evidence without credentials or the raw IP', async () => {
       await call(m.r.consentR.POST, 'POST', '/api/consent', {
         headers: { 'x-forwarded-for': '203.0.113.7' },
-        json: { termsVersion: '2026-11-19-3', agreedTerms: true, agreedCredentialUse: true },
+        json: { termsVersion: '2026-11-19-2', agreedTerms: true, agreedCredentialUse: true },
       })
       const rows = await m.db.prisma.consentRecord.findMany()
       expect(rows).toHaveLength(1)
