@@ -30,6 +30,12 @@ describe('ChatPanel: the octopus', () => {
     expect(screen.queryByRole('button', { name: 'Open USChed help' })).not.toBeInTheDocument()
   })
 
+  it('greets with a real apostrophe, not a raw escape code', () => {
+    render(<ChatPanel />)
+    expect(screen.getByText(/I’m the USChed octopus/)).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/\\u[0-9a-f]{4}/i)
+  })
+
   it('eases out when closed: the window lingers for its exit animation, then the octopus returns', async () => {
     const u = setup()
     render(<ChatPanel />)

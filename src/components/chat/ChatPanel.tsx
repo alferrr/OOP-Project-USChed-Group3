@@ -117,7 +117,7 @@ export default function ChatPanel() {
       <div ref={list} className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
         {messages.length === 0 ? (
           <div className="msg-left">
-            <p className="text-sm text-green-900/80">Ink-redible to meet you! I\u2019m the USChed octopus. Ask me how anything works, or tap a question.</p>
+            <p className="text-sm text-green-900/80">Ink-redible to meet you! I’m the USChed octopus. Ask me how anything works, or tap a question.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {STARTERS.map((q) => (
                 <button key={q} type="button" onClick={() => ask(q)} className="rounded-full bg-green-50 px-3 py-1.5 text-left text-sm font-medium text-green-900 hover:bg-green-100">{q}</button>
