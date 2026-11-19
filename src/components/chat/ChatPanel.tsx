@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { RotateCcw, Rocket, Send, X } from 'lucide-react'
-import { ENTRIES } from '../../lib/helpBot'
 import { useChatStore, type ChatMessage } from '../../store/chatStore'
 import Octopus from './Octopus'
 import { useTourStore } from '../../store/tourStore'
@@ -126,14 +125,6 @@ export default function ChatPanel() {
                 <Rocket size={14} aria-hidden /> Replay the tour
               </button>
             </div>
-            <details className="mt-4 text-sm text-green-900/70">
-              <summary className="cursor-pointer font-semibold text-green-900">All topics ({ENTRIES.length})</summary>
-              <ul className="mt-2 space-y-1">
-                {ENTRIES.map((e) => (
-                  <li key={e.id}><button type="button" onClick={() => ask(e.question)} className="text-left underline-offset-2 hover:underline">{e.question}</button></li>
-                ))}
-              </ul>
-            </details>
           </div>
         ) : (
           messages.map((m, i) => <Bubble key={i} message={m} onAsk={ask} onTour={tour} latest={i === messages.length - 1 && !typing} />)

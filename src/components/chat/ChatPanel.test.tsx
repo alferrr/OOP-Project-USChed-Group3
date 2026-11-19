@@ -30,6 +30,11 @@ describe('ChatPanel: the octopus', () => {
     expect(screen.queryByRole('button', { name: 'Open USChed help' })).not.toBeInTheDocument()
   })
 
+  it('has no "All topics" list, just the starter questions', () => {
+    render(<ChatPanel />)
+    expect(screen.queryByText(/all topics/i)).not.toBeInTheDocument()
+  })
+
   it('greets with a real apostrophe, not a raw escape code', () => {
     render(<ChatPanel />)
     expect(screen.getByText(/I’m the USChed octopus/)).toBeInTheDocument()
@@ -72,7 +77,7 @@ describe('ChatPanel: the octopus', () => {
   it('answers a tapped starter question', async () => {
     const u = setup()
     render(<ChatPanel />)
-    await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    await u.click(screen.getByRole('button', { name: 'What are preferences?' }))
     finishTyping()
     expect(screen.getByText(/"Must follow" rules drop any schedule/)).toBeInTheDocument()
   })
@@ -80,7 +85,7 @@ describe('ChatPanel: the octopus', () => {
   it('ignores a second question while the octopus is still typing', async () => {
     const u = setup()
     render(<ChatPanel />)
-    await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    await u.click(screen.getByRole('button', { name: 'What are preferences?' }))
     act(() => useChatStore.getState().send('how do i compare schedules', '/courses'))
     finishTyping()
     expect(useChatStore.getState().messages.filter((m) => m.role === 'user')).toHaveLength(1)
@@ -108,7 +113,7 @@ describe('ChatPanel: the octopus', () => {
   it('starting over drops an answer that was still on its way', async () => {
     const u = setup()
     render(<ChatPanel />)
-    await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])
+    await u.click(screen.getByRole('button', { name: 'What are preferences?' }))
     act(() => useChatStore.getState().reset())
     finishTyping()
     expect(useChatStore.getState().messages).toEqual([])
