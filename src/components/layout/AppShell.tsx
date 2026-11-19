@@ -2,8 +2,10 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
-import { CalendarDays, LayoutDashboard, ListChecks, LogOut, ShieldCheck } from 'lucide-react'
+import QuestGuide from '../guide/QuestGuide'
+import { CalendarDays, LayoutDashboard, ListChecks, LogOut, Rocket, ShieldCheck } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
+import { useGuideStore } from '../../store/guideStore'
 import { useIsmisStore } from '../../store/ismisStore'
 
 const linkBase = 'flex items-center gap-2 rounded-full px-3 py-2.5 text-sm sm:px-4 sm:py-2 font-semibold transition-colors duration-300'
@@ -18,6 +20,7 @@ const linkClass = (scrolled: boolean) => ({ isActive }: { isActive: boolean }) =
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const signedIn = useIsmisStore((s) => !!s.sessionId)
+  const reopenGuide = useGuideStore((s) => s.reopen)
   const isAdmin = useIsmisStore((s) => s.isAdmin)
   const idleMinutes = useIsmisStore((s) => s.idleMinutes)
   const signOut = useIsmisSignOut()
@@ -59,6 +62,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 </NavLink>
               </>
             )}
+            {signedIn && (
+              <button onClick={reopenGuide} className={`${linkBase} ${scrolled ? 'text-green-900/70 hover:bg-green-100 hover:text-green-900' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
+                <Rocket size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Guide</span>
+              </button>
+            )}
             {signedIn && isAdmin && (
               <NavLink href="/admin" className={link}>
                 <LayoutDashboard size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Admin</span>
@@ -86,6 +94,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 print:max-w-none print:p-0">
         {children}
       </main>
+
+      {signedIn && <QuestGuide />}
 
       <footer className="px-4 pb-6 pt-2 text-center text-xs text-green-900/70 print:hidden">
         USChed is an independent planner. It never enrolls, drops, or changes anything in ISMIS, so always enroll in the official ISMIS.
