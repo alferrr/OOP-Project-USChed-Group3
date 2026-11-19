@@ -17,6 +17,7 @@ const sections = new Map<number, Section[]>([
 const score = vi.fn()
 const save = vi.fn()
 vi.mock('../api/hooks', () => ({
+  useCourses: (p: { q: string }) => ({ data: p.q === 'calc' ? { items: [{ id: 3, code: 'MATH 202', name: 'Calculus II', units: 3, department: null, prerequisites: null }], page: 0, size: 6, total: 1 } : undefined }),
   useSectionsOf: () => ({ byCourse: sections, loading: false, failed: false }),
   useScoreSchedule: () => ({ mutate: score, isPending: false, isError: false, error: null }),
   useSavedActions: () => ({ save, remove: vi.fn(), error: null }),
@@ -62,6 +63,26 @@ describe('BuildSchedulePage', () => {
     expect(screen.getByRole('button', { name: 'Save schedule' })).toBeDisabled()
     await user.click(screen.getByRole('radio', { name: 'MATH 101 section B' }))
     expect(screen.getByRole('button', { name: 'Save schedule' })).toBeEnabled()
+  })
+
+  it('filters the courses in the plan by search, and shows a message when nothing matches', async () => {
+    const user = userEvent.setup()
+    render(<BuildSchedulePage />)
+    await user.type(screen.getByRole('searchbox', { name: 'Search courses' }), 'math')
+    expect(screen.queryByRole('radio', { name: 'CIS 2105 section A' })).not.toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'MATH 101 section A' })).toBeInTheDocument()
+    await user.clear(screen.getByRole('searchbox', { name: 'Search courses' }))
+    await user.type(screen.getByRole('searchbox', { name: 'Search courses' }), 'zzz')
+    expect(screen.getByText(/no course in your plan matches/i)).toBeInTheDocument()
+  })
+
+  it('finds a saved course that is not in the plan yet and adds it', async () => {
+    const user = userEvent.setup()
+    render(<BuildSchedulePage />)
+    await user.type(screen.getByRole('searchbox', { name: 'Search courses' }), 'calc')
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Add MATH 202' })).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Add MATH 202' }))
+    expect(useSelectionStore.getState().selected.map((c) => c.code)).toContain('MATH 202')
   })
 
   it('names, scores on the server, then saves the schedule', async () => {
