@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { isAdminStudent, resetConfigForTests } from '@/server/config'
-import { maskStudentId } from '@/server/services/adminStats'
 
 afterEach(() => {
   delete process.env.UCHED_ADMIN_IDS
@@ -21,8 +20,4 @@ describe('admin access', () => {
     expect(isAdminStudent('19020241')).toBe(false)
   })
 
-  it('masks ID numbers in the dashboard lists', () => {
-    expect(maskStudentId('19020241')).toBe('19****41')
-    expect(maskStudentId('123')).toBe('***')
-  })
 })

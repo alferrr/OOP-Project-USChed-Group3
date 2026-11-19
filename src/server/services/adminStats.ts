@@ -27,11 +27,6 @@ export interface AdminStats {
   recent: { student: string; semester: string; academicYear: string; courses: number; sections: number; at: string }[]
 }
 
-/** 19020241 -> 19****41: enough to recognise a student you know, not enough to read off a list. */
-export function maskStudentId(id: string): string {
-  return id.length <= 4 ? '*'.repeat(id.length) : `${id.slice(0, 2)}${'*'.repeat(id.length - 4)}${id.slice(-2)}`
-}
-
 const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 
 export async function adminStats(now = new Date()): Promise<AdminStats> {
@@ -92,7 +87,7 @@ export async function adminStats(now = new Date()): Promise<AdminStats> {
       .sort((a, b) => b.academicYear.localeCompare(a.academicYear) || a.semester.localeCompare(b.semester)),
     retention: { rate: total === 0 ? 0 : returning / total, returning, total },
     recent: recent.map((r) => ({
-      student: maskStudentId(r.studentIdNumber),
+      student: r.studentIdNumber,
       semester: r.semester,
       academicYear: r.academicYear,
       courses: r.courseCount,

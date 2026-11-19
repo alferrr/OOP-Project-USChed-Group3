@@ -1,6 +1,5 @@
 import { prisma } from '../db'
 import { ismisSessions } from './ismisSessions'
-import { maskStudentId } from './adminStats'
 
 export const PAGE_SIZE = 15
 
@@ -29,7 +28,7 @@ export async function listStudents(page: number): Promise<Page<StudentRow>> {
     prisma.catalogSnapshot.groupBy({ by: ['studentIdNumber'], _count: { _all: true }, _max: { scrapedAt: true } }),
   ])
   const rows = new Map<string, StudentRow>()
-  const row = (id: string) => rows.get(id) ?? rows.set(id, { student: maskStudentId(id), courses: 0, searches: 0, lastActive: null }).get(id)!
+  const row = (id: string) => rows.get(id) ?? rows.set(id, { student: id, courses: 0, searches: 0, lastActive: null }).get(id)!
   for (const c of courses) row(c.studentIdNumber).courses = c._count._all
   for (const s of snaps) {
     const r = row(s.studentIdNumber)
@@ -69,7 +68,7 @@ export async function listSearches(page: number): Promise<Page<SearchRow>> {
     page: Math.max(0, page),
     size: PAGE_SIZE,
     items: rows.map((r) => ({
-      student: maskStudentId(r.studentIdNumber),
+      student: r.studentIdNumber,
       semester: r.semester,
       academicYear: r.academicYear,
       source: r.source,
@@ -105,7 +104,7 @@ export function listSessions(page: number): Page<SessionRow> {
     .overview()
     .sort((a, b) => b.lastUsed.getTime() - a.lastUsed.getTime())
     .map((s) => ({
-      student: maskStudentId(s.studentIdNumber),
+      student: s.studentIdNumber,
       signedInAt: s.createdAt.toISOString(),
       lastUsed: s.lastUsed.toISOString(),
       expiresAt: s.expiresAt.toISOString(),

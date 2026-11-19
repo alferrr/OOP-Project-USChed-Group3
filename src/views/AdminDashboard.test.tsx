@@ -11,7 +11,7 @@ const stats: AdminStats = {
   topDepartments: [{ department: 'CIS', courses: 30 }],
   terms: [{ semester: '1ST', academicYear: '2026-2027', searches: 4, sections: 500 }],
   retention: { rate: 0.5, returning: 21, total: 42 },
-  recent: [{ student: '19****41', semester: '1ST', academicYear: '2026-2027', courses: 5, sections: 12, at: new Date().toISOString() }],
+  recent: [{ student: '19020241', semester: '1ST', academicYear: '2026-2027', courses: 5, sections: 12, at: new Date().toISOString() }],
 }
 
 vi.mock('../api/hooks', () => ({
@@ -25,7 +25,7 @@ describe('AdminDashboard', () => {
     expect(screen.getByText('42')).toBeInTheDocument()
     expect(screen.getByText('310')).toBeInTheDocument()
     expect(screen.getByRole('list', { name: 'Searches per month' })).toBeInTheDocument()
-    expect(screen.getByText('19****41')).toBeInTheDocument()
+    expect(screen.getByText('19020241')).toBeInTheDocument()
     expect(screen.getByText('CIS')).toBeInTheDocument()
     expect(screen.getByText('50%')).toBeInTheDocument()
   })
