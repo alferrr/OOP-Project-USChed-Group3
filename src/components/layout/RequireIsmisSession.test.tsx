@@ -44,9 +44,9 @@ describe('sign-in gate', () => {
 describe('login page', () => {
   beforeEach(() => act(() => useIsmisStore.getState().end()))
 
-  it('shows the welcome and a Log In button; the Terms appear only after Log In is clicked', () => {
+  it('shows the headline and a Log In button; the Terms appear only after Log In is clicked', () => {
     render(<LoginPage />)
-    expect(screen.getByRole('heading', { name: /welcome to usched/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /plan the term before you enroll/i })).toBeInTheDocument()
     expect(screen.getByText(/sign in with your ismis account/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Log In' })).toBeInTheDocument()
     expect(screen.queryByText('Terms text here.')).not.toBeInTheDocument()

@@ -5,17 +5,9 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
 import IsmisSignInPanel from '../components/ismis/IsmisSignInPanel'
+import BuildWeek from '../components/login/BuildWeek'
 import { safeRedirectTarget } from '../lib/redirect'
 import { useIsmisStore } from '../store/ismisStore'
-
-function Artwork() {
-  return (
-    <div className="relative h-full w-full overflow-hidden rounded-[2rem] bg-green-900 shadow-[var(--shadow-lift)]">
-      <img src="/login.jpg" alt="" className="h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-green-900/50 via-transparent to-transparent" />
-    </div>
-  )
-}
 
 /**
  * The front door: a decorative panel and the sign-in form side by side, no header/footer chrome. The Terms &
@@ -33,7 +25,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       <div className="hidden w-1/2 p-5 lg:block">
-        <Artwork />
+        <BuildWeek />
       </div>
 
       <div className="flex w-full flex-col lg:w-1/2">
@@ -48,10 +40,13 @@ export default function LoginPage() {
 
         <div className="flex flex-1 items-center justify-center px-6 pb-16 sm:px-10">
           <div className="rise w-full max-w-md">
-            <h1 className="text-3xl font-extrabold tracking-tight text-green-900">
-              Welcome to US<span className="text-green-500">Ched</span>
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-gold-700">Enrollment, planned</p>
+            <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-green-900">
+              Plan the term before you enroll.
             </h1>
-            <p className="mt-2 text-base text-green-900/70">Sign in with your ISMIS account to plan your next term.</p>
+            <p className="mt-3 text-base text-green-900/70">
+              Sign in with your ISMIS account. USChed finds the schedules that fit; you do the enrolling.
+            </p>
             <div className="mt-7">
               <IsmisSignInPanel />
             </div>
