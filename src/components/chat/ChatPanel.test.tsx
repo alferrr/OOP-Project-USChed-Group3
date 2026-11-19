@@ -9,7 +9,7 @@ import ChatPanel from './ChatPanel'
 vi.mock('next/navigation', () => ({ usePathname: () => '/courses' }))
 
 const setup = () => userEvent.setup({ delay: null })
-/** Lets the owl finish "typing". */
+/** Lets the rabbit finish "typing". */
 const finishTyping = () => act(() => { vi.advanceTimersByTime(1500) })
 
 beforeEach(() => {
@@ -19,8 +19,8 @@ beforeEach(() => {
 })
 afterEach(() => { vi.useRealTimers() })
 
-describe('ChatPanel: the owl', () => {
-  it('is a floating owl button when closed, and opens the help window', async () => {
+describe('ChatPanel: the rabbit', () => {
+  it('is a floating rabbit button when closed, and opens the help window', async () => {
     act(() => useChatStore.getState().setOpen(false))
     const u = setup()
     render(<ChatPanel />)
@@ -30,16 +30,35 @@ describe('ChatPanel: the owl', () => {
     expect(screen.queryByRole('button', { name: 'Open USChed help' })).not.toBeInTheDocument()
   })
 
+  it('eases out when closed: the window lingers for its exit animation, then the rabbit returns', async () => {
+    const u = setup()
+    render(<ChatPanel />)
+    await u.click(screen.getByRole('button', { name: 'Close help' }))
+    expect(screen.getByRole('region', { name: 'USChed help' })).toHaveAttribute('data-closing')
+    act(() => { vi.advanceTimersByTime(250) })
+    expect(screen.queryByRole('region', { name: 'USChed help' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Open USChed help' })).toBeInTheDocument()
+  })
+
+  it('animates each message in from its own side', async () => {
+    const u = setup()
+    const { container } = render(<ChatPanel />)
+    await u.type(screen.getByLabelText('Ask a question'), 'how do i save a schedule{Enter}')
+    finishTyping()
+    expect(container.querySelector('.msg-right')).not.toBeNull()
+    expect(container.querySelector('.msg-left')).not.toBeNull()
+  })
+
   it('types for a moment before answering, then shows the answer with a link', async () => {
     const u = setup()
     render(<ChatPanel />)
     await u.type(screen.getByLabelText('Ask a question'), 'how do i generate schedules{Enter}')
     expect(screen.getByText('how do i generate schedules')).toBeInTheDocument()
-    expect(screen.getByRole('status', { name: /owl is typing/i })).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /rabbit is typing/i })).toBeInTheDocument()
     expect(screen.queryByText(/press "Generate Schedules"/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
     finishTyping()
-    expect(screen.queryByRole('status', { name: /owl is typing/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: /rabbit is typing/i })).not.toBeInTheDocument()
     expect(screen.getByText(/press "Generate Schedules"/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /go to courses/i })).toHaveAttribute('href', '/courses')
   })
@@ -52,7 +71,7 @@ describe('ChatPanel: the owl', () => {
     expect(screen.getByText(/"Must follow" rules drop any schedule/)).toBeInTheDocument()
   })
 
-  it('ignores a second question while the owl is still typing', async () => {
+  it('ignores a second question while the rabbit is still typing', async () => {
     const u = setup()
     render(<ChatPanel />)
     await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])

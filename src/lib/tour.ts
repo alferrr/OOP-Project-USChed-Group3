@@ -28,7 +28,7 @@ const ALL_STEPS: TourStep[] = [
     body: 'Open Preferences to avoid certain days or teachers, set the earliest start, or prefer mornings. Rules under "Must follow" drop schedules; the rest just rank them.' },
   { id: 'nav', target: 'nav', title: 'Find your results',
     body: 'Schedules is where results show up: a weekly calendar, a score and trade-offs for each option, comparing up to four, and printing. Prefer to choose yourself? Build lets you pick each section by hand. Name and save your favorites, and find them under Saved.' },
-  { id: 'done', title: 'You are ready', body: 'You can replay this tour any time: tap the owl in the bottom-right corner and choose "Replay the tour". USChed never enrolls you, so always enroll in the official ISMIS.' },
+  { id: 'done', title: 'You are ready', body: 'You can replay this tour any time: tap the rabbit in the bottom-right corner and choose "Replay the tour". USChed never enrolls you, so always enroll in the official ISMIS.' },
 ]
 
 /** The steps this student sees: regular-only steps are dropped unless they said they are regular. */
