@@ -18,5 +18,5 @@ export function clearStudentData() {
   usePreferencesStore.getState().reset()
   usePassedStore.getState().clear()
   useSavedStore.getState().clear()
-  useTourStore.getState().reset()
+  useTourStore.getState().stop()
 }

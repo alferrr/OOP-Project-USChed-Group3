@@ -2,18 +2,23 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTourStore } from '../../store/tourStore'
+
+const tourSeen = vi.fn()
+const markSeen = vi.fn()
+vi.mock('../../api/hooks', () => ({ useTourSeen: () => tourSeen(), useMarkTourSeen: () => ({ mutate: markSeen }) }))
 import TourGuide from './TourGuide'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/courses', useRouter: () => ({ push: vi.fn() }) }))
 
 beforeEach(() => {
-  window.localStorage.clear()
   window.HTMLElement.prototype.scrollIntoView = vi.fn()
-  useTourStore.setState({ ready: false, seen: true, active: false, step: 0 })
+  useTourStore.setState({ active: false, step: 0 })
+  markSeen.mockClear()
+  tourSeen.mockReturnValue({ data: { seen: false } })
 })
 
 describe('TourGuide', () => {
-  it('starts on first visit, steps through and remembers it was finished', async () => {
+  it('starts for an account that has not seen it, steps through and records it on skip', async () => {
     render(<TourGuide />)
     expect(await screen.findByRole('dialog', { name: /welcome to usched/i })).toBeInTheDocument()
     expect(screen.getByText('Step 1 of 8')).toBeInTheDocument()
@@ -23,11 +28,17 @@ describe('TourGuide', () => {
     expect(screen.getByText('Step 1 of 8')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /skip/i }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(window.localStorage.getItem('usched.tour.v1')).toBe('done')
+    expect(markSeen).toHaveBeenCalledTimes(1)
   })
 
-  it('does not start again once seen', () => {
-    window.localStorage.setItem('usched.tour.v1', 'done')
+  it('does not start for an account that already saw it', () => {
+    tourSeen.mockReturnValue({ data: { seen: true } })
+    render(<TourGuide />)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('waits for the server before deciding', () => {
+    tourSeen.mockReturnValue({ data: undefined })
     render(<TourGuide />)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })

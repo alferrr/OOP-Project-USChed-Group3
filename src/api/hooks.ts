@@ -74,6 +74,17 @@ export const useAdminTable = <T>(resource: string, page: number, q = '') =>
     placeholderData: (prev) => prev,
   })
 
+/** Whether this account has already seen the first-sign-in tour (stored server-side, per student). */
+export const useTourSeen = () => useQuery({ queryKey: ['tour'], queryFn: () => api<{ seen: boolean }>('/tour', { ismis: true }), staleTime: Infinity })
+
+export const useMarkTourSeen = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api<void>('/tour', { method: 'PUT', ismis: true }),
+    onMutate: () => qc.setQueryData(['tour'], { seen: true }),
+  })
+}
+
 export const useGenerate = () => useMutation({ mutationFn: (req: GenerateRequest) => api<GenerateResponse>('/schedules/generate', { body: req, ismis: true }) })
 
 export const useCompare = () =>

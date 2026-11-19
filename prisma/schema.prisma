@@ -117,3 +117,11 @@ model ConsentRecord {
   @@index([sessionId, termsVersion], map: "idx_consent_session")
   @@map("consent_records")
 }
+
+// Which students have finished (or skipped) the first-sign-in tour, so it is offered once per account, not per browser.
+model TourCompletion {
+  studentIdNumber String   @id @map("student_id_number") @db.VarChar(64)
+  completedAt     DateTime @default(now()) @map("completed_at")
+
+  @@map("tour_completions")
+}

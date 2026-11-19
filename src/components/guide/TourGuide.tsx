@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { useMarkTourSeen, useTourSeen } from '../../api/hooks'
 import { TOUR_STEPS } from '../../lib/tour'
 import { useTourStore } from '../../store/tourStore'
 
@@ -21,16 +22,24 @@ function measure(target: string | undefined): Box | null {
 
 /** A step-by-step product tour: dims the page, highlights one real element at a time and explains it. */
 export default function TourGuide() {
-  const { ready, seen, active, step, hydrate, start, next, back, finish } = useTourStore()
+  const { active, step, start, next, back, stop } = useTourStore()
+  const tourSeen = useTourSeen()
+  const markSeen = useMarkTourSeen()
+  const finish = useCallback(() => { stop(); markSeen.mutate() }, [stop, markSeen])
+  // Offer the tour once per sign-in, and only if this account has not finished or skipped it before.
+  const offered = useRef(false)
   const router = useRouter()
   const pathname = usePathname()
   const [box, setBox] = useState<Box | null>(null)
   const [vh, setVh] = useState(0)
   const card = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { hydrate() }, [hydrate])
-  // First sign-in on this browser: offer the tour.
-  useEffect(() => { if (ready && !seen && !active) start() }, [ready, seen, active, start])
+  useEffect(() => {
+    if (tourSeen.data && !tourSeen.data.seen && !offered.current) {
+      offered.current = true
+      start()
+    }
+  }, [tourSeen.data, start])
 
   const current = TOUR_STEPS[Math.min(step, TOUR_STEPS.length - 1)]
   const total = TOUR_STEPS.length
