@@ -35,6 +35,11 @@ describe('ChatPanel: the octopus', () => {
     expect(screen.queryByText(/all topics/i)).not.toBeInTheDocument()
   })
 
+  it('has no footer disclaimer under the message box', () => {
+    render(<ChatPanel />)
+    expect(screen.queryByText(/built-in help\. never share/i)).not.toBeInTheDocument()
+  })
+
   it('greets with a real apostrophe, not a raw escape code', () => {
     render(<ChatPanel />)
     expect(screen.getByText(/I’m the USChed octopus/)).toBeInTheDocument()

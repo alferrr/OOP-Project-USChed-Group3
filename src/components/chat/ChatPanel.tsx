@@ -138,7 +138,6 @@ export default function ChatPanel() {
             onChange={(e) => setDraft(e.target.value)} className="control flex-1" />
           <button type="submit" disabled={!draft.trim() || typing} aria-label="Send" className="btn btn-primary size-11 shrink-0 p-0"><Send size={16} aria-hidden /></button>
         </div>
-        <p className="mt-2 text-xs text-green-900/55">Answers come from USChed&apos;s built-in help. Never share your password here.</p>
       </form>
     </section>
   )
