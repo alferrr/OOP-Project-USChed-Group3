@@ -26,7 +26,7 @@ describe('TourGuide', () => {
     expect(screen.getByText('Step 2 of 9')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /back/i }))
     expect(screen.getByText('Step 1 of 9')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /skip/i }))
+    await userEvent.click(screen.getByRole('button', { name: /skip tour/i }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(markSeen).toHaveBeenCalledTimes(1)
   })

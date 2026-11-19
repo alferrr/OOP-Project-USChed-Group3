@@ -120,18 +120,20 @@ export default function TourGuide() {
           <div className="flex gap-1" aria-hidden>
             {steps.map((s, i) => <span key={s.id} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-5 bg-green-700' : 'w-1.5 bg-green-200'}`} />)}
           </div>
-          <div className="flex items-center gap-2">
-            {!last && <button type="button" onClick={finish} className="rounded-full px-3 py-1.5 text-sm font-semibold text-green-900/60 hover:text-green-900">Skip</button>}
-            {step > 0 && <button type="button" onClick={back} className="btn btn-quiet px-4 py-2 text-sm">Back</button>}
-            {current.asksRegular ? (
-              <>
-                <button type="button" onClick={() => { setRegular(false); next() }} className="btn btn-quiet px-4 py-2 text-sm">Not regular</button>
-                <button type="button" onClick={() => { setRegular(true); next() }} className="btn btn-primary px-4 py-2 text-sm">Yes, regular</button>
-              </>
-            ) : (
-              <button type="button" onClick={last ? finish : next} className="btn btn-primary px-4 py-2 text-sm">{last ? 'Done' : 'Next'}</button>
-            )}
-          </div>
+          {!last && <button type="button" onClick={finish} className="rounded-full px-3 py-1.5 text-sm font-semibold text-green-900/60 hover:text-green-900">Skip tour</button>}
+        </div>
+        <div className="mt-3 flex gap-2">
+          {current.asksRegular ? (
+            <>
+              <button type="button" onClick={() => { setRegular(false); next() }} className="btn btn-quiet flex-1 px-4 py-2 text-sm">Not regular</button>
+              <button type="button" onClick={() => { setRegular(true); next() }} className="btn btn-primary flex-1 px-4 py-2 text-sm">Yes, regular</button>
+            </>
+          ) : (
+            <>
+              {step > 0 && <button type="button" onClick={back} className="btn btn-quiet flex-1 px-4 py-2 text-sm">Back</button>}
+              <button type="button" onClick={last ? finish : next} className="btn btn-primary flex-1 px-4 py-2 text-sm">{last ? 'Done' : 'Next'}</button>
+            </>
+          )}
         </div>
       </div>
     </div>
