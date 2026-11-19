@@ -69,6 +69,10 @@ interface SavedState {
   /** Saves a schedule (a copy of it, so it survives regenerating); saving the same sections twice is a no-op. */
   save: (schedule: RankedSchedule, semester: SemesterCode, academicYear: string) => void
   remove: (id: string) => void
+  /** Replaces everything with what the server has (on load). */
+  setAll: (items: SavedSchedule[]) => void
+  /** Puts one back after a failed delete. */
+  restore: (item: SavedSchedule) => void
   clear: () => void
 }
 export const useSavedStore = create<SavedState>((set) => ({
@@ -80,6 +84,8 @@ export const useSavedStore = create<SavedState>((set) => ({
         : { saved: [...s.saved, { id: sectionKey(schedule), semester, academicYear, schedule }] },
     ),
   remove: (id) => set((s) => ({ saved: s.saved.filter((x) => x.id !== id) })),
+  setAll: (saved) => set({ saved }),
+  restore: (item) => set((s) => (s.saved.some((x) => x.id === item.id) ? s : { saved: [...s.saved, item] })),
   clear: () => set({ saved: [] }),
 }))
 export const savedId = sectionKey

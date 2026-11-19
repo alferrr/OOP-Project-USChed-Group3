@@ -1,11 +1,13 @@
+import { useEffect } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from './client'
 import { useConsentStore } from '../store/consentStore'
 import { useIsmisStore } from '../store/ismisStore'
 import { clearStudentData } from '../store/resetAll'
+import { savedId, useSavedStore, type SavedSchedule } from '../store/planStore'
 import type {
   AdminPage, AdminStats, CompareResponse, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
-  Option, Prospectus, SearchStart, SearchStatus, SemesterCode, Section, Terms,
+  Option, Prospectus, RankedSchedule, SearchStart, SearchStatus, SemesterCode, Section, Terms,
 } from './types'
 
 const TERMINAL = ['DONE', 'FAILED']
@@ -83,6 +85,40 @@ export const useMarkTourSeen = () => {
     mutationFn: () => api<void>('/tour', { method: 'PUT', ismis: true }),
     onMutate: () => qc.setQueryData(['tour'], { seen: true }),
   })
+}
+
+/** Loads the student's saved schedules from the server into the store (once per sign-in). */
+export const useSyncSavedSchedules = () => {
+  const q = useQuery({
+    queryKey: ['saved-schedules'],
+    queryFn: () => api<SavedSchedule[]>('/saved-schedules', { ismis: true }),
+    staleTime: Infinity,
+  })
+  useEffect(() => {
+    if (q.data) useSavedStore.getState().setAll(q.data)
+  }, [q.data])
+  return q
+}
+
+/** Save and remove with an instant update on screen; a failed request puts things back and reports why. */
+export const useSavedActions = () => {
+  const save = useMutation({
+    mutationFn: (v: { schedule: RankedSchedule; semester: SemesterCode; academicYear: string }) =>
+      api<void>('/saved-schedules', { method: 'PUT', body: { semester: v.semester, academicYear: v.academicYear, schedule: v.schedule }, ismis: true }),
+    onMutate: (v) => useSavedStore.getState().save(v.schedule, v.semester, v.academicYear),
+    onError: (_e, v) => useSavedStore.getState().remove(savedId(v.schedule)),
+  })
+  const remove = useMutation({
+    mutationFn: (item: SavedSchedule) => api<void>(`/saved-schedules/${encodeURIComponent(item.id)}`, { method: 'DELETE', ismis: true }),
+    onMutate: (item) => useSavedStore.getState().remove(item.id),
+    onError: (_e, item) => useSavedStore.getState().restore(item),
+  })
+  const failed = save.error ?? remove.error
+  return {
+    save: (schedule: RankedSchedule, semester: SemesterCode, academicYear: string) => save.mutate({ schedule, semester, academicYear }),
+    remove: (item: SavedSchedule) => remove.mutate(item),
+    error: failed ? failed.message : null,
+  }
 }
 
 export const useGenerate = () => useMutation({ mutationFn: (req: GenerateRequest) => api<GenerateResponse>('/schedules/generate', { body: req, ismis: true }) })

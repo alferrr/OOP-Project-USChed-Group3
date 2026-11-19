@@ -7,10 +7,19 @@ import SchedulesPage from './SchedulesPage'
 import { useSavedStore, useScheduleStore, useSelectionStore } from '../store/planStore'
 
 const mutate = vi.fn()
-vi.mock('../api/hooks', () => ({
-  useCompare: () => ({ mutate: vi.fn(), isPending: false, isError: false, data: undefined }),
-  useGenerate: () => ({ mutate, isPending: false, error: null }),
-}))
+vi.mock('../api/hooks', async () => {
+  const { useSavedStore: saved } = await import('../store/planStore')
+  return {
+    useCompare: () => ({ mutate: vi.fn(), isPending: false, isError: false, data: undefined }),
+    useGenerate: () => ({ mutate, isPending: false, error: null }),
+    useSyncSavedSchedules: () => ({ isLoading: false }),
+    useSavedActions: () => ({
+      save: (s: never, sem: never, y: string) => saved.getState().save(s, sem, y),
+      remove: (item: { id: string }) => saved.getState().remove(item.id),
+      error: null,
+    }),
+  }
+})
 
 const schedule = (rank: number, sectionId: number): GenerateResponse['schedules'][number] => ({
   rank, score: 90 - rank, breakdown: { Compact: 0.9 },
@@ -118,6 +127,18 @@ describe('SchedulesPage saving and sharing', () => {
 
     await user.click(screen.getByRole('button', { name: /remove saved schedule/i }))
     expect(useSavedStore.getState().saved).toEqual([])
+  })
+
+  it('still shows saved schedules when there are no fresh results (e.g. after signing in again)', () => {
+    act(() => {
+      useScheduleStore.getState().reset()
+      useSavedStore.getState().save(result.schedules[0], '1ST', '2026-2027')
+    })
+    render(<SchedulesPage />)
+    expect(screen.getByRole('heading', { name: /your saved schedules/i })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Saved schedules' })).toHaveTextContent('CIS 2105')
+    expect(screen.queryByRole('button', { name: /more like this/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Saved' })).toBeInTheDocument()
   })
 
   it('saving the same schedule twice keeps one copy', () => {
