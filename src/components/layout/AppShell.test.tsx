@@ -32,7 +32,7 @@ describe('AppShell header', () => {
     expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument()
   })
 
-  it('keeps the header clean: no Help or Tour button (the rabbit lives in its own corner)', () => {
+  it('keeps the header clean: no Help or Tour button (the octopus lives in its own corner)', () => {
     signIn(false)
     render(<AppShell>x</AppShell>)
     expect(screen.queryByRole('button', { name: 'Help' })).not.toBeInTheDocument()

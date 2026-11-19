@@ -9,7 +9,7 @@ import ChatPanel from './ChatPanel'
 vi.mock('next/navigation', () => ({ usePathname: () => '/courses' }))
 
 const setup = () => userEvent.setup({ delay: null })
-/** Lets the rabbit finish "typing". */
+/** Lets the octopus finish "typing". */
 const finishTyping = () => act(() => { vi.advanceTimersByTime(1500) })
 
 beforeEach(() => {
@@ -19,8 +19,8 @@ beforeEach(() => {
 })
 afterEach(() => { vi.useRealTimers() })
 
-describe('ChatPanel: the rabbit', () => {
-  it('is a floating rabbit button when closed, and opens the help window', async () => {
+describe('ChatPanel: the octopus', () => {
+  it('is a floating octopus button when closed, and opens the help window', async () => {
     act(() => useChatStore.getState().setOpen(false))
     const u = setup()
     render(<ChatPanel />)
@@ -30,7 +30,7 @@ describe('ChatPanel: the rabbit', () => {
     expect(screen.queryByRole('button', { name: 'Open USChed help' })).not.toBeInTheDocument()
   })
 
-  it('eases out when closed: the window lingers for its exit animation, then the rabbit returns', async () => {
+  it('eases out when closed: the window lingers for its exit animation, then the octopus returns', async () => {
     const u = setup()
     render(<ChatPanel />)
     await u.click(screen.getByRole('button', { name: 'Close help' }))
@@ -54,11 +54,11 @@ describe('ChatPanel: the rabbit', () => {
     render(<ChatPanel />)
     await u.type(screen.getByLabelText('Ask a question'), 'how do i generate schedules{Enter}')
     expect(screen.getByText('how do i generate schedules')).toBeInTheDocument()
-    expect(screen.getByRole('status', { name: /rabbit is typing/i })).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /octopus is typing/i })).toBeInTheDocument()
     expect(screen.queryByText(/press "Generate Schedules"/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
     finishTyping()
-    expect(screen.queryByRole('status', { name: /rabbit is typing/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: /octopus is typing/i })).not.toBeInTheDocument()
     expect(screen.getByText(/press "Generate Schedules"/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /go to courses/i })).toHaveAttribute('href', '/courses')
   })
@@ -71,7 +71,7 @@ describe('ChatPanel: the rabbit', () => {
     expect(screen.getByText(/"Must follow" rules drop any schedule/)).toBeInTheDocument()
   })
 
-  it('ignores a second question while the rabbit is still typing', async () => {
+  it('ignores a second question while the octopus is still typing', async () => {
     const u = setup()
     render(<ChatPanel />)
     await u.click(screen.getAllByRole('button', { name: 'What are preferences?' })[0])

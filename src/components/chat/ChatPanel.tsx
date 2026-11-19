@@ -6,15 +6,15 @@ import { usePathname } from 'next/navigation'
 import { RotateCcw, Rocket, Send, X } from 'lucide-react'
 import { ENTRIES } from '../../lib/helpBot'
 import { useChatStore, type ChatMessage } from '../../store/chatStore'
-import Rabbit from './Rabbit'
+import Octopus from './Octopus'
 import { useTourStore } from '../../store/tourStore'
 
 const STARTERS = ['How do I generate schedules?', 'What are preferences?', 'How do I use my prospectus?', 'How do I avoid or prefer a teacher?', 'Where are my saved schedules?']
 
 function Typing() {
   return (
-    <div className="msg-left flex items-end gap-2" role="status" aria-label="The rabbit is typing">
-      <span className="size-7 shrink-0 rounded-full bg-gold-100 p-0.5"><Rabbit /></span>
+    <div className="msg-left flex items-end gap-2" role="status" aria-label="The octopus is typing">
+      <span className="size-7 shrink-0 rounded-full bg-gold-100 p-0.5"><Octopus /></span>
       <span className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-green-50 px-4 py-3" aria-hidden>
         {[0, 1, 2].map((i) => <span key={i} style={{ ['--i' as string]: i }} className="typing-dot size-1.5 rounded-full bg-green-700" />)}
       </span>
@@ -29,7 +29,7 @@ function Bubble({ message, onAsk, onTour, latest }: { message: ChatMessage; onAs
   return (
     <div className="msg-left flex flex-col items-start gap-2">
       <div className="flex items-end gap-2">
-        <span className="size-7 shrink-0 rounded-full bg-gold-100 p-0.5"><Rabbit /></span>
+        <span className="size-7 shrink-0 rounded-full bg-gold-100 p-0.5"><Octopus /></span>
         <p className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-green-50 px-3.5 py-2 text-sm text-green-900">{message.content}</p>
       </div>
       {(message.links?.length || message.action) && (
@@ -81,12 +81,12 @@ export default function ChatPanel() {
   }, [open, setOpen])
 
   if (!open && !mounted) {
-    // Closed: just the rabbit, parked in the corner.
+    // Closed: just the octopus, parked in the corner.
     return (
-      <button type="button" onClick={() => setOpen(true)} aria-label="Open USChed help" title="Running late? Ask the rabbit"
-        className="rabbit-blob fixed bottom-5 right-5 z-[54] grid size-[4.5rem] place-items-center bg-gold-400 shadow-[var(--shadow-lift)] transition-transform duration-200 hover:scale-110 active:scale-95 print:hidden"
+      <button type="button" onClick={() => setOpen(true)} aria-label="Open USChed help" title="Need a hand? Ask the octopus. I have eight!"
+        className="octopus-blob fixed bottom-5 right-5 z-[54] grid size-[4.5rem] place-items-center bg-gold-400 shadow-[var(--shadow-lift)] transition-transform duration-200 hover:scale-110 active:scale-95 print:hidden"
         style={{ borderRadius: '58% 42% 55% 45% / 52% 58% 42% 48%' }}>
-        <span className="size-14"><Rabbit /></span>
+        <span className="size-14"><Octopus /></span>
       </button>
     )
   }
@@ -103,10 +103,10 @@ export default function ChatPanel() {
   return (
     <section aria-label="USChed help" data-closing={!open || undefined} className="dock fixed bottom-4 right-4 z-[55] flex h-[min(34rem,calc(100vh-2rem))] w-[min(24rem,calc(100vw-2rem))] flex-col rounded-3xl bg-white shadow-[var(--shadow-lift)] print:hidden">
       <header className="flex items-center gap-2 border-b border-green-100 px-4 py-3">
-        <span className="size-9 rounded-full bg-gold-100 p-0.5"><Rabbit /></span>
+        <span className="size-9 rounded-full bg-gold-100 p-0.5"><Octopus /></span>
         <div className="flex-1">
           <h2 className="text-base font-extrabold text-green-900">USChed help</h2>
-          <p className="text-xs text-green-900/60">The White Rabbit knows how USChed works</p>
+          <p className="text-xs text-green-900/60">The octopus knows how USChed works</p>
         </div>
         {messages.length > 0 && (
           <button type="button" onClick={reset} aria-label="Start over" title="Start over" className="rounded-full p-2 text-green-700 hover:bg-green-100"><RotateCcw size={16} aria-hidden /></button>
@@ -117,7 +117,7 @@ export default function ChatPanel() {
       <div ref={list} className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
         {messages.length === 0 ? (
           <div className="msg-left">
-            <p className="text-sm text-green-900/80">Oh my ears and whiskers! I\u2019m the USChed rabbit. Ask me how anything works, or tap a question.</p>
+            <p className="text-sm text-green-900/80">Ink-redible to meet you! I\u2019m the USChed octopus. Ask me how anything works, or tap a question.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {STARTERS.map((q) => (
                 <button key={q} type="button" onClick={() => ask(q)} className="rounded-full bg-green-50 px-3 py-1.5 text-left text-sm font-medium text-green-900 hover:bg-green-100">{q}</button>

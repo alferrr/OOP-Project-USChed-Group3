@@ -9,7 +9,7 @@ export interface ChatMessage {
   action?: 'tour'
 }
 
-/** How long the owl "types" before an answer appears: a beat, a little longer for longer answers. */
+/** How long the octopus "types" before an answer appears: a beat, a little longer for longer answers. */
 export function typingDelay(answer: string): number {
   if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return 0
   const words = answer.split(/\s+/).length
@@ -22,7 +22,7 @@ let turn = 0
 interface ChatState {
   open: boolean
   messages: ChatMessage[]
-  /** The owl is "typing" an answer. */
+  /** The octopus is "typing" an answer. */
   typing: boolean
   setOpen: (open: boolean) => void
   /** Adds the student's question now and the built-in help's answer after a short typing pause (nothing is sent anywhere). */
