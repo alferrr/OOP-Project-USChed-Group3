@@ -110,6 +110,7 @@ export interface AdminSearchRow { student: string; semester: string; academicYea
 export interface AdminConsentRow { session: string; termsVersion: string; agreedTerms: boolean; agreedCredentialUse: boolean; at: string }
 export interface AdminSessionRow { student: string; signedInAt: string; lastUsed: string; expiresAt: string; busy: boolean }
 
+export interface AdminAnnouncementRow { admin: string; message: string; tone: string; active: boolean; at: string }
 export interface AdminAuditRow { admin: string; action: string; target: string; detail: string; at: string }
 export interface AdminIsmisEventRow { kind: string; at: string }
 export interface AdminAdminRow { student: string; source: string }

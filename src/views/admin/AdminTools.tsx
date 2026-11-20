@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { BarChart3, CheckCircle2, HeartPulse, Megaphone, ScrollText, ShieldCheck, TriangleAlert, Upload, XCircle } from 'lucide-react'
 import { useAdminAnnouncement, useAdminHealth, useAdminInsights, useAdminTable, useImportCsv, useSaveAnnouncement } from '../../api/hooks'
 import { ApiError } from '../../api/client'
-import type { AdminAdminRow, AdminAuditRow, AdminIsmisEventRow, FailureKind } from '../../api/types'
+import type { AdminAdminRow, AdminAnnouncementRow, AdminAuditRow, AdminIsmisEventRow, FailureKind } from '../../api/types'
 import { ago, AdminCard, DataTable, Kpi, nf, PageHeader, Pager, Toolbar } from '../../components/admin/AdminUi'
 import TablePage from '../../components/admin/TablePage'
 import { BannerView } from '../../components/announcement/AnnouncementBanner'
@@ -157,6 +157,8 @@ export function AdminAnnouncementPage() {
   const [active, setActive] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [savedAt, setSavedAt] = useState<number | null>(null)
+  const [histPage, setHistPage] = useState(0)
+  const history = useAdminTable<AdminAnnouncementRow>('announcements', histPage)
   useEffect(() => {
     if (q.data && !loaded) {
       setMessage(q.data.message); setTone(q.data.tone); setActive(q.data.active); setLoaded(true)
@@ -206,6 +208,26 @@ export function AdminAnnouncementPage() {
           </div>
           <p className="mt-2 text-xs text-green-900/60">Students can dismiss it for the rest of their visit. Changing the message shows it to them again.</p>
         </div>
+      </div>
+
+      <div className="px-6 pb-6">
+        <section className="adm-card">
+          <h2 className="px-5 pt-5 text-sm font-medium text-green-900">Recent announcements</h2>
+          <p className="px-5 pt-1 text-xs text-green-900/60">Every save is recorded here, whether it switched the banner on or off.</p>
+          <DataTable<AdminAnnouncementRow> loading={history.isLoading} rows={history.data?.items} empty="No announcements saved yet."
+            columns={[
+              { header: 'When', cell: (r) => <span className="text-green-900/70">{clock(r.at)}</span> },
+              { header: 'Message', cell: (r) => <span className="whitespace-pre-wrap">{r.message || '–'}</span> },
+              { header: 'Look', cell: (r) => (r.tone === 'warning' ? 'Warning' : 'Information') },
+              { header: 'Status', cell: (r) => <span className={r.active ? 'font-semibold text-green-600' : 'text-green-900/60'}>{r.active ? 'Shown' : 'Off'}</span> },
+              { header: 'By', cell: (r) => <span className="tabular-nums">{r.admin}</span> },
+              { header: '', className: 'text-right', cell: (r) => (
+                <button type="button" onClick={() => { setMessage(r.message); setTone(r.tone === 'warning' ? 'warning' : 'info'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                  aria-label={`Reuse announcement: ${r.message}`} className="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-green-700 hover:bg-green-50">Reuse</button>
+              ) },
+            ]} />
+          {history.data && <Pager page={history.data.page} size={history.data.size} total={history.data.total} onPage={setHistPage} />}
+        </section>
       </div>
     </div>
   )

@@ -16,8 +16,12 @@ vi.mock('../../api/hooks', () => ({
     preferences: [{ key: 'avoidDays', label: 'Days to avoid', generations: 20, share: 0.5 }],
   }),
   useAdminHealth: () => q(health()),
-  useAdminTable: (resource: string) => q(resource === 'admins'
-    ? { items: [{ student: '19020241', source: 'Built-in default' }], total: 1, page: 0, size: 15 }
+  useAdminTable: (resource: string) => q(
+    resource === 'admins' ? { items: [{ student: '19020241', source: 'Built-in default' }], total: 1, page: 0, size: 15 }
+    : resource === 'announcements' ? { items: [
+        { admin: '19020241', message: 'ISMIS is down tonight', tone: 'warning', active: true, at: '2026-11-19T10:00:00Z' },
+        { admin: '19020241', message: 'ISMIS is down tonight', tone: 'warning', active: false, at: '2026-11-19T18:00:00Z' },
+      ], total: 2, page: 0, size: 15 }
     : { items: [{ kind: 'UNAVAILABLE', at: '2026-11-20T01:00:00Z' }], total: 1, page: 0, size: 15 }),
   useAdminAnnouncement: () => q({ message: 'Hello', tone: 'info', active: true, updatedAt: 't' }),
   useSaveAnnouncement: () => ({ mutate: saveMutate, isPending: false, error: null }),
@@ -65,6 +69,26 @@ describe('Announcement', () => {
     await user.click(screen.getByLabelText('Warning'))
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(saveMutate).toHaveBeenCalledWith({ message: 'Enrollment opens Nov 25', tone: 'warning', active: true }, expect.anything())
+  })
+})
+
+describe('Announcement history', () => {
+  it('lists every saved announcement with its look, status and author', async () => {
+    render(<AdminAnnouncementPage />)
+    expect(screen.getByRole('heading', { name: 'Recent announcements' })).toBeInTheDocument()
+    expect(screen.getAllByText('ISMIS is down tonight')).toHaveLength(2)
+    expect(screen.getByText('Shown')).toBeInTheDocument()
+    expect(screen.getByText('Off')).toBeInTheDocument()
+    expect(screen.getAllByText('Warning').length).toBeGreaterThan(0)
+  })
+
+  it('reuses an old announcement by loading it into the form', async () => {
+    window.scrollTo = vi.fn()
+    const user = userEvent.setup()
+    render(<AdminAnnouncementPage />)
+    await user.click(screen.getAllByRole('button', { name: /reuse announcement/i })[0])
+    expect(screen.getByLabelText('Message')).toHaveValue('ISMIS is down tonight')
+    expect(screen.getByLabelText('Warning')).toBeChecked()
   })
 })
 
