@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
+import AnnouncementBanner from '../components/announcement/AnnouncementBanner'
 import IsmisSignInPanel from '../components/ismis/IsmisSignInPanel'
 import BuildWeek from '../components/login/BuildWeek'
 import { safeRedirectTarget } from '../lib/redirect'
@@ -23,7 +24,9 @@ export default function LoginPage() {
   if (signedIn) return null
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col">
+      <AnnouncementBanner />
+      <div className="flex flex-1">
       <div className="hidden w-1/2 p-5 lg:block">
         <BuildWeek />
       </div>
@@ -52,6 +55,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
+import AnnouncementBanner from '../announcement/AnnouncementBanner'
 import ChatPanel from '../chat/ChatPanel'
 import TourGuide from '../guide/TourGuide'
 import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut } from 'lucide-react'
@@ -34,6 +35,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <AnnouncementBanner />
       <header
         className={`sticky top-0 z-30 w-full transition-[background-color,padding] duration-300 motion-reduce:transition-none print:hidden ${
           scrolled ? 'bg-transparent px-4 pt-3 sm:px-6' : 'bg-green-800 px-4 pt-0 sm:px-6'

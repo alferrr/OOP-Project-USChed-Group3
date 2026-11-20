@@ -6,7 +6,7 @@ import { useIsmisStore } from '../store/ismisStore'
 import { clearStudentData } from '../store/resetAll'
 import { savedId, useSavedStore, type SavedSchedule } from '../store/planStore'
 import type {
-  AdminPage, AdminStats, CompareResponse, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
+  Announcement, AdminPage, AdminStats, CompareResponse, DeletionReport, ImportReport, IsmisHealth, UsageInsights, ConsentResponse, CoursePage, GenerateRequest, GenerateResponse, IsmisSession,
   Option, Prospectus, RankedSchedule, SearchStart, SearchStatus, SemesterCode, Section, Terms,
 } from './types'
 
@@ -141,6 +141,35 @@ export const useScoreSchedule = () =>
     mutationFn: (v: { sectionIds: number[]; preferences?: GenerateRequest['preferences'] }) =>
       api<RankedSchedule>('/schedules/score', { body: v, ismis: true }),
   })
+
+export const useAdminHealth = () => useQuery({ queryKey: ['admin-health'], queryFn: () => api<IsmisHealth>('/admin/health', { ismis: true }), refetchInterval: 60_000 })
+export const useAdminInsights = () => useQuery({ queryKey: ['admin-insights'], queryFn: () => api<UsageInsights>('/admin/insights', { ismis: true }) })
+export const useAdminAnnouncement = () => useQuery({ queryKey: ['admin-announcement'], queryFn: () => api<Announcement>('/admin/announcement', { ismis: true }) })
+
+/** What a student sees at the top of the app. Needs no sign-in, so the login page can show it too. */
+export const usePublicAnnouncement = () =>
+  useQuery({
+    queryKey: ['announcement'],
+    queryFn: async () => (await api<{ announcement: Announcement | null }>('/announcement')).announcement,
+    refetchInterval: 5 * 60_000,
+    staleTime: 60_000,
+  })
+
+/** Admin actions refresh every admin table and the dashboard numbers afterwards. */
+function useAdminAction<V, R>(fn: (v: V) => Promise<R>, also: string[] = []) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      for (const k of ['admin-table', 'admin-stats', 'admin-health', ...also]) void qc.invalidateQueries({ queryKey: [k] })
+    },
+  })
+}
+export const useSaveAnnouncement = () =>
+  useAdminAction((v: { message: string; tone: 'info' | 'warning'; active: boolean }) => api<Announcement>('/admin/announcement', { method: 'PUT', body: v, ismis: true }), ['admin-announcement', 'announcement'])
+export const useDeleteStudent = () => useAdminAction((id: string) => api<DeletionReport>(`/admin/students/${encodeURIComponent(id)}`, { method: 'DELETE', ismis: true }))
+export const useEndSession = () => useAdminAction((id: string) => api<void>(`/admin/sessions/${encodeURIComponent(id)}`, { method: 'DELETE', ismis: true }))
+export const useImportCsv = () => useAdminAction((form: FormData) => api<ImportReport>('/admin/csv', { form, ismis: true }))
 
 export const useGenerate = () => useMutation({ mutationFn: (req: GenerateRequest) => api<GenerateResponse>('/schedules/generate', { body: req, ismis: true }) })
 

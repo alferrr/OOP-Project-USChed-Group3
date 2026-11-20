@@ -4,21 +4,34 @@ import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  Activity, BookOpen, ChevronDown, ChevronRight, ChevronsLeft, ChevronsUpDown, CircleHelp, FileCheck2, GraduationCap, LayoutDashboard,
-  LogOut, MonitorSmartphone, Search, ShieldCheck, Users,
+  Activity, BarChart3, BookOpen, ChevronDown, ChevronRight, ChevronsLeft, ChevronsUpDown, CircleHelp, FileCheck2, GraduationCap, HeartPulse,
+  LayoutDashboard, LogOut, Megaphone, MonitorSmartphone, ScrollText, Search, ShieldCheck, Upload, Users,
 } from 'lucide-react'
 import { useAdminStats, useIsmisSignOut } from '../../api/hooks'
 import { useIsmisStore } from '../../store/ismisStore'
 import { nf } from './AdminUi'
 
-const NAV = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/students', label: 'Students', icon: Users },
-  { href: '/admin/courses', label: 'Courses', icon: BookOpen },
-  { href: '/admin/searches', label: 'Searches', icon: Search },
-  { href: '/admin/consents', label: 'Consents', icon: FileCheck2 },
-  { href: '/admin/sessions', label: 'Sessions', icon: MonitorSmartphone },
+const GROUPS = [
+  { label: 'Overview', items: [
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/insights', label: 'Usage insights', icon: BarChart3 },
+    { href: '/admin/health', label: 'ISMIS health', icon: HeartPulse },
+  ] },
+  { label: 'Data', items: [
+    { href: '/admin/students', label: 'Students', icon: Users },
+    { href: '/admin/courses', label: 'Courses', icon: BookOpen },
+    { href: '/admin/searches', label: 'Searches', icon: Search },
+    { href: '/admin/consents', label: 'Consents', icon: FileCheck2 },
+    { href: '/admin/sessions', label: 'Sessions', icon: MonitorSmartphone },
+  ] },
+  { label: 'Tools', items: [
+    { href: '/admin/announcement', label: 'Announcement', icon: Megaphone },
+    { href: '/admin/import', label: 'Import courses', icon: Upload },
+    { href: '/admin/audit', label: 'Audit log', icon: ScrollText },
+    { href: '/admin/admins', label: 'Admins', icon: ShieldCheck },
+  ] },
 ]
+const NAV = GROUPS.flatMap((g) => g.items)
 
 const row = 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors'
 
@@ -74,16 +87,21 @@ function Sidebar() {
       </div>
 
       <nav aria-label="Admin" className="mt-4 flex-1 space-y-1 overflow-y-auto px-4">
-        {NAV.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href
-          return (
-            <Link key={href} href={href} aria-current={active ? 'page' : undefined}
-              className={`${row} relative ${active ? 'bg-green-50 text-green-900' : 'text-green-900/70 hover:bg-green-50 hover:text-green-900'}`}>
-              {active && <span className="absolute -left-4 top-1.5 bottom-1.5 w-0.5 bg-green-700" aria-hidden />}
-              <Icon size={18} aria-hidden /> {label}
-            </Link>
-          )
-        })}
+        {GROUPS.map((g, gi) => (
+          <div key={g.label} className={gi === 0 ? '' : 'pt-2'}>
+            {gi > 0 && <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-green-900/50">{g.label}</p>}
+            {g.items.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href
+              return (
+                <Link key={href} href={href} aria-current={active ? 'page' : undefined}
+                  className={`${row} relative ${active ? 'bg-green-50 text-green-900' : 'text-green-900/70 hover:bg-green-50 hover:text-green-900'}`}>
+                  {active && <span className="absolute -left-4 top-1.5 bottom-1.5 w-0.5 bg-green-700" aria-hidden />}
+                  <Icon size={18} aria-hidden /> {label}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
         <div className="my-3 border-t border-green-100" />
         <button type="button" onClick={() => setTotalsOpen(!totalsOpen)} aria-expanded={totalsOpen}
           className={`${row} w-full text-green-900/70 hover:bg-green-50`}>

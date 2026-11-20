@@ -24,6 +24,8 @@ interface Options {
   /** Also attach the student's ISMIS session id. */
   ismis?: boolean
   signal?: AbortSignal
+  /** A multipart upload; sent as is (the browser sets the content type). */
+  form?: FormData
 }
 
 export function qs(params: Record<string, string | number | undefined | null>): string {
@@ -51,9 +53,9 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
   let res: Response
   try {
     res = await fetch(`/api${path}`, {
-      method: opts.method ?? (opts.body !== undefined ? 'POST' : 'GET'),
+      method: opts.method ?? (opts.body !== undefined || opts.form ? 'POST' : 'GET'),
       headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      body: opts.form ?? (opts.body !== undefined ? JSON.stringify(opts.body) : undefined),
       signal: opts.signal,
     })
   } catch {

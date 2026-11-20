@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import LoginPage from './LoginPage'
 
+vi.mock('../components/announcement/AnnouncementBanner', () => ({ default: () => null }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }), useSearchParams: () => new URLSearchParams() }))
 vi.mock('../api/hooks', () => ({
   useTerms: () => ({ data: { version: 'v', text: 't' }, isLoading: false, isError: false }),

@@ -110,6 +110,26 @@ export interface AdminSearchRow { student: string; semester: string; academicYea
 export interface AdminConsentRow { session: string; termsVersion: string; agreedTerms: boolean; agreedCredentialUse: boolean; at: string }
 export interface AdminSessionRow { student: string; signedInAt: string; lastUsed: string; expiresAt: string; busy: boolean }
 
+export interface AdminAuditRow { admin: string; action: string; target: string; detail: string; at: string }
+export interface AdminIsmisEventRow { kind: string; at: string }
+export interface AdminAdminRow { student: string; source: string }
+export type FailureKind = 'AUTH_FAILED' | 'CHALLENGE' | 'LAYOUT_CHANGED' | 'UNAVAILABLE'
+export interface IsmisHealth {
+  status: 'healthy' | 'degraded' | 'broken'
+  last24h: Record<FailureKind, number>
+  last7d: Record<FailureKind, number>
+  lastFailure: { kind: string; at: string } | null
+  lastSuccessfulSearch: string | null
+}
+export interface UsageInsights {
+  generations: { last7d: number; last30d: number; avgCourses: number; withoutPreferences: number }
+  topCourses: { code: string; searches: number }[]
+  preferences: { key: string; label: string; generations: number; share: number }[]
+}
+export interface Announcement { message: string; tone: 'info' | 'warning'; active: boolean; updatedAt: string | null }
+export interface DeletionReport { courses: number; sections: number; searches: number; savedSchedules: number; tourRecords: number; endedSessions: number }
+export interface ImportReport { courses: number; sections: number; skipped: number; errors: string[] }
+
 export interface IsmisSession { sessionId: string; expiresAt: string; idleMinutes: number; isAdmin?: boolean }
 
 export type ItemStatus = 'PENDING' | 'RUNNING' | 'DONE' | 'NO_RESULTS' | 'TOO_MANY' | 'FAILED' | 'SKIPPED'

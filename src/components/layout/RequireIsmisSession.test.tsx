@@ -7,6 +7,7 @@ import { useIsmisStore } from '../../store/ismisStore'
 import { nav, router } from '../../test/navigation'
 import RequireIsmisSession from './RequireIsmisSession'
 
+vi.mock('../announcement/AnnouncementBanner', () => ({ default: () => null }))
 vi.mock('../../api/hooks', () => ({
   useTerms: () => ({ data: { version: '2026-9-2', text: 'Terms text here.' }, isLoading: false, isError: false }),
   useIsmisSignIn: () => ({ mutate: vi.fn(), reset: vi.fn(), isPending: false, error: null }),

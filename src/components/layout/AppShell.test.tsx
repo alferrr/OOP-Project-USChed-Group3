@@ -8,6 +8,7 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/courses' }))
 vi.mock('../../api/hooks', () => ({ useIsmisSignOut: () => ({ mutate: vi.fn(), isPending: false }) }))
 vi.mock('../guide/TourGuide', () => ({ default: () => null }))
 vi.mock('../chat/ChatPanel', () => ({ default: () => null }))
+vi.mock('../announcement/AnnouncementBanner', () => ({ default: () => null }))
 
 const signIn = (isAdmin: boolean) => act(() => useIsmisStore.getState().setSession('s', 20, isAdmin))
 
