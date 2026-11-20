@@ -56,7 +56,7 @@ const num = (env: Env, key: string, fallback: number) => {
 
 export function loadConfig(env: Env = process.env): AppConfig {
   return {
-    termsVersion: str(env, 'UCHED_TERMS_VERSION', '2026-11-20'),
+    termsVersion: str(env, 'UCHED_TERMS_VERSION', '2026-11-20-2'),
     requireHttps: str(env, 'UCHED_REQUIRE_HTTPS', 'false').toLowerCase() === 'true',
     consent: {
       secret: str(env, 'UCHED_CONSENT_SECRET', DEV_CONSENT_SECRET),
