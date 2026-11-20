@@ -1,3 +1,4 @@
+import { getConfig } from '../config'
 import { prisma } from '../db'
 import { ismisSessions } from './ismisSessions'
 
@@ -97,6 +98,35 @@ export async function listConsents(page: number): Promise<Page<ConsentRow>> {
       at: r.acceptedAt.toISOString(),
     })),
   }
+}
+
+export interface AuditRow { admin: string; action: string; target: string; detail: string; at: string }
+export interface IsmisEventRow { kind: string; at: string }
+export interface AdminRow { student: string; source: string }
+
+export async function listAudit(page: number): Promise<Page<AuditRow>> {
+  const [total, rows] = await Promise.all([
+    prisma.adminAuditLog.count(),
+    prisma.adminAuditLog.findMany({ orderBy: { createdAt: 'desc' }, skip: Math.max(0, page) * PAGE_SIZE, take: PAGE_SIZE }),
+  ])
+  return {
+    total, page: Math.max(0, page), size: PAGE_SIZE,
+    items: rows.map((r) => ({ admin: r.adminStudentIdNumber, action: r.action, target: r.target, detail: r.detail, at: r.createdAt.toISOString() })),
+  }
+}
+
+export async function listIsmisEvents(page: number): Promise<Page<IsmisEventRow>> {
+  const [total, rows] = await Promise.all([
+    prisma.ismisEvent.count(),
+    prisma.ismisEvent.findMany({ orderBy: { occurredAt: 'desc' }, skip: Math.max(0, page) * PAGE_SIZE, take: PAGE_SIZE }),
+  ])
+  return { total, page: Math.max(0, page), size: PAGE_SIZE, items: rows.map((r) => ({ kind: r.kind, at: r.occurredAt.toISOString() })) }
+}
+
+/** The admin list comes from UCHED_ADMIN_IDS (or the built-in default); it is read-only here. */
+export function listAdmins(page: number): Page<AdminRow> {
+  const fromEnv = (process.env.UCHED_ADMIN_IDS ?? '').trim() !== ''
+  return paginate(getConfig().admin.studentIds.map((student) => ({ student, source: fromEnv ? 'UCHED_ADMIN_IDS' : 'Built-in default' })), page)
 }
 
 export function listSessions(page: number): Page<SessionRow> {

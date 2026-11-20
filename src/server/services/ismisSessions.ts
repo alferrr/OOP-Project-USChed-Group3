@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { getConfig } from '../config'
 import { IsmisSessionExpiredError, RateLimitedError } from '../errors'
 import { IsmisConnection } from '../ismis/connection'
+import { recordIsmisFailure } from './ismisHealth'
 import { singleton } from './singleton'
 
 export interface Opened {
@@ -76,7 +77,13 @@ export class IsmisSessionService {
     if (this.sessions.size >= cfg.ismisSession.maxSessions) {
       throw new RateLimitedError('USChed has too many signed-in students right now. Try again shortly.')
     }
-    const connection = await IsmisConnection.signIn(cfg.ismis, idNumber, password)
+    let connection: IsmisConnection
+    try {
+      connection = await IsmisConnection.signIn(cfg.ismis, idNumber, password)
+    } catch (e) {
+      recordIsmisFailure(e)
+      throw e
+    }
     // One session per student: signing in again replaces the previous one.
     for (const e of [...this.sessions.values()]) if (e.studentIdNumber === idNumber) this.remove(e)
     const now = Date.now()
@@ -102,6 +109,13 @@ export class IsmisSessionService {
     const e = this.live(sessionId)
     e.lastUsed = Date.now()
     return e.studentIdNumber
+  }
+
+  /** Ends every session a student has (an admin signing someone out, or their data being deleted). Returns how many ended. */
+  endForStudent(studentIdNumber: string): number {
+    const mine = [...this.sessions.values()].filter((e) => e.studentIdNumber === studentIdNumber)
+    for (const e of mine) this.remove(e)
+    return mine.length
   }
 
   /** Signs out: ends the session immediately. An unknown id is ignored. */

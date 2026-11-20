@@ -14,6 +14,8 @@ import {
 } from '../errors'
 import type { IsmisConnection } from '../ismis/connection'
 import { importCourses } from './courseImport'
+import { recordIsmisFailure } from './ismisHealth'
+import { recordUsage } from './usage'
 import { ismisSessions, type IsmisSessionService, type Lease } from './ismisSessions'
 import { singleton } from './singleton'
 
@@ -247,6 +249,7 @@ export class SearchJobService {
         try {
           job.items[i] = await this.searchOne(lease.connection(), semester, year, q, actual, job)
         } catch (e) {
+          recordIsmisFailure(e)
           if (e instanceof IsmisNoResultsError) {
             job.items[i] = await this.noResultsWithSuggestions(lease.connection(), semester, year, q, actual, job, e)
           } else if (e instanceof IsmisTooManyResultsError) {
@@ -295,6 +298,8 @@ export class SearchJobService {
       year,
       job.studentIdNumber,
     )
+    // Which courses people look for, counted anonymously from the catalog's own codes, never from what was typed.
+    for (const c of result.courses) recordUsage('SEARCH', codeKey(c.code))
     await this.applyProspectusUnits(connection, result.courses, job)
     const found = await this.importedRefs(result.courses, job.studentIdNumber)
     return {

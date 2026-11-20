@@ -141,3 +141,49 @@ model SavedSchedule {
   @@unique([studentIdNumber, scheduleKey], map: "uq_saved_schedule")
   @@map("saved_schedules")
 }
+
+// Who did what in the admin console. Keeps the student ID a deletion was about, as a record that it happened.
+model AdminAuditLog {
+  id                   Int      @id @default(autoincrement())
+  adminStudentIdNumber String   @map("admin_student_id_number") @db.VarChar(64)
+  action               String   @db.VarChar(40)
+  target               String   @default("") @db.VarChar(255)
+  detail               String   @default("") @db.VarChar(255)
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt], map: "idx_audit_created")
+  @@map("admin_audit_log")
+}
+
+// Failures reading ISMIS (kind only: no student, no message), so a broken scraper shows up on the dashboard.
+model IsmisEvent {
+  id         Int      @id @default(autoincrement())
+  kind       String   @db.VarChar(30)
+  occurredAt DateTime @default(now()) @map("occurred_at")
+
+  @@index([occurredAt], map: "idx_ismis_event_time")
+  @@map("ismis_events")
+}
+
+// One row (id 1): the message shown at the top of the app.
+model Announcement {
+  id        Int      @id
+  message   String   @default("") @db.VarChar(280)
+  tone      String   @default("info") @db.VarChar(10)
+  active    Boolean  @default(false)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("announcements")
+}
+
+// Anonymous usage counts. Never holds a student ID or name: just what was done, not who did it.
+model UsageEvent {
+  id        Int      @id @default(autoincrement())
+  kind      String   @db.VarChar(20)
+  detail    String   @default("") @db.VarChar(160)
+  count     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([kind, createdAt], map: "idx_usage_kind_time")
+  @@map("usage_events")
+}
