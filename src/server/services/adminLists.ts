@@ -100,6 +100,7 @@ export async function listConsents(page: number): Promise<Page<ConsentRow>> {
   }
 }
 
+export interface AnnouncementRow { admin: string; message: string; tone: string; active: boolean; at: string }
 export interface AuditRow { admin: string; action: string; target: string; detail: string; at: string }
 export interface IsmisEventRow { kind: string; at: string }
 export interface AdminRow { student: string; source: string }
@@ -112,6 +113,17 @@ export async function listAudit(page: number): Promise<Page<AuditRow>> {
   return {
     total, page: Math.max(0, page), size: PAGE_SIZE,
     items: rows.map((r) => ({ admin: r.adminStudentIdNumber, action: r.action, target: r.target, detail: r.detail, at: r.createdAt.toISOString() })),
+  }
+}
+
+export async function listAnnouncements(page: number): Promise<Page<AnnouncementRow>> {
+  const [total, rows] = await Promise.all([
+    prisma.announcementLog.count(),
+    prisma.announcementLog.findMany({ orderBy: { createdAt: 'desc' }, skip: Math.max(0, page) * PAGE_SIZE, take: PAGE_SIZE }),
+  ])
+  return {
+    total, page: Math.max(0, page), size: PAGE_SIZE,
+    items: rows.map((r) => ({ admin: r.adminStudentIdNumber, message: r.message, tone: r.tone, active: r.active, at: r.createdAt.toISOString() })),
   }
 }
 

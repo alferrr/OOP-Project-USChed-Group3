@@ -1,6 +1,6 @@
 import { ResourceNotFoundError } from '@/server/errors'
 import { query, route } from '@/server/http/api'
-import { listAdmins, listAudit, listConsents, listCourses, listIsmisEvents, listSearches, listSessions, listStudents } from '@/server/services/adminLists'
+import { listAdmins, listAnnouncements, listAudit, listConsents, listCourses, listIsmisEvents, listSearches, listSessions, listStudents } from '@/server/services/adminLists'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,6 +15,7 @@ export const GET = route({ guard: 'adminSession' }, async ({ req, params }) => {
     case 'consents': return listConsents(page)
     case 'sessions': return listSessions(page)
     case 'audit': return listAudit(page)
+    case 'announcements': return listAnnouncements(page)
     case 'ismis-events': return listIsmisEvents(page)
     case 'admins': return listAdmins(page)
     default: throw new ResourceNotFoundError('Unknown admin table.')

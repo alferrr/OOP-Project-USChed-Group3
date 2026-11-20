@@ -187,3 +187,16 @@ model UsageEvent {
   @@index([kind, createdAt], map: "idx_usage_kind_time")
   @@map("usage_events")
 }
+
+// Every announcement an admin saved, in full, so there is a history to look back at and reuse.
+model AnnouncementLog {
+  id                   Int      @id @default(autoincrement())
+  adminStudentIdNumber String   @map("admin_student_id_number") @db.VarChar(64)
+  message              String   @db.VarChar(280)
+  tone                 String   @db.VarChar(10)
+  active               Boolean
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt], map: "idx_announcement_log_created")
+  @@map("announcement_log")
+}

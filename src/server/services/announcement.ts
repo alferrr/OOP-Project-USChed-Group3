@@ -32,3 +32,8 @@ export async function setAnnouncement(message: string, tone: string, active: boo
   })
   return view(row)
 }
+
+/** Writes the saved announcement to the history. Called after every save, whether it switched the banner on or off. */
+export async function logAnnouncement(adminStudentIdNumber: string, message: string, tone: string, active: boolean): Promise<void> {
+  await prisma.announcementLog.create({ data: { adminStudentIdNumber, message: message.trim().slice(0, 280), tone, active } })
+}
