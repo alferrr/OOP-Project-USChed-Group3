@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import NavLink from './NavLink'
 import ChatPanel from '../chat/ChatPanel'
 import TourGuide from '../guide/TourGuide'
-import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut, ShieldCheck } from 'lucide-react'
+import { Bookmark, CalendarDays, Hammer, LayoutDashboard, ListChecks, LogOut } from 'lucide-react'
 import { useIsmisSignOut } from '../../api/hooks'
 import { useIsmisStore } from '../../store/ismisStore'
 
@@ -72,9 +72,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <LayoutDashboard size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Admin</span>
               </NavLink>
             )}
-            <NavLink href="/terms" className={link}>
-              <ShieldCheck size={18} aria-hidden /> <span className="sr-only sm:not-sr-only">Terms</span>
-            </NavLink>
             {signedIn && (
               <button
                 onClick={() => signOut.mutate()}

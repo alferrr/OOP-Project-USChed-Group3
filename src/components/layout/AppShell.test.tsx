@@ -39,6 +39,12 @@ describe('AppShell header', () => {
     expect(screen.queryByRole('button', { name: 'Tour' })).not.toBeInTheDocument()
   })
 
+  it('has no Terms link in the header (the Terms stay on the login page and in the help)', () => {
+    signIn(false)
+    render(<AppShell>x</AppShell>)
+    expect(screen.queryByRole('link', { name: 'Terms' })).not.toBeInTheDocument()
+  })
+
   it('drops the admin flag as soon as the session ends', () => {
     signIn(true)
     act(() => useIsmisStore.getState().end())
