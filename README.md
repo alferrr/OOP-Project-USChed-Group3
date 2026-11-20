@@ -14,6 +14,17 @@ Sign in with your ISMIS account, pull the courses you need for the term, tell US
 - **Helps you get started.** A first-sign-in tour and a help octopus that answers questions about the app.
 - **Has an admin dashboard** for the student IDs listed in `UCHED_ADMIN_IDS`.
 
+## How it gets its data
+
+USChed does **not** have access to an ISMIS API, and it is not connected to ISMIS in any official way. Instead, when a student signs in, an automated program running on USChed's server logs in to ISMIS on the student's behalf, with the credentials they entered, and reads the course listings and the student's prospectus from the same pages they would see in a browser.
+
+- It is **read-only.** The code only allows the sign-in request and the read-only course search (`src/server/ismis/session.ts`). It never enrolls, drops or changes anything.
+- The password is used once to sign in and is never stored. The sign-in session is kept in server memory only, and ends on sign-out, after 20 minutes idle, or after 60 minutes.
+- If ISMIS asks for a CAPTCHA or a verification code, it stops instead of trying to get around it.
+- It depends on how ISMIS's pages are laid out, so a change on ISMIS's side can break it until it is updated.
+
+Students accept this in the Terms of Use and Privacy Notice (`src/server/terms.ts`, shown on the login page) before signing in.
+
 ## Built with
 
 Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma · MySQL
