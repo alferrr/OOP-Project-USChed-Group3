@@ -1,7 +1,0 @@
-{
-  "name": "usched-ad",
-  "private": true,
-  "type": "module",
-  "scripts": { "capture": "tsx capture.ts", "build": "bash build.sh" },
-  "devDependencies": { "dotenv": "^16.4.5", "playwright": "^1.50.0", "tsx": "^4.19.0" }
-}
