@@ -1,20 +1,28 @@
 'use client'
 
 import { useState } from 'react'
-import { Info, TriangleAlert, X } from 'lucide-react'
 import type { Announcement } from '../../api/types'
 import { usePublicAnnouncement } from '../../api/hooks'
 
-/** The look of the banner, used by the live one and by the admin's preview. */
+/**
+ * The look of the banner, used by the live one and by the admin's preview. Flat and loud on purpose: a solid band
+ * with a short label, like a notice pinned over the timetable. Warnings borrow the gold of the 404's "no section"
+ * block, with a hatched edge like a slot that is blocked out.
+ */
 export function BannerView({ message, tone, onClose }: { message: string; tone: 'info' | 'warning'; onClose?: () => void }) {
   const warn = tone === 'warning'
   return (
-    <div role="status" className={`flex items-start gap-3 px-4 py-2.5 text-sm ${warn ? 'bg-gold-100 text-green-900' : 'bg-green-100 text-green-900'}`}>
-      {warn ? <TriangleAlert size={16} className="mt-0.5 shrink-0 text-gold-700" aria-hidden /> : <Info size={16} className="mt-0.5 shrink-0 text-green-700" aria-hidden />}
-      <p className="flex-1 whitespace-pre-wrap">{message}</p>
+    <div role="status" className={`relative flex items-center gap-x-4 gap-y-1 py-2.5 pl-6 pr-4 sm:pl-8 sm:pr-6 ${warn ? 'bg-gold-400 text-green-900' : 'bg-green-900 text-white'}`}>
+      <span aria-hidden className="absolute inset-y-0 left-0 w-2.5"
+        style={{ background: warn ? 'repeating-linear-gradient(135deg, #0a2f1d 0 3px, transparent 3px 7px)' : 'var(--color-gold-400)' }} />
+      <span className={`shrink-0 font-display text-[0.7rem] font-extrabold uppercase tracking-[0.18em] ${warn ? 'text-green-900' : 'text-gold-300'}`}>
+        {warn ? 'Heads up' : 'Notice'}
+      </span>
+      <p className="min-w-0 flex-1 whitespace-pre-wrap text-sm font-medium leading-snug">{message}</p>
       {onClose && (
-        <button type="button" onClick={onClose} aria-label="Dismiss announcement" className="rounded-full p-0.5 text-green-900/60 hover:bg-white/60 hover:text-green-900">
-          <X size={16} aria-hidden />
+        <button type="button" onClick={onClose} aria-label="Dismiss announcement"
+          className={`shrink-0 text-sm font-semibold underline decoration-2 underline-offset-4 ${warn ? 'decoration-green-900/40 hover:decoration-green-900' : 'text-white/80 decoration-white/30 hover:text-white hover:decoration-gold-400'}`}>
+          Got it
         </button>
       )}
     </div>
