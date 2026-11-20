@@ -1,0 +1,176 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: #fbfbfd; overflow: hidden }
+  #stage { position: relative; overflow: hidden; background: #fbfbfd; font-family: -apple-system, "SF Pro Display", system-ui, "Helvetica Neue", sans-serif; color: #1d1d1f }
+  .abs { position: absolute }
+  #black { inset: 0; background: #000 }
+  #win { overflow: hidden; border-radius: 24px; background: #fff; box-shadow: 0 50px 120px rgba(0,0,0,.20), 0 10px 30px rgba(0,0,0,.08) }
+  #content { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0 }
+  #content img { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; opacity: 0 }
+  .cap { left: 0; right: 0; text-align: center; font-weight: 600; letter-spacing: -0.035em; line-height: 1.05; margin: 0 auto }
+  #ripple { border-radius: 50%; background: rgba(15,107,63,.35); pointer-events: none }
+  #cursor { pointer-events: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,.35)) }
+  #end { inset: 0; text-align: center }
+  #end .logo { font-weight: 800; letter-spacing: -0.045em; line-height: 1 }
+  #end .tag { font-weight: 600; letter-spacing: -0.03em; color: #1d1d1f }
+  #end .for { font-weight: 500; color: #6e6e73; letter-spacing: -0.01em }
+</style></head>
+<body><div id="stage"></div>
+<script>
+const params = new URLSearchParams(location.search)
+const VERT = params.get('v') === '1'
+const L = VERT
+  ? { W: 1080, H: 1920, winW: 960, winLeft: 60, winTop: 800, capY: 560, capSize: 92, capW: 900, logo: 190, tag: 70, forSz: 46, endY: 700 }
+  : { W: 1920, H: 1080, winW: 1360, winLeft: 280, winTop: 240, capY: 122, capSize: 76, capW: 1600, logo: 190, tag: 62, forSz: 42, endY: 330 }
+L.winH = L.winW * 9 / 16
+const K = L.winW / 1280
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x))
+const lerp = (a, b, x) => a + (b - a) * x
+const inOut = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+// cubic-bezier(0.22, 1, 0.36, 1)
+function bezier(p1x, p1y, p2x, p2y) {
+  const cx = 3 * p1x, bx = 3 * (p2x - p1x) - cx, ax = 1 - cx - bx
+  const cy = 3 * p1y, by = 3 * (p2y - p1y) - cy, ay = 1 - cy - by
+  const X = (s) => ((ax * s + bx) * s + cx) * s, Y = (s) => ((ay * s + by) * s + cy) * s
+  return (x) => { let s = x; for (let i = 0; i < 12; i++) { const d = X(s) - x; if (Math.abs(d) < 1e-6) break; const dx = (3 * ax * s + 2 * bx) * s + cx; if (Math.abs(dx) < 1e-6) break; s -= d / dx } return Y(clamp(s)) }
+}
+const apple = bezier(0.22, 1, 0.36, 1)
+function keyframes(frames, t) { // [[t, ...values]] eased between neighbours
+  if (t <= frames[0][0]) return frames[0].slice(1)
+  for (let i = 0; i < frames.length - 1; i++) {
+    const a = frames[i], b = frames[i + 1]
+    if (t <= b[0]) { const e = inOut(clamp((t - a[0]) / (b[0] - a[0] || 1))); return a.slice(1).map((v, j) => lerp(v, b[j + 1], e)) }
+  }
+  return frames[frames.length - 1].slice(1)
+}
+
+let T = {}, imgs = {}, els = {}
+const stage = document.getElementById('stage')
+stage.style.width = L.W + 'px'; stage.style.height = L.H + 'px'
+
+function el(tag, id, css, parent = stage) { const e = document.createElement(tag); if (id) e.id = id; e.className = 'abs'; Object.assign(e.style, css); parent.appendChild(e); return e }
+
+window.init = async function (data) {
+  T = data.targets
+  els.win = el('div', 'win', { left: L.winLeft + 'px', top: L.winTop + 'px', width: L.winW + 'px', height: L.winH + 'px' })
+  els.content = document.createElement('div'); els.content.id = 'content'; els.win.appendChild(els.content)
+  for (const n of data.names) { const i = document.createElement('img'); i.src = `states/${n}.png`; els.content.appendChild(i); imgs[n] = i }
+  await Promise.all(Object.values(imgs).map((i) => i.decode()))
+  els.cap = el('div', 'cap', { top: (L.capY - L.capSize * 0.6) + 'px', fontSize: L.capSize + 'px', width: L.capW + 'px', left: ((L.W - L.capW) / 2) + 'px', height: (L.capSize * 2.2) + 'px' })
+  els.cap.className = 'abs cap'
+  els.ripple = el('div', 'ripple', { width: '10px', height: '10px', opacity: 0 })
+  els.cursor = el('div', 'cursor', { width: '34px', height: '34px', opacity: 0 })
+  els.cursor.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24"><path d="M5 3l14 9-6.2 1.4L9.6 20z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>'
+  els.black = el('div', 'black', {})
+  els.blackText = el('div', '', { left: 0, right: 0, top: (L.H / 2 - 70) + 'px', textAlign: 'center', color: '#fff', fontWeight: 600, letterSpacing: '-0.04em', fontSize: (VERT ? 100 : 104) + 'px', lineHeight: 1.05, padding: '0 60px' }, els.black)
+  els.blackText.textContent = 'Enrollment week is chaos.'
+  els.end = el('div', 'end', {})
+  els.end.innerHTML = `<div class="abs logo" style="left:0;right:0;top:${L.endY}px;font-size:${L.logo}px"><span style="color:#0b4f2e">US</span><span style="color:#d9a91a">Ched</span></div>
+    <div class="abs tag" style="left:0;right:0;top:${L.endY + L.logo + 50}px;font-size:${L.tag}px;padding:0 70px">Plan the term before you enroll.</div>
+    <div class="abs for" style="left:0;right:0;top:${L.endY + L.logo + 50 + L.tag * (VERT ? 2.6 : 1.5)}px;font-size:${L.forSz}px">For USC students.</div>`
+  els.end.style.opacity = 0
+}
+
+// ---- the script ----
+const STATES = [
+  [3.0, 'login', 0], [5.6, 'courses_0', .25],
+  ...Array.from({ length: 8 }, (_, i) => [6.05 + i * .13, `type_${i + 1}`, 0]),
+  [7.1, 'courses_1', .3], [7.75, 'add_1', 0], [8.15, 'add_2', 0], [8.55, 'add_3', 0], [8.95, 'add_4', 0],
+  [9.7, 'prefs_open', .2], [10.95, 'prefs_set', .1], [11.55, 'plan_ready', .2],
+  [12.1, 'sch_top', .3], [13.4, 'sch_cal', .35], [15.3, 'sch_top', .35],
+  [16.1, 'name_dialog', .15], [16.8, 'name_typed', 0], [17.5, 'saved_page', .25],
+]
+const CAPS = [
+  [3.3, 5.4, 'Plan the term before you enroll.'], [5.9, 9.4, 'Add your courses.'], [9.6, 11.9, 'Say what matters.'],
+  [12.1, 15.2, 'Every schedule that fits.'], [15.45, 17.8, 'Save the one you love.'],
+]
+const CLICKS = [7.7, 8.1, 8.5, 8.9, 9.6, 10.5, 10.9, 11.5, 12.0, 16.0, 17.4]
+const SHOW_CURSOR = [[5.5, 12.25], [15.4, 17.8]]
+const cursorKeys = () => {
+  const c = T.codes
+  return [
+    [5.4, c.x + 120, c.y + 150], [6.0, c.x - 200, c.y], [7.2, c.x - 200, c.y],
+    [7.65, T.add_1.x, T.add_1.y], [7.7, T.add_1.x, T.add_1.y], [8.1, T.add_2.x, T.add_2.y], [8.5, T.add_3.x, T.add_3.y], [8.9, T.add_4.x, T.add_4.y],
+    [9.0, T.add_4.x, T.add_4.y], [9.55, T.prefs.x, T.prefs.y], [9.6, T.prefs.x, T.prefs.y],
+    [10.45, T.morning.x, T.morning.y], [10.5, T.morning.x, T.morning.y], [10.85, T.gaps.x, T.gaps.y], [10.9, T.gaps.x, T.gaps.y],
+    [11.45, T.done.x, T.done.y], [11.5, T.done.x, T.done.y], [11.95, T.generate.x, T.generate.y], [12.0, T.generate.x, T.generate.y], [12.3, T.generate.x, T.generate.y + 30],
+    [15.4, T.save.x + 170, T.save.y + 110], [15.95, T.save.x, T.save.y], [16.0, T.save.x, T.save.y], [17.0, T.save.x, T.save.y],
+    [17.35, T.save_name.x, T.save_name.y], [17.4, T.save_name.x, T.save_name.y], [17.8, T.save_name.x, T.save_name.y],
+  ]
+}
+const CAMERA = () => {
+  const c = T.codes
+  return [
+    [0, 1, 640, 360], [3.0, 1.0, 640, 360], [5.6, 1.06, 640, 360],
+    [6.0, 1.4, c.x - 80, c.y], [7.0, 1.4, c.x - 80, c.y], [7.6, 1.0, 640, 360], [9.55, 1.0, 640, 360],
+    [9.7, 1.0, 640, 360], [11.5, 1.07, 640, 360], [11.6, 1.0, 640, 360], [12.0, 1.0, 640, 360],
+    [12.1, 1.0, 640, 200], [13.4, 1.12, 640, 200], [13.5, 1.0, 640, 360], [15.3, 1.15, 640, 330], [15.35, 1.0, 640, 360], [17.9, 1.04, 640, 360],
+  ]
+}
+
+window.render = function (t) {
+  // black opening
+  els.black.style.opacity = t < 2.7 ? 1 : 1 - inOut(clamp((t - 2.7) / .4))
+  els.black.style.display = els.black.style.opacity === '0' ? 'none' : 'block'
+  els.blackText.style.opacity = t < 2.3 ? apple(clamp((t - .3) / .7)) : 1 - inOut(clamp((t - 2.3) / .45))
+  els.blackText.style.transform = `translateY(${(1 - apple(clamp((t - .3) / .7))) * 14}px)`
+
+  // window
+  const win = apple(clamp((t - 3.0) / .7)) * (1 - inOut(clamp((t - 17.8) / .4)))
+  els.win.style.opacity = win
+  const pop = 0.96 + 0.04 * apple(clamp((t - 3.0) / .9))
+  els.win.style.transform = `scale(${pop})`
+
+  // state images with crossfades
+  let idx = -1
+  for (let i = 0; i < STATES.length; i++) if (t >= STATES[i][0]) idx = i
+  for (const n in imgs) imgs[n].style.opacity = 0
+  if (idx >= 0) {
+    const [t0, name, xf] = STATES[idx]
+    const a = xf ? clamp((t - t0) / xf) : 1
+    imgs[name].style.zIndex = 2; imgs[name].style.opacity = a
+    if (a < 1 && idx > 0) { const prev = STATES[idx - 1][1]; if (prev !== name) { imgs[prev].style.zIndex = 1; imgs[prev].style.opacity = 1 } }
+  }
+
+  // camera
+  const [s, fx, fy] = keyframes(CAMERA(), t)
+  const k = K * s
+  const tx = clamp(L.winW / 2 - fx * k, L.winW - 1280 * k, 0)
+  const ty = clamp(L.winH / 2 - fy * k, L.winH - 720 * k, 0)
+  els.content.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`
+  const toStage = (x, y) => [L.winLeft + L.winW / 2 + (tx + x * k - L.winW / 2) * pop, L.winTop + L.winH / 2 + (ty + y * k - L.winH / 2) * pop]
+
+  // captions
+  let capText = '', capA = 0, capDrift = 0
+  for (const [a, b, text] of CAPS) {
+    if (t >= a && t <= b + .35) {
+      const inn = apple(clamp((t - a) / .55)), out = inOut(clamp((t - b) / .3))
+      capText = text; capA = inn * (1 - out); capDrift = (1 - inn) * 14
+    }
+  }
+  els.cap.textContent = capText; els.cap.style.opacity = capA; els.cap.style.transform = `translateY(${capDrift}px)`
+
+  // cursor + click ripple
+  const [cx, cy] = keyframes(cursorKeys(), t)
+  const [sx, sy] = toStage(cx, cy)
+  let vis = 0
+  for (const [a, b] of SHOW_CURSOR) vis = Math.max(vis, clamp((t - a) / .25) * clamp((b - t) / .25))
+  let press = 0
+  for (const c of CLICKS) press = Math.max(press, t >= c - .08 && t <= c + .12 ? 1 - Math.abs(t - c) / .1 : 0)
+  els.cursor.style.opacity = vis
+  els.cursor.style.transform = `translate(${sx - 6}px, ${sy - 4}px) scale(${1 - 0.12 * clamp(press)})`
+  let rp = 0, rx = 0, ry = 0
+  for (const c of CLICKS) if (t >= c && t < c + .45) { rp = (t - c) / .45; const [px, py] = toStage(...keyframes(cursorKeys(), c)); rx = px; ry = py }
+  const size = 12 + 70 * apple(rp)
+  els.ripple.style.opacity = rp > 0 ? 0.9 * (1 - rp) * vis : 0
+  els.ripple.style.width = els.ripple.style.height = size + 'px'
+  els.ripple.style.left = (rx - size / 2) + 'px'; els.ripple.style.top = (ry - size / 2) + 'px'
+
+  // end card
+  const e = apple(clamp((t - 18.25) / .8))
+  els.end.style.opacity = e
+  els.end.style.transform = `translateY(${(1 - e) * 20}px)`
+}
+</script></body></html>

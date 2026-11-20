@@ -41,3 +41,10 @@ next-env.d.ts
 /docker-compose.yml
 /start-uched.command
 /studentProspectus.txt
+
+# Ad video: generated frames, captured screenshots of a real account, and renders stay local
+/ad/.auth.json
+/ad/states/
+/ad/frames/
+/ad/frames-v/
+/ad/out/
