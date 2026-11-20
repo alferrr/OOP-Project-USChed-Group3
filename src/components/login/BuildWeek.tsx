@@ -23,7 +23,6 @@ export default function BuildWeek() {
   return (
     <div aria-hidden className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[2rem] bg-green-900 p-8 text-white shadow-[var(--shadow-lift)]">
       <div>
-        <p className="font-display text-xs font-semibold uppercase tracking-widest text-gold-300">Your week, assembled</p>
         <p className="mt-3 max-w-sm font-display text-3xl font-extrabold leading-tight tracking-tight">
           Every class in its place. Nothing on top of anything else.
         </p>

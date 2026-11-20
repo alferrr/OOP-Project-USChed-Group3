@@ -43,7 +43,6 @@ export default function LoginPage() {
 
         <div className="flex flex-1 items-center justify-center px-6 pb-16 sm:px-10">
           <div className="rise w-full max-w-md">
-            <p className="font-display text-xs font-semibold uppercase tracking-widest text-gold-700">Enrollment, planned</p>
             <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-green-900">
               Plan the term before you enroll.
             </h1>
