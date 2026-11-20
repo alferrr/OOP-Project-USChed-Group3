@@ -102,16 +102,22 @@ export const useSyncSavedSchedules = () => {
 
 /** Save and remove with an instant update on screen; a failed request puts things back and reports why. */
 export const useSavedActions = () => {
+  const qc = useQueryClient()
+  // The saved list is cached for the whole session; without a refresh, the next page to load it would put the
+  // stale copy back and the schedule just saved would vanish from the Saved page.
+  const refresh = () => qc.invalidateQueries({ queryKey: ['saved-schedules'] })
   const save = useMutation({
     mutationFn: (v: { schedule: RankedSchedule; semester: SemesterCode; academicYear: string; name: string }) =>
       api<void>('/saved-schedules', { method: 'PUT', body: { name: v.name, semester: v.semester, academicYear: v.academicYear, schedule: v.schedule }, ismis: true }),
     onMutate: (v) => useSavedStore.getState().save(v.schedule, v.semester, v.academicYear, v.name),
     onError: (_e, v) => useSavedStore.getState().remove(savedId(v.schedule)),
+    onSettled: refresh,
   })
   const remove = useMutation({
     mutationFn: (item: SavedSchedule) => api<void>(`/saved-schedules/${encodeURIComponent(item.id)}`, { method: 'DELETE', ismis: true }),
     onMutate: (item) => useSavedStore.getState().remove(item.id),
     onError: (_e, item) => useSavedStore.getState().restore(item),
+    onSettled: refresh,
   })
   const failed = save.error ?? remove.error
   return {

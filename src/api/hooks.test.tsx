@@ -1,7 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useIsmisSignIn, useIsmisSignOut } from './hooks'
+import { useIsmisSignIn, useIsmisSignOut, useSavedActions } from './hooks'
 import { queryClient } from './queryClient'
 import { useIsmisStore } from '../store/ismisStore'
 import { useSelectionStore, useScheduleStore, usePreferencesStore } from '../store/planStore'
@@ -48,5 +48,18 @@ describe('cross-student cache isolation', () => {
     expect(queryClient.getQueryData(['prospectus'])).toBeUndefined()
     expect(useSelectionStore.getState().selected).toEqual([])
     expect(useScheduleStore.getState().result).toBeNull()
+  })
+})
+
+describe('saved schedules cache', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('marks the cached saved list stale after a save, so the Saved page refetches instead of showing the old copy', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 204, json: async () => { throw new Error('no body') } }))
+    queryClient.setQueryData(['saved-schedules'], [])
+    const { result } = renderHook(() => useSavedActions(), { wrapper })
+    const schedule = { sections: [], score: 80, totalUnits: 3, notes: [] } as never
+    result.current.save(schedule, '1ST', '2026-2027', 'My ideal week')
+    await waitFor(() => expect(queryClient.getQueryState(['saved-schedules'])?.isInvalidated).toBe(true))
   })
 })
