@@ -11,7 +11,7 @@ describe('configuration defaults', () => {
     expect(c.ismis.minDelayMs).toBeGreaterThan(0) // be polite to ISMIS by default
     expect(c.requireHttps).toBe(false)
     expect(c.admin.token).toBe('') // admin endpoints are off unless a token is set
-    expect(c.termsVersion).toBe('2026-11-19-2')
+    expect(c.termsVersion).toBe('2026-11-20')
     expect(ismisConfigured(c.ismis)).toBe(true)
   })
 

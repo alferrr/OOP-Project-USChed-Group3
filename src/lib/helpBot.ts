@@ -102,7 +102,7 @@ export const ENTRIES: HelpEntry[] = [
     answer: 'Sure. Press the button below to start the tour again.',
     keywords: ['tour', 'tutorial', 'walkthrough', 'walk me through', 'how to use this app', 'how to use usched', 'how does this work', 'how it works', 'getting started', 'onboarding', 'new here', 'replay'], action: 'tour' },
   { id: 'data', question: 'What data does USChed keep?',
-    answer: 'USChed keeps your student ID number, the course catalog it fetched for you, a log of your searches, schedules you chose to save, and a record that you accepted the Terms. It never keeps your password. Section 6 of the Terms lists everything.',
+    answer: 'USChed keeps your student ID number, the course catalog it fetched for you, a log of your searches, schedules you chose to save, and a record that you accepted the Terms. It never keeps your password. You can clear saved courses and remove saved schedules yourself, or email to have everything deleted. Section 6 of the Terms lists what is kept and section 8 explains deleting it.',
     keywords: ['what data', 'privacy', 'delete my data', 'personal data', 'what do you store', 'tracking', 'rights'], links: [{ label: 'Read the Terms', href: '/terms' }] },
   { id: 'creator', question: 'Who made USChed?',
     answer: 'USChed was made by Alfer Brent Mercado, an IT student. To see more of their work, check out their portfolio, and you can follow them on Instagram too.',
