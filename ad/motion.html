@@ -1,0 +1,384 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<!--
+  USChed motion-graphics ad. Every frame is a pure function of time: render.ts calls window.render(t) and screenshots.
+  The UI pieces are rebuilt as vector components from the app's real data (Schedule #1 from a captured run).
+-->
+<style>
+  html, body { margin: 0; background: #04120b; overflow: hidden }
+  #stage { position: relative; overflow: hidden; background: #04120b; color: #fff;
+    font-family: -apple-system, "SF Pro Display", system-ui, "Helvetica Neue", sans-serif; -webkit-font-smoothing: antialiased }
+  .c { position: absolute; left: 50%; top: 50% }
+  .fill { position: absolute; inset: 0 }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px) }
+  .line { position: absolute; left: 0; right: 0; top: 50%; display: flex; justify-content: center; flex-wrap: wrap; column-gap: .26em; padding: 0 60px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.04; text-align: center }
+  .line span { display: inline-block; white-space: pre; will-change: transform, filter, opacity }
+  .block { position: absolute; border-radius: 14px; padding: 9px 12px; box-sizing: border-box; color: #0a2f1d; font-size: 15px; line-height: 1.25; font-weight: 600; border: 2px solid }
+  .block small { display: block; font-weight: 500; opacity: .75; font-size: 13px }
+  .row { position: absolute; width: 760px; height: 96px; border-radius: 26px; background: #fff; color: #0a2f1d; box-shadow: 0 20px 50px rgba(0,0,0,.28); display: flex; align-items: center; padding: 0 22px 0 30px; box-sizing: border-box }
+  .row b { font-size: 27px; letter-spacing: -0.02em }
+  .row .u { font-size: 22px; color: #557064; font-weight: 500 }
+  .row .n { font-size: 16px; color: #557064; letter-spacing: .02em; margin-top: 4px; text-transform: uppercase }
+  .btn { margin-left: auto; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center }
+  .card { position: absolute; width: 300px; height: 200px; border-radius: 24px; background: rgba(255,255,255,.96); box-shadow: 0 12px 30px rgba(0,0,0,.25); box-sizing: border-box; padding: 16px 18px; color: #0a2f1d }
+  .pill { position: absolute; border-radius: 999px; padding: 18px 30px; font-size: 30px; font-weight: 650; letter-spacing: -0.02em; white-space: nowrap; box-shadow: 0 18px 40px rgba(0,0,0,.3) }
+</style></head>
+<body><div id="stage"></div>
+<script>
+const VERT = new URLSearchParams(location.search).get('v') === '1'
+const W = VERT ? 1080 : 1920, H = VERT ? 1920 : 1080
+const Z3 = VERT ? 1.15 : 1.3, Z5 = VERT ? 1 : 1.12, Z6 = 1.2
+const BIG = VERT ? 96 : 116, CAP = VERT ? 78 : 72, CAPY = VERT ? -540 : -392
+const C = { g900: '#0a2f1d', g800: '#0b4f2e', g700: '#0f6b3f', g600: '#1b7547', g500: '#2f7d4f', gold: '#f0c53d', gold3: '#f5d86a' }
+
+// ---------- maths ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x))
+const lerp = (a, b, x) => a + (b - a) * x
+const P = (t, a, b) => clamp((t - a) / (b - a))
+const inOut = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+function bezier(p1x, p1y, p2x, p2y) {
+  const cx = 3 * p1x, bx = 3 * (p2x - p1x) - cx, ax = 1 - cx - bx, cy = 3 * p1y, by = 3 * (p2y - p1y) - cy, ay = 1 - cy - by
+  const X = (s) => ((ax * s + bx) * s + cx) * s, Y = (s) => ((ay * s + by) * s + cy) * s
+  return (x) => { let s = x; for (let i = 0; i < 12; i++) { const d = X(s) - x; if (Math.abs(d) < 1e-6) break; const dx = (3 * ax * s + 2 * bx) * s + cx; if (Math.abs(dx) < 1e-6) break; s -= d / dx } return Y(clamp(s)) }
+}
+const apple = bezier(0.22, 1, 0.36, 1)
+const spring = (dt) => (dt <= 0 ? 0 : 1 - Math.exp(-8 * dt) * Math.cos(14 * dt)) // overshoots, settles by ~0.6 s
+const rnd = (i) => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x) }
+function keys(list, t) {
+  if (t <= list[0][0]) return list[0].slice(1)
+  for (let i = 0; i < list.length - 1; i++) { const a = list[i], b = list[i + 1]; if (t <= b[0]) { const e = inOut(P(t, a[0], b[0])); return a.slice(1).map((v, j) => lerp(v, b[j + 1], e)) } }
+  return list[list.length - 1].slice(1)
+}
+
+// ---------- DOM helpers ----------
+const stage = document.getElementById('stage')
+stage.style.width = W + 'px'; stage.style.height = H + 'px'
+function make(tag, cls, parent = stage, html = '') { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; parent.appendChild(e); return e }
+function css(e, o) { Object.assign(e.style, o); return e }
+/** Place a centred element: x/y offsets from the stage centre, scale, rotation, opacity, blur. */
+function put(e, { x = 0, y = 0, s = 1, r = 0, rx = 0, ry = 0, o = 1, b = 0, sk = 0 } = {}) {
+  e.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) perspective(1400px) rotateX(${rx}deg) rotateY(${ry}deg) rotate(${r}deg) skewX(${sk}deg) scale(${s})`
+  e.style.opacity = clamp(o)
+  e.style.filter = b > 0.1 ? `blur(${b}px)` : 'none'
+}
+const vis = (e, on) => { e.style.display = on ? '' : 'none'; return on }
+function zoomer(parent, k) { const z = make('div', 'fill', parent); css(z, { transform: `scale(${k})`, transformOrigin: '50% 50%' }); return z }
+function line(text, size, y, parent = stage) {
+  const l = make('div', 'line', parent); css(l, { fontSize: size + 'px', transform: `translateY(-50%) translateY(${y}px)` })
+  return { el: l, words: text.split(' ').map((w) => make('span', '', l, w)) }
+}
+/** Word-by-word kinetic type: each word blurs and rises in; all blur out together at `out`. */
+function kinetic(ln, t, starts, out, outDur = .35) {
+  ln.words.forEach((w, i) => {
+    const p = apple(P(t, starts[i], starts[i] + .55)), q = out == null ? 0 : inOut(P(t, out, out + outDur))
+    w.style.opacity = p * (1 - q)
+    w.style.transform = `translateY(${(1 - p) * 38 - q * 12}px) scale(${1 + q * .06})`
+    const b = (1 - p) * 16 + q * 20
+    w.style.filter = b > .1 ? `blur(${b}px)` : 'none'
+  })
+}
+const PLUS = (c = '#fff', w = 4) => `<svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/></svg>`
+const CHECK = (c) => `<svg width="28" height="28" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="${c}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+function logoMark(parent, size) {
+  const m = make('div', 'c', parent)
+  css(m, { width: size + 'px', height: size + 'px', borderRadius: size * .26 + 'px', background: C.gold, boxShadow: `0 0 80px rgba(240,197,61,.45)` })
+  const cols = [[.18, .32], [.12, .5], [.3, .34]] // [top, height] per column, as fractions
+  cols.forEach(([top, h], i) => make('div', '', m).style.cssText =
+    `position:absolute;left:${size * (.17 + i * .24)}px;top:${size * (top + .06)}px;width:${size * .18}px;height:${size * h}px;border-radius:${size * .05}px;background:${C.g800}`)
+  return m
+}
+
+// ---------- background: drifting blurred blobs + a light streak ----------
+const bg = make('div', 'fill')
+const blobs = [
+  { c: C.g600, s: 1100, ax: 420, ay: 260, w: .35, ph: 0 },
+  { c: '#4f8f2e', s: 900, ax: 520, ay: 300, w: .27, ph: 2 },
+  { c: C.g800, s: 1200, ax: 300, ay: 340, w: .22, ph: 4 },
+  { c: C.gold, s: 620, ax: 600, ay: 380, w: .31, ph: 1, o: .28 },
+].map((b) => ({ ...b, el: css(make('div', 'blob', bg), { width: b.s + 'px', height: b.s + 'px', background: b.c, opacity: b.o ?? .85 }) }))
+const streak = make('div', 'fill', bg, `<svg width="${W}" height="${H}" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"><path id="sp" d="M-200 900 C 400 300, 900 1000, 1400 420 S 2100 200, 2300 600" fill="none" stroke="${C.gold3}" stroke-width="70" stroke-linecap="round"/></svg>`)
+css(streak, { filter: 'blur(26px)', mixBlendMode: 'screen' })
+const vignette = css(make('div', 'fill', bg), { background: 'radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(2,10,6,.75) 100%)' })
+
+// ---------- scene 1: "Enrollment week is chaos." + clashing blocks ----------
+const s1 = make('div', 'fill')
+const s1t = line('Enrollment week is chaos.', BIG, 0, s1)
+const chaosData = [['CIS 2103', '7:30 AM', '#d3ece5', '#7fc4ad'], ['CIS 2105', '7:30 AM', '#e6edc9', '#bccd7c'], ['GE-ETHICS', '10:30 AM', '#cfe5d4', '#8fc49c'], ['CIS 2101', '10:00 AM', '#dbe9dd', '#9cc2a3'],
+  ['IT 3107', '9:00 AM', '#e9f0d0', '#c3cf86'], ['IT 4104', '8:00 AM', '#d3ece5', '#7fc4ad'], ['TPE 2103', '9:30 AM', '#f5ecc8', '#e2c766'], ['IT 3101N', '7:30 AM', '#dbe9dd', '#9cc2a3'],
+  ['CIS 2103', '8:30 AM', '#e6edc9', '#bccd7c'], ['GE-FEL', '10:00 AM', '#cfe5d4', '#8fc49c']]
+const chaos = chaosData.map(([code, time, bgc, bd], i) => {
+  const e = make('div', 'block c', s1, `${code}<small>${time} · clash</small>`)
+  css(e, { width: '230px', height: '92px', background: bgc, borderColor: bd })
+  return { e, tx: (rnd(i) - .5) * (VERT ? 520 : 760), ty: (rnd(i + 20) - .5) * (VERT ? 700 : 420), r: (rnd(i + 40) - .5) * 40, t0: 1.85 + i * .055 }
+})
+const clashTags = [0, 3, 6].map((i) => { const e = make('div', 'c', s1, 'Conflict'); css(e, { background: '#e5484d', color: '#fff', fontWeight: 700, fontSize: '22px', padding: '8px 16px', borderRadius: '999px', boxShadow: '0 10px 24px rgba(229,72,77,.5)' }); return { e, i } })
+
+// ---------- scene 2: words split, the logo pops in between, cursor clicks it ----------
+const s2 = make('div', 'fill')
+const leftW = css(make('div', 'c', s2, 'Every class'), { fontSize: BIG * .8 + 'px', fontWeight: 700, letterSpacing: '-0.04em', whiteSpace: 'nowrap' })
+const rightW = css(make('div', 'c', s2, 'in its place.'), { fontSize: BIG * .8 + 'px', fontWeight: 700, letterSpacing: '-0.04em', whiteSpace: 'nowrap' })
+const bar = css(make('div', 'c', s2), { background: C.gold, boxShadow: '0 0 60px rgba(240,197,61,.6)' })
+const mark2 = logoMark(s2, 150)
+
+// ---------- scene 3: search, then course rows cascade in ----------
+const s3 = make('div', 'fill')
+const s3cap = line('Add your courses.', CAP, VERT ? CAPY : -440, s3)
+const z3 = zoomer(s3, Z3)
+const search = make('div', 'c', z3, `<svg width="30" height="30" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="${C.g700}" stroke-width="2.4"/><path d="M16.5 16.5L21 21" stroke="${C.g700}" stroke-width="2.4" stroke-linecap="round"/></svg><span class="q" style="margin-left:16px"></span><span class="caret" style="display:inline-block;width:3px;height:34px;background:${C.g700};margin-left:3px;border-radius:2px"></span><span style="margin-left:auto;background:${C.g700};color:#fff;font-size:22px;font-weight:650;padding:12px 22px;border-radius:999px">Fetch</span>`)
+css(search, { width: '760px', height: '88px', borderRadius: '44px', background: '#fff', color: C.g900, display: 'flex', alignItems: 'center', padding: '0 14px 0 30px', boxSizing: 'border-box', fontSize: '32px', fontWeight: 600, boxShadow: '0 24px 60px rgba(0,0,0,.35)' })
+const query = search.querySelector('.q'), caret = search.querySelector('.caret')
+const courses = [['CIS 2101', 'Data structures and algorithms'], ['CIS 2103', 'Object-oriented programming'], ['CIS 2105', 'Networking II'], ['GE-ETHICS', 'Ethics']]
+const ROWY = [-85, 25, 135, 245], SEARCHY = -215
+const rows = courses.map(([code, name], i) => {
+  const r = make('div', 'row c', z3, `<div><b>${code}</b> <span class="u">· 3 units</span><div class="n">${name}</div></div><div class="btn" style="background:${C.g700}">${PLUS()}</div>`)
+  return { r, btn: r.querySelector('.btn'), t0: 6.95 + i * .09, click: [7.5, 7.75, 8.0, 8.25][i] }
+})
+
+// ---------- scene 4: tilted wall of ranked schedules ----------
+const s4 = make('div', 'fill')
+const wall = css(make('div', 'c', s4), { width: '0px', height: '0px' })
+const COLS = 9, ROWS = VERT ? 13 : 11
+const blockColors = [['#d3ece5', '#7fc4ad'], ['#e6edc9', '#bccd7c'], ['#cfe5d4', '#8fc49c'], ['#f5ecc8', '#e2c766']]
+for (let rI = 0; rI < ROWS; rI++) for (let cI = 0; cI < COLS; cI++) {
+  const n = rI * COLS + cI, rank = 1 + ((n * 7) % 500)
+  const score = (84.7 - rank * .03 - rnd(n) * 2).toFixed(1)
+  const card = make('div', 'card', wall)
+  css(card, { left: (cI - COLS / 2) * 328 + 'px', top: (rI - ROWS / 2) * 228 + 'px' })
+  let html = `<div style="display:flex;align-items:center;gap:10px;font-weight:750;font-size:22px">#${rank}<span style="font-size:15px;background:${C.g700};color:#fff;border-radius:999px;padding:3px 10px">${score}</span></div><div style="position:relative;height:130px;margin-top:12px">`
+  for (let d = 0; d < 5; d++) {
+    let y = rnd(n * 5 + d) * 30
+    for (let k = 0; k < 2 + Math.floor(rnd(n + d * 3) * 2); k++) {
+      const h = 26 + rnd(n * 9 + d + k) * 28, [bgc, bd] = blockColors[Math.floor(rnd(n + d + k * 7) * 4)]
+      if (y + h > 128) break
+      html += `<div style="position:absolute;left:${d * 53}px;top:${y}px;width:47px;height:${h}px;border-radius:7px;background:${bgc};border:2px solid ${bd};box-sizing:border-box"></div>`
+      y += h + 6 + rnd(n + k) * 14
+    }
+  }
+  card.innerHTML = html + '</div>'
+}
+const big1 = css(make('div', 'c', s4), { fontSize: (VERT ? 128 : 170) + 'px', fontWeight: 850, letterSpacing: '-0.05em', color: C.gold, whiteSpace: 'nowrap', textShadow: '0 10px 50px rgba(0,0,0,.45)' })
+const b1a = make('span', '', big1, '500 '), b1b = make('span', '', big1, 'schedules.')
+const big2 = css(make('div', 'c', s4), { fontSize: (VERT ? 96 : 120) + 'px', fontWeight: 800, letterSpacing: '-0.045em', color: '#fff', whiteSpace: 'nowrap', textShadow: '0 10px 40px rgba(0,0,0,.5)' })
+const b2a = make('span', '', big2, 'Zero '), b2b = make('span', '', big2, 'conflicts.')
+;[b1a, b1b, b2a, b2b].forEach((s) => css(s, { display: 'inline-block', whiteSpace: 'pre' }))
+
+// ---------- scene 5: the real best schedule assembles itself ----------
+const s5 = make('div', 'fill')
+const s5cap = line('Ranked. Best first.', CAP, VERT ? CAPY : -440, s5)
+const z5 = zoomer(s5, Z5)
+const cal = make('div', 'c', z5)
+css(cal, { width: '1000px', height: '580px', borderRadius: '34px', background: '#fff', color: C.g900, boxShadow: '0 40px 100px rgba(0,0,0,.45)', boxSizing: 'border-box', padding: '26px 30px' })
+cal.innerHTML = `<div style="display:flex;align-items:center;gap:14px;font-size:30px;font-weight:750;letter-spacing:-0.02em">Schedule #1
+  <span class="score" style="font-size:20px;background:${C.g700};color:#fff;border-radius:999px;padding:5px 14px">0.0</span>
+  <span style="margin-left:auto;display:flex;gap:10px;font-size:17px;font-weight:600;color:#3d5a4b">${['4 school days', '7:30 AM – 12:30 PM', '12 units'].map((s) => `<span style="background:#eef4ef;border-radius:999px;padding:8px 14px">${s}</span>`).join('')}</span></div>
+  <div class="grid" style="position:relative;margin-top:22px;height:450px"></div>`
+const score = cal.querySelector('.score'), grid = cal.querySelector('.grid')
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], GUT = 74, COLW = (940 - GUT) / 6, Y0 = 40, PXH = 76 // 7:00 at Y0
+DAYS.forEach((d, i) => make('div', '', grid, d).style.cssText = `position:absolute;left:${GUT + i * COLW}px;width:${COLW}px;top:0;text-align:center;font-weight:700;font-size:18px`)
+;['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '1:00'].forEach((h, i) => {
+  make('div', '', grid, h).style.cssText = `position:absolute;left:0;top:${Y0 + i * PXH - 9}px;font-size:14px;color:#6b8577;font-weight:600`
+  make('div', '', grid).style.cssText = `position:absolute;left:${GUT}px;right:0;top:${Y0 + i * PXH}px;height:1px;background:#e7efe9`
+})
+const hr = (s) => { const [h, m] = s.split(':').map(Number); return (h < 7 ? h + 12 : h) + m / 60 }
+const SCHED = [ // the real Schedule #1 from the capture
+  [0, 'CIS 2103 · Group 1', '7:30', '10:00', 'LB448TC', 0], [1, 'CIS 2105 · Group 7', '7:30', '10:00', 'LB470TC', 1],
+  [2, 'CIS 2103 · Group 1', '7:30', '10:00', 'LB448TC', 0], [3, 'CIS 2105 · Group 7', '7:30', '10:00', 'LB470TC', 1],
+  [0, 'GE-ETHICS · Group 39', '10:30', '12:00', 'LB484TC', 2], [1, 'CIS 2101 · Group 1', '10:00', '12:30', 'LB467TC', 3],
+  [2, 'GE-ETHICS · Group 39', '10:30', '12:00', 'LB484TC', 2], [3, 'CIS 2101 · Group 1', '10:00', '12:30', 'LB467TC', 3],
+]
+const fmt = (s) => { const h = hr(s); const hh = Math.floor(h), mm = Math.round((h - hh) * 60); return `${hh > 12 ? hh - 12 : hh}:${String(mm).padStart(2, '0')} ${hh >= 12 ? 'PM' : 'AM'}` }
+const calBlocks = SCHED.map(([d, label, a, b, room, col], i) => {
+  const [bgc, bd] = [['#d3ece5', '#7fc4ad'], ['#e6edc9', '#bccd7c'], ['#cfe5d4', '#8fc49c'], ['#dbe9dd', '#9cc2a3']][col]
+  const e = make('div', 'block', grid, `${label}<small>${fmt(a)} – ${fmt(b)}</small><small>${room}</small>`)
+  css(e, { left: GUT + d * COLW + 5 + 'px', top: Y0 + (hr(a) - 7) * PXH + 3 + 'px', width: COLW - 10 + 'px', height: (hr(b) - hr(a)) * PXH - 6 + 'px', background: bgc, borderColor: bd, transformOrigin: '50% 0%' })
+  return { e, t0: 12.15 + i * .08 }
+})
+const chips = [
+  ['☀︎  Morning', C.gold, C.g900, VERT ? [-250, -400, -7] : [-610, -170, -7], 13.05],
+  ['Fewer gaps', '#fff', C.g900, VERT ? [260, 410, 6] : [640, 120, 6], 13.2],
+  ['No conflicts', C.g700, '#fff', VERT ? [-230, 520, -4] : [-600, 250, -4], 13.35],
+].map(([text, b, c, pos, t0]) => ({ e: css(make('div', 'pill c', z5, text), { background: b, color: c }), pos, t0 }))
+
+// ---------- scene 6: plus draws itself, click, becomes a check; toast ----------
+const s6 = make('div', 'fill')
+const s6cap = line('Name it. Save it.', CAP, VERT ? -420 : -330, s6)
+const z6 = zoomer(s6, Z6)
+const icon = make('div', 'c', z6, `<svg width="240" height="240" viewBox="0 0 240 240">
+  <circle class="fillc" cx="120" cy="120" r="0" fill="${C.gold}"/>
+  <circle class="ring" cx="120" cy="120" r="100" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="629" stroke-dashoffset="629" transform="rotate(-90 120 120)"/>
+  <path class="pv" d="M120 72v96" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="96" stroke-dashoffset="96"/>
+  <path class="ph" d="M72 120h96" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="96" stroke-dashoffset="96"/>
+  <path class="ck" d="M78 124l28 28 58-62" fill="none" stroke="${C.g900}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="130" stroke-dashoffset="130"/></svg>`)
+const fillc = icon.querySelector('.fillc'), ring = icon.querySelector('.ring'), pv = icon.querySelector('.pv'), ph = icon.querySelector('.ph'), ck = icon.querySelector('.ck')
+const toast = make('div', 'c', z6, `<span style="width:52px;height:52px;border-radius:14px;background:${C.g700};display:grid;place-items:center"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" fill="#fff"/></svg></span><span style="margin-left:18px">Saved “My ideal week”</span><span class="view" style="margin-left:22px;color:${C.g600};font-weight:750">View</span>`)
+css(toast, { display: 'flex', alignItems: 'center', background: '#fff', color: C.g900, borderRadius: '26px', padding: '16px 30px 16px 16px', fontSize: '28px', fontWeight: 650, whiteSpace: 'nowrap', boxShadow: '0 24px 60px rgba(0,0,0,.4)' })
+const viewLink = toast.querySelector('.view')
+
+// ---------- scene 7: wall of words, then the end card ----------
+const s7 = make('div', 'fill')
+const ROWTXT = ['no clashes, no conflicts, no guesswork, ', 'every section, every teacher, every week, ', 'mornings, fewer gaps, a real lunch break, ',
+  null, 'rank it, save it, share it, compare it, ', 'read-only, free, made for San Carlos, ', 'no clashes, no conflicts, no guesswork, ']
+const HERO = 'Plan the term before you enroll.'
+const TW = VERT ? 70 : 124
+const tRows = ROWTXT.map((txt, i) => {
+  const e = css(make('div', '', s7), { position: 'absolute', left: '50%', top: H / 2 + (i - 3) * TW * 1.18 + 'px', whiteSpace: 'nowrap', fontSize: TW + 'px', fontWeight: 800, letterSpacing: '-0.045em', lineHeight: 1 })
+  if (txt) { e.textContent = txt.repeat(4); e.style.color = 'rgba(165,210,120,.42)' }
+  else e.innerHTML = `<span style="color:rgba(165,210,120,.42)">and moods, every week, </span><span style="color:#fff">${HERO}</span><span style="color:rgba(165,210,120,.42)"> no clashes, no conflicts,</span>`
+  return { e, i }
+})
+const end = make('div', 'fill')
+const mark7 = logoMark(end, VERT ? 170 : 150)
+const word7 = css(make('div', 'c', end, `<span style="color:#fff">US</span><span style="color:${C.gold}">Ched</span>`), { fontSize: (VERT ? 150 : 140) + 'px', fontWeight: 850, letterSpacing: '-0.05em', whiteSpace: 'nowrap' })
+const tag7 = css(make('div', 'c', end, HERO), { fontSize: (VERT ? 52 : 50) + 'px', fontWeight: 600, letterSpacing: '-0.03em', whiteSpace: 'nowrap', color: 'rgba(255,255,255,.88)' })
+const for7 = css(make('div', 'c', end, 'For USC students.'), { fontSize: '34px', fontWeight: 500, color: 'rgba(255,255,255,.6)', whiteSpace: 'nowrap' })
+
+// ---------- cursor ----------
+const ripple = css(make('div', 'c'), { width: '10px', height: '10px', borderRadius: '50%', border: '4px solid rgba(255,255,255,.9)', boxSizing: 'border-box' })
+const cursor = css(make('div', ''), { position: 'absolute', left: W / 2 + 'px', top: H / 2 + 'px', filter: 'drop-shadow(0 6px 10px rgba(0,0,0,.45))' })
+cursor.innerHTML = '<svg width="54" height="54" viewBox="0 0 24 24"><path d="M5 3l14 9-6.2 1.4L9.6 20z" fill="#fff" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/></svg>'
+const CUR = [
+  [4.3, 470, 420], [4.85, 22, 30], [5.05, 22, 30],
+  ...[[7.05, 560, 430], [7.45, 335, ROWY[0]], [7.5, 335, ROWY[0]], [7.72, 335, ROWY[1]], [7.75, 335, ROWY[1]], [7.97, 335, ROWY[2]], [8.0, 335, ROWY[2]], [8.22, 335, ROWY[3]], [8.25, 335, ROWY[3]], [8.5, 400, 330]].map(([t, x, y]) => [t, x * Z3, y * Z3]),
+  ...[[15.05, 430, 330], [15.5, 34, 40 + (VERT ? -40 : 0)], [15.6, 34, 40 + (VERT ? -40 : 0)], [15.95, 90, 110]].map(([t, x, y]) => [t, x * Z6, y * Z6]),
+]
+const CUR_ON = [[4.3, 5.05], [7.05, 8.5], [15.05, 15.95]]
+const CLICKS = [4.9, 7.5, 7.75, 8.0, 8.25, 15.6]
+
+window.init = async () => { await document.fonts.ready }
+
+window.render = function (t) {
+  // background drift; a little brighter in the middle of the piece
+  blobs.forEach((b, i) => {
+    const x = W / 2 - b.s / 2 + Math.sin(t * b.w + b.ph) * b.ax, y = H / 2 - b.s / 2 + Math.cos(t * b.w * 1.3 + b.ph) * b.ay
+    b.el.style.transform = `translate(${x}px, ${y}px) scale(${1 + .08 * Math.sin(t * .5 + i)})`
+  })
+  const sw = P(t, 0, 5.5)
+  streak.style.opacity = .75 * Math.sin(Math.PI * sw)
+  streak.style.transform = `translateX(${lerp(-500, 500, sw)}px) rotate(${lerp(-6, 4, sw)}deg)`
+  vignette.style.opacity = t > 16.8 ? lerp(1, .6, P(t, 16.8, 17.4)) : 1
+
+  // scene 1
+  if (vis(s1, t < 3.3)) {
+    kinetic(s1t, t, [.2, .5, .8, 1.0], 1.75)
+    const out = inOut(P(t, 2.85, 3.2))
+    chaos.forEach((c, i) => {
+      const k = spring(t - c.t0)
+      put(c.e, { x: c.tx * (1 + out * .4), y: lerp(-H * .8, c.ty, clamp(k, 0, 1.2)) * (1 + out * .4), r: c.r * k + Math.sin(t * 30 + i) * 2 * P(t, 2.4, 2.5) * (1 - out), o: (t > c.t0 ? 1 : 0) * (1 - out), b: out * 24, s: 1 + out * .25 })
+    })
+    clashTags.forEach(({ e, i }, j) => { const k = spring(t - 2.4 - j * .07); put(e, { x: chaos[i].tx * (1 + out * .4) + 70, y: chaos[i].ty * (1 + out * .4) - 52, s: k, o: (t > 2.4 ? 1 : 0) * (1 - out), b: out * 24 }) })
+  }
+
+  // scene 2
+  if (vis(s2, t > 3.1 && t < 5.6)) {
+    const gap = lerp(18, 230, apple(P(t, 4.0, 4.45))) / 2
+    const inA = apple(P(t, 3.2, 3.75)), inB = apple(P(t, 3.5, 4.05)), out = inOut(P(t, 4.95, 5.25))
+    leftW.style.transform = `translate(-100%, -50%) translate(${-gap}px, ${(1 - inA) * 38}px) scale(${1 + out * .1})`
+    rightW.style.transform = `translate(0, -50%) translate(${gap}px, ${(1 - inB) * 38}px) scale(${1 + out * .1})`
+    leftW.style.opacity = inA * (1 - out); rightW.style.opacity = inB * (1 - out)
+    leftW.style.filter = `blur(${(1 - inA) * 16 + out * 22}px)`; rightW.style.filter = `blur(${(1 - inB) * 16 + out * 22}px)`
+    const grow = apple(P(t, 4.0, 4.3))
+    css(bar, { width: '10px', height: 110 * grow + 'px', borderRadius: '6px' }); put(bar, { o: t < 4.33 ? grow : 0 })
+    const m = spring(t - 4.3), press = t > 4.82 && t < 4.98 ? .9 : 1, zoom = Math.pow(P(t, 5.0, 5.5), 2.2)
+    put(mark2, { s: (t < 4.3 ? 0 : clamp(m, 0, 1.15)) * press * (1 + zoom * 28), o: t < 4.3 ? 0 : 1 - P(t, 5.3, 5.5), r: (1 - clamp(m)) * -30 })
+  }
+
+  // scene 3
+  if (vis(s3, t > 5.45 && t < 8.75)) {
+    const out = inOut(P(t, 8.4, 8.72))
+    kinetic(s3cap, t, [5.5, 5.62, 5.74], 8.4)
+    const sIn = apple(P(t, 5.55, 6.1)), up = apple(P(t, 6.85, 7.3))
+    put(search, { y: lerp(40, SEARCHY, up) - out * 40, s: lerp(.9, 1, sIn), o: sIn * (1 - out), b: (1 - sIn) * 14 + out * 18 })
+    const typed = 'CIS 2105'.slice(0, Math.floor(clamp((t - 5.95) / .11, 0, 8)))
+    query.textContent = typed
+    caret.style.opacity = t < 6.9 ? (Math.floor(t * 2.2) % 2 ? 1 : .15) : 0
+    rows.forEach(({ r, btn, t0, click }, i) => {
+      const p = apple(P(t, t0, t0 + .65))
+      put(r, { x: (1 - p) * 90, y: ROWY[i] + (1 - p) * 60 - out * 40, ry: (1 - p) * -28, o: p * (1 - out), b: (1 - p) * 12 + out * 18 })
+      const done = t >= click + .02, k = spring(t - click)
+      btn.style.background = done ? C.gold : C.g700
+      btn.innerHTML = done ? CHECK(C.g900) : PLUS()
+      btn.style.transform = done ? `scale(${.7 + .3 * clamp(k, 0, 1.2)}) rotate(${(1 - clamp(k)) * -90}deg)` : 'none'
+    })
+  }
+
+  // scene 4
+  if (vis(s4, t > 8.55 && t < 11.75)) {
+    const inn = apple(P(t, 8.55, 9.2)), out = inOut(P(t, 11.15, 11.7))
+    wall.style.transform = `translate(-50%, -50%) perspective(1800px) rotateX(${lerp(68, 46, inn)}deg) rotateZ(${VERT ? -24 : -30}deg) translateY(${-(t - 8.55) * 150}px) scale(${1.05 + out * .9})`
+    wall.style.opacity = inn * (1 - out); wall.style.filter = (1 - inn) * 18 + out * 26 > .1 ? `blur(${(1 - inn) * 18 + out * 26}px)` : 'none'
+    const pop = (s, t0) => { const k = spring(t - t0); s.style.transform = `scale(${t < t0 ? 1.6 : lerp(1.6, 1, clamp(k, 0, 1.1))})`; s.style.opacity = t < t0 ? 0 : clamp((t - t0) / .12); s.style.filter = t < t0 + .2 ? `blur(${clamp(1 - (t - t0) / .2) * 14}px)` : 'none' }
+    pop(b1a, 9.05); pop(b1b, 9.3); pop(b2a, 10.05); pop(b2b, 10.25)
+    put(big1, { y: VERT ? -120 : -70, r: -8, sk: -6, o: 1 - out, b: out * 20, s: 1 + out * .2 })
+    put(big2, { y: VERT ? 40 : 90, r: -8, sk: -6, o: 1 - out, b: out * 20, s: 1 + out * .2 })
+  }
+
+  // scene 5
+  if (vis(s5, t > 11.6 && t < 14.7)) {
+    const inn = apple(P(t, 11.65, 12.3)), out = inOut(P(t, 14.3, 14.65))
+    kinetic(s5cap, t, [11.7, 11.88, 12.02], 14.3)
+    const push = 1 + .05 * inOut(P(t, 12.3, 14.3))
+    put(cal, { y: (1 - inn) * 110 + (VERT ? 0 : 40), rx: (1 - inn) * 38, s: lerp(.92, 1, inn) * push * (1 - out * .1), o: inn * (1 - out), b: (1 - inn) * 14 + out * 18 })
+    calBlocks.forEach(({ e, t0 }) => { const k = spring(t - t0); e.style.opacity = t < t0 ? 0 : clamp((t - t0) / .1); e.style.transform = `translateY(${(1 - clamp(k, 0, 1.1)) * -50}px) scaleY(${lerp(.4, 1, clamp(k, 0, 1.08))})` })
+    score.textContent = (84.7 * inOut(P(t, 12.4, 13.2))).toFixed(1)
+    chips.forEach(({ e, pos: [x, y, r], t0 }) => { const k = spring(t - t0); put(e, { x: x + (1 - clamp(k)) * (x > 0 ? 160 : -160), y, r: r * clamp(k, 0, 1.2), s: clamp(k, 0, 1.15) * (1 - out * .3), o: (t > t0 ? 1 : 0) * (1 - out), b: out * 18 }) })
+  }
+
+  // scene 6
+  if (vis(s6, t > 14.6 && t < 16.95)) {
+    const out = inOut(P(t, 16.55, 16.9))
+    kinetic(s6cap, t, [14.7, 14.85, 15.05, 15.2], 16.55)
+    ring.setAttribute('stroke-dashoffset', 629 * (1 - inOut(P(t, 14.75, 15.3))))
+    pv.setAttribute('stroke-dashoffset', 96 * (1 - inOut(P(t, 15.05, 15.35))))
+    ph.setAttribute('stroke-dashoffset', 96 * (1 - inOut(P(t, 15.12, 15.42))))
+    const f = spring(t - 15.6)
+    fillc.setAttribute('r', t < 15.6 ? 0 : 100 * clamp(f, 0, 1.08))
+    ring.style.opacity = pv.style.opacity = ph.style.opacity = 1 - P(t, 15.6, 15.75)
+    ck.setAttribute('stroke-dashoffset', 130 * (1 - inOut(P(t, 15.75, 16.05))))
+    const press = t > 15.52 && t < 15.66 ? .9 : 1
+    put(icon, { y: VERT ? -40 : 0, s: press * (t > 15.6 ? 1 + .12 * Math.sin(Math.PI * P(t, 15.6, 15.95)) : 1) * (1 - out * .2), o: 1 - out, b: out * 20 })
+    icon.style.filter = (out > .01 ? `blur(${out * 20}px) ` : '') + (t > 15.6 ? `drop-shadow(0 0 ${40 * clamp(f)}px rgba(240,197,61,.65))` : '')
+    const tin = apple(P(t, 16.0, 16.45))
+    put(toast, { y: (VERT ? 260 : 230) + (1 - tin) * 50, s: lerp(.92, 1, tin), o: tin * (1 - out), b: (1 - tin) * 12 + out * 18 })
+    viewLink.style.color = t > 16.3 ? C.gold : C.g600
+  }
+
+  // scene 7
+  if (vis(s7, t > 16.75 && t < 18.8)) {
+    const out = inOut(P(t, 18.25, 18.7))
+    tRows.forEach(({ e, i }) => {
+      const dir = i % 2 ? 1 : -1, inn = apple(P(t, 16.8 + Math.abs(i - 3) * .05, 17.4 + Math.abs(i - 3) * .05))
+      const drift = (t - 16.8) * 70 * dir
+      const hero = i === 3
+      const base = hero ? -e.offsetWidth / 2 + e.firstChild.offsetWidth * 0 - 0 : -e.offsetWidth / 2
+      // centre the white phrase on the hero row
+      const heroShift = hero ? (e.offsetWidth / 2 - e.firstChild.offsetWidth - e.children[1].offsetWidth / 2) : 0
+      const d = Math.abs(i - 3)
+      e.style.transform = `translate(${base + heroShift + (1 - inn) * 900 * dir + (hero ? (t - 16.8) * 22 : drift)}px, -50%) scale(${1 + out * .12})`
+      e.style.opacity = inn * (1 - out) * (hero ? 1 : 1 - d * .12)
+      const b = (1 - inn) * 20 + out * 26 + (hero ? 0 : d * 1.6)
+      e.style.filter = b > .1 ? `blur(${b}px)` : 'none'
+    })
+  }
+  if (vis(end, t > 18.4)) {
+    const m = spring(t - 18.5), w = apple(P(t, 18.7, 19.25)), g = apple(P(t, 18.95, 19.5)), f = apple(P(t, 19.1, 19.6))
+    const my = VERT ? -260 : -190
+    put(mark7, { y: my, s: clamp(m, 0, 1.15), r: (1 - clamp(m)) * -40, o: t > 18.5 ? 1 : 0 })
+    put(word7, { y: (VERT ? -40 : -10) + (1 - w) * 40, o: w, b: (1 - w) * 16 })
+    put(tag7, { y: (VERT ? 100 : 110) + (1 - g) * 30, o: g, b: (1 - g) * 12 })
+    put(for7, { y: (VERT ? 170 : 175) + (1 - f) * 24, o: f, b: (1 - f) * 10 })
+  }
+
+  // cursor + click ripple
+  const [cx, cy] = keys(CUR, t)
+  let on = 0
+  for (const [a, b] of CUR_ON) on = Math.max(on, P(t, a, a + .2) * P(t, b + .2, b))
+  let press = 0
+  for (const c of CLICKS) press = Math.max(press, t > c - .08 && t < c + .1 ? 1 - Math.abs(t - c) / .1 : 0)
+  cursor.style.opacity = on
+  cursor.style.transform = `translate(${cx - 12}px, ${cy - 8}px) scale(${1 - .15 * clamp(press)})`
+  let rp = -1, rx = 0, ry = 0
+  for (const c of CLICKS) if (t >= c && t < c + .5) { rp = (t - c) / .5; [rx, ry] = keys(CUR, c) }
+  ripple.style.display = rp < 0 ? 'none' : ''
+  if (rp >= 0) { const s = 10 + 110 * apple(rp); css(ripple, { width: s + 'px', height: s + 'px', opacity: (1 - rp) * on }); put(ripple, { x: rx, y: ry, o: (1 - rp) * on }) }
+}
+</script></body></html>
